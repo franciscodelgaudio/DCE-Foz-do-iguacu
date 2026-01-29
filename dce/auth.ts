@@ -1,6 +1,26 @@
 import NextAuth from "next-auth"
 import Google from "next-auth/providers/google"
 
-export const { handlers, signIn, signOut, auth } = NextAuth({
-  providers: [Google],
+const ALLOWED_EMAILS = new Set([
+  "delgaudiofrancisco.junior@gmail.com",
+])
+
+export const { handlers, auth, signIn, signOut } = NextAuth({
+  providers: [
+    Google({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    }),
+  ],
+  callbacks: {
+    async signIn({ user, profile }) {
+      const email = user.email?.toLowerCase()
+      if (!email) return false
+
+      const emailVerified = (profile as any)?.email_verified
+      if (emailVerified === false) return false
+
+      return ALLOWED_EMAILS.has(email)
+    },
+  },
 })

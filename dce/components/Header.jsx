@@ -23,8 +23,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { signInWithGoogle } from "@/lib/actions/auth" // ajuste o caminho se necessário
-import { FcGoogle } from "react-icons/fc"
+import { signInWithGoogle, logout } from "@/lib/actions/auth"
 
 export function Header({ user }) {
     return (
@@ -94,6 +93,14 @@ export function Header({ user }) {
 
                                 <DropdownMenuItem asChild>
                                     <Link href="/dashboard">Ir para o dashboard</Link>
+                                </DropdownMenuItem>
+
+                                <DropdownMenuSeparator />
+
+                                <DropdownMenuItem asChild>
+                                    <button type="button" className="w-full text-left" onClick={logout}>
+                                        Sair
+                                    </button>
                                 </DropdownMenuItem>
                             </DropdownMenuContent>
                         </DropdownMenu>
