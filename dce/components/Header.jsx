@@ -1,7 +1,9 @@
+"use client"
+
+import Link from "next/link"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Menu, Search } from "lucide-react"
-import Link from "next/link"
+import { CircleUser, Menu, Search } from "lucide-react"
 import {
     NavigationMenu,
     NavigationMenuContent,
@@ -11,10 +13,23 @@ import {
     NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu"
 
-export function Header() {
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { signInWithGoogle } from "@/lib/actions/auth" // ajuste o caminho se necessário
+import { FcGoogle } from "react-icons/fc"
+
+export function Header({ user }) {
     return (
-        <header className="border-b bg-white justify-center align-items">
-            <div className="grid h-16 items-center gap-3 px-4 grid-cols-[1fr_auto_1fr] h-20">
+        <header className="border-b bg-white">
+            <div className="grid h-20 items-center gap-3 px-4 grid-cols-[1fr_auto_1fr_auto]">
                 <div>
                     <Link href="/" className="font-semibold whitespace-nowrap">
                         DCE
@@ -23,10 +38,7 @@ export function Header() {
 
                 <div className="justify-self-center w-[32rem] max-w-full">
                     <div className="flex items-center gap-2">
-                        <Input
-                            placeholder="Pesquisar..."
-                            className="w-full h-10"
-                        />
+                        <Input placeholder="Pesquisar..." className="w-full h-10" />
                         <Search />
                     </div>
                 </div>
@@ -47,12 +59,45 @@ export function Header() {
                                 </NavigationMenuTrigger>
 
                                 <NavigationMenuContent>
-                                    <NavigationMenuLink>Link</NavigationMenuLink>
+                                    <NavigationMenuLink href="/#">#</NavigationMenuLink>
                                 </NavigationMenuContent>
                             </NavigationMenuItem>
                         </NavigationMenuList>
                     </NavigationMenu>
+                </div>
 
+                <div className="justify-self-end">
+                    {!user ? (
+                        <form action={signInWithGoogle}>
+                            <Button type="submit" variant="outline" className="h-10 gap-2">
+                                <CircleUser className="h-5 w-5" />
+                                Login
+                            </Button>
+                        </form>
+                    ) : (
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" className="h-10 px-2 gap-2">
+                                    <Avatar className="h-8 w-8">
+                                        <AvatarImage src={user?.image} alt={user?.name} />
+                                        <AvatarFallback>{user?.name?.[0] || "U"}</AvatarFallback>
+                                    </Avatar>
+                                    <span className="max-w-[160px] truncate text-sm font-medium">
+                                        {user?.name}
+                                    </span>
+                                </Button>
+                            </DropdownMenuTrigger>
+
+                            <DropdownMenuContent align="end" className="w-56">
+                                <DropdownMenuLabel>Conta</DropdownMenuLabel>
+                                <DropdownMenuSeparator />
+
+                                <DropdownMenuItem asChild>
+                                    <Link href="/dashboard">Ir para o dashboard</Link>
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    )}
                 </div>
             </div>
         </header>

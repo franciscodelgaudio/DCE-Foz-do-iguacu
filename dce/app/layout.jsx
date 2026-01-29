@@ -1,6 +1,5 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { Separator } from "@/components/ui/separator";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -12,14 +11,12 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export default function RootLayout({ children, header }: Readonly<{ children: React.ReactNode; header: React.ReactNode }>) {
+export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {header}
-        <Separator />
         {children}
       </body>
     </html>
