@@ -22,14 +22,14 @@ const team = [
 export function MemberSession() {
     return (
         <section className="w-full">
-            <div className="mx-auto w-full max-w-[1600px] px-6 py-16 md:px-10">
+            <div className="mx-auto w-full max-w-[1500px] px-6 py-16 md:px-10">
                 {/* chip alinhado à esquerda */}
                 <div className="inline-flex bg-slate-900 px-4 py-2">
                     <h2 className="text-lg font-extrabold text-white">Coordenação do DCE</h2>
                 </div>
 
                 {/* espaçamento grande entre eles */}
-                <div className="mt-10 flex flex-wrap justify-between gap-y-12 gap-x-2">
+                <div className="mt-10 flex flex-wrap justify-between gap-y-12 gap-x-7">
                     {team.map((p) => (
                         <article key={p.name} className="w-44 text-center">
                             <div className="relative h-44 w-44 mx-auto overflow-hidden rounded-full">
