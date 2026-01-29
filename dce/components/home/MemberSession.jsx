@@ -21,7 +21,7 @@ const team = [
 
 export function MemberSession() {
     return (
-        <section className="w-full">
+        <section className="w-full bg-gray-200">
             <div className="mx-auto w-full max-w-[1500px] px-6 py-16 md:px-10">
                 {/* chip alinhado à esquerda */}
                 <div className="inline-flex bg-slate-900 px-4 py-2">
