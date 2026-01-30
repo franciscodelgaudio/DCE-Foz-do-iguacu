@@ -1,5 +1,6 @@
 import mongoose, { Schema } from "mongoose";
 import { dbConnect } from "../lib/mongoose.js";
+import { email } from "zod";
 
 const NewsSchema = new Schema(
     {
@@ -55,10 +56,10 @@ const NewsSchema = new Schema(
             type: Date,
         },
         author: {
-            id: {
+            name: {
                 type: String,
             },
-            name: {
+            email: {
                 type: String,
                 trim: true
             },

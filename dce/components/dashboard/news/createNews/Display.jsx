@@ -18,8 +18,6 @@ export function Display({ newItem }) {
             await upsertNews({
                 ...values,
                 status,
-                contentHtml: values.content.html,
-                contentJson: values.content.json,
             })
 
             toast.success(status === 'published' ? 'Notícia publicada!' : 'Rascunho salvo!')

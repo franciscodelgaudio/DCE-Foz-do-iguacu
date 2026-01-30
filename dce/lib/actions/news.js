@@ -2,44 +2,55 @@
 
 import { auth } from "@/auth"
 import { redirect } from "next/navigation"
-import { z } from "zod"
+import { email, z } from "zod"
 import { News } from "../../models/news"
 import mongoose from "mongoose"
 
 const newsSchema = z.object({
+    _id: z.string().optional(),
     title: z.string().min(1),
     excerpt: z.string().optional(),
-    contentHtml: z.string().min(1),
-    contentJson: z.unknown(),
+    content: z.object({
+        html: z.string().min(1),
+        json: z.coerce.string(),
+    }),
     status: z.enum(["draft", "published", "scheduled", "archived"]).optional(),
 })
 
 export async function upsertNews(form) {
+
+    console.log(form)
+
     const session = await auth()
     if (!session) redirect("/login")
 
     const parsed = newsSchema.safeParse(form)
     if (!parsed.success) { return { success: false, message: "Zod falhou!" } }
 
-    const { title, excerpt, contentHtml, contentJson, status } = parsed.data
+    const { _id, title, excerpt, content, status } = parsed.data
+
+    const id = _id === undefined ? new mongoose.Types.ObjectId() : new mongoose.Types.ObjectId(_id)
 
     const newItem = {
+        _id: id,
         title,
         excerpt,
-        contentHtml,
-        contentJson,
+        contentHtml: content.html,
+        contentJson: content.json,
         author: {
-            id: session.user.id,
             name: session.user.name,
+            email: session.user.email,
             avatarUrl: session.user.image
         },
         publishedAt: new Date(),
         status,
     }
 
+    console.log(newItem);
+
     try {
         await News.findOneAndUpdate(
-            { _id: new mongoose.Types.ObjectId(form._id) },
+            { _id: id },
             { $set: newItem },
             {
                 upsert: true,
