@@ -9,7 +9,7 @@ const team = [
     { name: "Francisco", role: "Coordenação de Comunicação & Imprensa", photo: "/images/team/francisco.jpg" },
     { name: "Pietra", role: "Coordenação de Comunicação & Imprensa", photo: "/images/team/pietra.jpg" },
     { name: "Ana Clara", role: "Coordenação de Assistência Estudantil", photo: "/images/team/ana-clara.jpg" },
-    { name: "João", role: "Coordenação de Assistência Estudantil", photo: "" },
+    { name: "João", role: "Coordenação de Assistência Estudantil", photo: "/images/team/joao.jpg" },
     { name: "Evy", role: "Coordenação de Cultura", photo: "/images/team/evy.jpg" },
     { name: "Felipe", role: "Coordenação de Movimento Estudantil & Formações Políticas", photo: "/images/team/felipe.jpg" },
     { name: "Daf", role: "Coordenação de Movimento Estudantil & Formações Políticas", photo: "/images/team/daf.jpg" },
