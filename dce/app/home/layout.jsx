@@ -5,7 +5,6 @@ export default function RootLayout({ children, header, footer }) {
         <html lang="en">
             <body>
                 {header}
-                <Separator />
                 {children}
                 <Separator />
                 {footer}

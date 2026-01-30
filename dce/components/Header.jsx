@@ -24,14 +24,15 @@ import {
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { signInWithGoogle, logout } from "@/lib/actions/auth"
+import Image from "next/image"
 
 export function Header({ user }) {
     return (
         <header className="border-b bg-white">
-            <div className="grid h-20 items-center gap-3 px-4 grid-cols-[1fr_auto_1fr_auto]">
+            <div className="grid h-30 items-center gap-3 px-4 grid-cols-[1fr_auto_1fr_auto]">
                 <div>
                     <Link href="/" className="font-semibold whitespace-nowrap">
-                        DCE
+                        <Image src="/images/home/logo.png" alt="DCE Logo" width={100} height={40} />
                     </Link>
                 </div>
 
