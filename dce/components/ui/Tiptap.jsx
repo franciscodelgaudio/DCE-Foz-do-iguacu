@@ -3,15 +3,14 @@
 import * as React from 'react'
 import { useEditor, EditorContent } from '@tiptap/react'
 import { BubbleMenu } from '@tiptap/react/menus'
-
 import StarterKit from '@tiptap/starter-kit'
 import Underline from '@tiptap/extension-underline'
 import Link from '@tiptap/extension-link'
 import Image from '@tiptap/extension-image'
-import Placeholder from '@tiptap/extension-placeholder'
 import TextAlign from '@tiptap/extension-text-align'
 import Highlight from '@tiptap/extension-highlight'
-import { Table, TableRow, TableCell, TableHeader } from '@tiptap/extension-table'
+// Se você usa Table mesmo, mantenha seus imports como já estavam.
+
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { cn } from '@/lib/utils'
@@ -36,11 +35,47 @@ import {
     AlignLeft,
     AlignCenter,
     AlignRight,
-    Table as TableIcon,
+    AlignJustify,
     Minus,
 } from 'lucide-react'
+
 import { ImageUpload } from '../editor/extensions/image-upload'
 
+/**
+ * ✅ Imagem com atributo align (left|center|right)
+ * - center => mx-auto block
+ * - right  => ml-auto block
+ * - left   => mr-auto block
+ */
+const AlignedImage = Image.extend({
+    addAttributes() {
+        return {
+            ...this.parent?.(),
+            align: {
+                default: 'center',
+                parseHTML: (element) => element.getAttribute('data-align') || 'center',
+                renderHTML: (attrs) => {
+                    const align = attrs.align || 'center'
+
+                    const alignClass =
+                        align === 'center'
+                            ? 'mx-auto'
+                            : align === 'right'
+                                ? 'ml-auto'
+                                : 'mr-auto'
+
+                    return {
+                        'data-align': align,
+                        class: cn(
+                            'max-w-full h-auto rounded-md block',
+                            alignClass
+                        ),
+                    }
+                },
+            },
+        }
+    },
+})
 
 function ToolbarButton({
     active,
@@ -52,9 +87,12 @@ function ToolbarButton({
     return (
         <Button
             type="button"
-            variant={active ? 'secondary' : 'ghost'}
+            variant="ghost"
             size="sm"
-            className="h-9 px-2"
+            className={cn(
+                'h-9 px-2',
+                active && 'bg-muted text-foreground',
+            )}
             disabled={disabled}
             onClick={onClick}
             title={title}
@@ -65,7 +103,12 @@ function ToolbarButton({
     )
 }
 
-export default function Tiptap({ initialHtml, onChange, className, readOnly = false }) {
+export default function Tiptap({
+    initialHtml,
+    onChange,
+    className,
+    readOnly = false,
+}) {
     const editor = useEditor({
         immediatelyRender: false,
         editable: !readOnly,
@@ -82,30 +125,31 @@ export default function Tiptap({ initialHtml, onChange, className, readOnly = fa
                 linkOnPaste: true,
                 HTMLAttributes: { class: 'underline underline-offset-4' },
             }),
-            Image.configure({
+
+            // ✅ imagem com align
+            AlignedImage.configure({
                 allowBase64: true,
-                HTMLAttributes: { class: 'rounded-md max-w-full' },
             }),
 
-            // ✅ o “slot” igual do Simple Editor
             ImageUpload.configure({
                 maxFiles: 3,
                 maxSizeMB: 5,
-                // uploadFn: async (file) => { ... } // depois você troca por upload real
             }),
 
-            TextAlign.configure({ types: ['heading', 'paragraph'] }),
-            Placeholder.configure({ placeholder: 'Digite aqui…' }),
-            Table.configure({ resizable: true }),
-            TableRow,
-            TableHeader,
-            TableCell,
+            // ✅ incluir listItem pra alinhar dentro de bullets
+            TextAlign.configure({
+                types: ['heading', 'paragraph', 'listItem'],
+            }),
+
+            // ❌ remover placeholder se você quer “texto real” e não placeholder
+            // Placeholder.configure({ placeholder: 'Digite aqui…' }),
         ],
         content: initialHtml,
         editorProps: {
             attributes: {
                 class: cn(
                     'min-h-[240px] w-full rounded-md border bg-background p-4 outline-none',
+                    // IMPORTANTE: isso só funciona “de verdade” se você tiver @tailwindcss/typography
                     'prose prose-sm sm:prose-base dark:prose-invert max-w-none',
                     'focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ring-offset-background'
                 ),
@@ -119,6 +163,17 @@ export default function Tiptap({ initialHtml, onChange, className, readOnly = fa
             })
         },
     })
+
+    // ✅ Se você editar notícia existente e initialHtml mudar, isso sincroniza
+    React.useEffect(() => {
+        if (!editor) return
+        if (typeof initialHtml !== 'string') return
+
+        const current = editor.getHTML()
+        if (current !== initialHtml) {
+            editor.commands.setContent(initialHtml, false)
+        }
+    }, [editor, initialHtml])
 
     const setLink = React.useCallback(() => {
         if (!editor) return
@@ -134,12 +189,39 @@ export default function Tiptap({ initialHtml, onChange, className, readOnly = fa
         editor.chain().focus().extendMarkRange('link').setLink({ href: url.trim() }).run()
     }, [editor])
 
-    const addImage = React.useCallback(() => {
-        if (!editor) return
-        const url = window.prompt('URL da imagem:')
-        if (!url) return
-        editor.chain().focus().setImage({ src: url.trim() }).run()
-    }, [editor])
+    // ✅ Alinha texto OU imagem (se imagem estiver selecionada)
+    const applyAlign = React.useCallback(
+        (align) => {
+            if (!editor) return
+            const chain = editor.chain().focus()
+
+            // justify só faz sentido em texto
+            if (align === 'justify') {
+                chain.setTextAlign('justify').run()
+                return
+            }
+
+            if (editor.isActive('image')) {
+                chain.updateAttributes('image', { align }).run()
+            } else {
+                chain.setTextAlign(align).run()
+            }
+        },
+        [editor]
+    )
+
+    const isAlignActive = React.useCallback(
+        (align) => {
+            if (!editor) return false
+            if (align === 'justify') return editor.isActive({ textAlign: 'justify' })
+
+            // Se imagem selecionada, usa atributo align da imagem
+            if (editor.isActive('image')) return editor.isActive('image', { align })
+
+            return editor.isActive({ textAlign: align })
+        },
+        [editor]
+    )
 
     if (!editor) return null
 
@@ -256,28 +338,37 @@ export default function Tiptap({ initialHtml, onChange, className, readOnly = fa
 
                 <Separator orientation="vertical" className="mx-1 h-6" />
 
+                {/* ✅ alinhamento texto + imagem */}
                 <ToolbarButton
                     title="Alinhar esquerda"
-                    active={editor.isActive({ textAlign: 'left' })}
-                    onClick={() => editor.chain().focus().setTextAlign('left').run()}
+                    active={isAlignActive('left')}
+                    onClick={() => applyAlign('left')}
                 >
                     <AlignLeft className="h-4 w-4" />
                 </ToolbarButton>
 
                 <ToolbarButton
                     title="Centralizar"
-                    active={editor.isActive({ textAlign: 'center' })}
-                    onClick={() => editor.chain().focus().setTextAlign('center').run()}
+                    active={isAlignActive('center')}
+                    onClick={() => applyAlign('center')}
                 >
                     <AlignCenter className="h-4 w-4" />
                 </ToolbarButton>
 
                 <ToolbarButton
                     title="Alinhar direita"
-                    active={editor.isActive({ textAlign: 'right' })}
-                    onClick={() => editor.chain().focus().setTextAlign('right').run()}
+                    active={isAlignActive('right')}
+                    onClick={() => applyAlign('right')}
                 >
                     <AlignRight className="h-4 w-4" />
+                </ToolbarButton>
+
+                <ToolbarButton
+                    title="Justificar"
+                    active={isAlignActive('justify')}
+                    onClick={() => applyAlign('justify')}
+                >
+                    <AlignJustify className="h-4 w-4" />
                 </ToolbarButton>
 
                 <Separator orientation="vertical" className="mx-1 h-6" />
@@ -295,19 +386,6 @@ export default function Tiptap({ initialHtml, onChange, className, readOnly = fa
                     onClick={() => editor.chain().focus().insertImageUpload().run()}
                 >
                     <ImagePlus className="h-4 w-4" />
-                </ToolbarButton>
-
-                <ToolbarButton
-                    title="Tabela 3x3"
-                    onClick={() =>
-                        editor
-                            .chain()
-                            .focus()
-                            .insertTable({ rows: 3, cols: 3, withHeaderRow: true })
-                            .run()
-                    }
-                >
-                    <TableIcon className="h-4 w-4" />
                 </ToolbarButton>
 
                 <div className="ml-auto flex items-center gap-1">
@@ -329,10 +407,10 @@ export default function Tiptap({ initialHtml, onChange, className, readOnly = fa
                 </div>
             </div>
 
-            {/* BubbleMenu (aparece ao selecionar texto) */}
+            {/* BubbleMenu */}
             <BubbleMenu
                 editor={editor}
-                options={{ offset: 6, placement: 'top' }}
+                tippyOptions={{ offset: [0, 6], placement: 'top' }}
                 className="flex items-center gap-1 rounded-md border bg-background p-1 shadow"
             >
                 <ToolbarButton
@@ -342,6 +420,7 @@ export default function Tiptap({ initialHtml, onChange, className, readOnly = fa
                 >
                     <Bold className="h-4 w-4" />
                 </ToolbarButton>
+
                 <ToolbarButton
                     title="Itálico"
                     active={editor.isActive('italic')}
@@ -349,6 +428,7 @@ export default function Tiptap({ initialHtml, onChange, className, readOnly = fa
                 >
                     <Italic className="h-4 w-4" />
                 </ToolbarButton>
+
                 <ToolbarButton
                     title="Sublinhado"
                     active={editor.isActive('underline')}
@@ -356,6 +436,7 @@ export default function Tiptap({ initialHtml, onChange, className, readOnly = fa
                 >
                     <UnderlineIcon className="h-4 w-4" />
                 </ToolbarButton>
+
                 <ToolbarButton
                     title="Link"
                     active={editor.isActive('link')}
