@@ -5,13 +5,15 @@ import { MemberSession } from "./MemberSession"
 import { NewsSession } from "./NewsSession"
 import { SlideSession } from "./SlideSession"
 
-export function Display() {
+export function Display({ news }) {
 
     return (
         <>
             <SlideSession />
             <IntroductionSession />
-            <NewsSession />
+            <NewsSession
+                news={news}
+            />
             <MemberSession />
         </>
     )
