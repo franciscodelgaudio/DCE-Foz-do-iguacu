@@ -39,6 +39,7 @@ import {
     Table as TableIcon,
     Minus,
 } from 'lucide-react'
+import { ImageUpload } from '../editor/extensions/image-upload'
 
 
 function ToolbarButton({
@@ -64,12 +65,7 @@ function ToolbarButton({
     )
 }
 
-export default function Tiptap({
-    initialHtml = '<p>Escreva sua notícia…</p>',
-    onChange,
-    className,
-    readOnly = false,
-}) {
+export default function Tiptap({ initialHtml, onChange, className, readOnly = false }) {
     const editor = useEditor({
         immediatelyRender: false,
         editable: !readOnly,
@@ -90,12 +86,16 @@ export default function Tiptap({
                 allowBase64: true,
                 HTMLAttributes: { class: 'rounded-md max-w-full' },
             }),
-            TextAlign.configure({
-                types: ['heading', 'paragraph'],
+
+            // ✅ o “slot” igual do Simple Editor
+            ImageUpload.configure({
+                maxFiles: 3,
+                maxSizeMB: 5,
+                // uploadFn: async (file) => { ... } // depois você troca por upload real
             }),
-            Placeholder.configure({
-                placeholder: 'Digite aqui…',
-            }),
+
+            TextAlign.configure({ types: ['heading', 'paragraph'] }),
+            Placeholder.configure({ placeholder: 'Digite aqui…' }),
             Table.configure({ resizable: true }),
             TableRow,
             TableHeader,
@@ -105,11 +105,8 @@ export default function Tiptap({
         editorProps: {
             attributes: {
                 class: cn(
-                    // “cara de editor”
                     'min-h-[240px] w-full rounded-md border bg-background p-4 outline-none',
-                    // tipografia bonita (se tiver typography plugin)
                     'prose prose-sm sm:prose-base dark:prose-invert max-w-none',
-                    // detalhes
                     'focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ring-offset-background'
                 ),
             },
@@ -294,8 +291,8 @@ export default function Tiptap({
                 </ToolbarButton>
 
                 <ToolbarButton
-                    title="Imagem (URL)"
-                    onClick={addImage}
+                    title="Inserir upload de imagem"
+                    onClick={() => editor.chain().focus().insertImageUpload().run()}
                 >
                     <ImagePlus className="h-4 w-4" />
                 </ToolbarButton>
