@@ -7,9 +7,9 @@ import { News } from "../../models/news"
 import mongoose from "mongoose"
 
 const newsSchema = z.object({
-    title: z.string().min(5).max(150),
-    excerpt: z.string().max(400).optional(),
-    contentHtml: z.string().min(20),
+    title: z.string().min(1),
+    excerpt: z.string().optional(),
+    contentHtml: z.string().min(1),
     contentJson: z.unknown(),
     status: z.enum(["draft", "published", "scheduled", "archived"]).optional(),
 })
@@ -19,9 +19,7 @@ export async function upsertNews(form) {
     if (!session) redirect("/login")
 
     const parsed = newsSchema.safeParse(form)
-    if (!parsed.success) {
-        return { success: false, message: "Zod falhou!" }
-    }
+    if (!parsed.success) { return { success: false, message: "Zod falhou!" } }
 
     const { title, excerpt, contentHtml, contentJson, status } = parsed.data
 
