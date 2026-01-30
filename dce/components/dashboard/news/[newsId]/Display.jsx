@@ -1,10 +1,10 @@
 'use client'
 
 import { useState } from "react"
-import Tiptap from "../../ui/Tiptap"
+import Tiptap from "../../../ui/Tiptap"
 import { upsertNews } from "@/lib/actions/news" // ajuste o path
 
-export function Display() {
+export function Display({ newItem }) {
     const [content, setContent] = useState({ html: "", json: null })
 
     return (
