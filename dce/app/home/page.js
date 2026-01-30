@@ -4,6 +4,7 @@ import { News } from "@/models/news";
 export default async function Page() {
 
     const news = await News.aggregate([
+        { $match: { status: 'published' } },
         { $sort: { publishedAt: -1, createdAt: -1 } },
         { $limit: 5 },
         {

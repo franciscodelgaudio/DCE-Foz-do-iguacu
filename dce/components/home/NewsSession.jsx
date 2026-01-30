@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { Construction } from "lucide-react"
+import { Construction, Newspaper, Plus } from "lucide-react"
 
 import { Card, CardHeader, CardTitle } from "@/components/ui/card"
 import { AspectRatio } from "@/components/ui/aspect-ratio"
@@ -26,7 +26,8 @@ export function NewsSession({ news = [] }) {
         <section className="w-full bg-gray-200">
             <div className="mx-auto w-full max-w-[1500px] px-6 py-16 md:px-10">
 
-                <div className="inline-flex bg-slate-900 px-4 py-2">
+                <div className="inline-flex items-center gap-2 bg-slate-900 px-4 py-2">
+                    <Newspaper className="h-4 w-4 text-white" />
                     <h2 className="text-lg font-extrabold text-white">Nosso Jornal</h2>
                 </div>
 
@@ -64,6 +65,15 @@ export function NewsSession({ news = [] }) {
                             </Link>
                         </Card>
                     ))}
+                </div>
+                <div className="mt-10 text-center">
+                    <Link
+                        href="/home/news"
+                        className="inline-block rounded-md bg-slate-900 px-6 py-3 text-white transition-colors hover:bg-slate-700"
+                    >
+                        <Plus className="inline-block mr-2 h-5 w-5" />
+                        Ver mais notícias
+                    </Link>
                 </div>
             </div>
         </section >
