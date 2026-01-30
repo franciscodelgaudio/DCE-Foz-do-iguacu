@@ -10,6 +10,7 @@ import {
     TableRow,
 } from "@/components/ui/table"
 import { Row } from "./Row"
+import { Heading } from "lucide-react"
 
 export function Display({ news }) {
     return (
@@ -17,7 +18,10 @@ export function Display({ news }) {
             <TableHeader>
                 <TableRow>
                     <TableHead>
-                        Título
+                        <div className="flex flex-row items-center space-x-2">
+                            <Heading className="size-4" />
+                            <span>Título</span>
+                        </div>
                     </TableHead>
                     <TableHead>
                         Autor
