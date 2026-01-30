@@ -12,19 +12,17 @@ import { useRouter } from "next/navigation";
 import { formatDate } from "../../ui/formatDate";
 
 const STATUS_OPTIONS = [
-    { value: "open", label: "Aberto" },
-    { value: "closed", label: "Fechado" },
-    { value: "pending", label: "Pendente" },
-    { value: "canceled", label: "Cancelado" },
-    { value: "paused", label: "Pausado" },
+    { value: "draft", label: "Rascunho" },
+    { value: "published", label: "Publicado" },
+    { value: "scheduled", label: "Agendado" },
+    { value: "archived", label: "Arquivado" },
 ];
 
 const STATUS_STYLES = {
-    open: "bg-emerald-100 text-emerald-700 border-emerald-200",
-    pending: "bg-amber-100 text-amber-700 border-amber-200",
-    closed: "bg-slate-100 text-slate-700 border-slate-200",
-    canceled: "bg-rose-100 text-rose-700 border-rose-200",
-    paused: "bg-yellow-100 text-yellow-700 border-yellow-200",
+    published: "bg-emerald-100 text-emerald-700 border-emerald-200",
+    scheduled: "bg-amber-100 text-amber-700 border-amber-200",
+    archived: "bg-slate-100 text-slate-700 border-slate-200",
+    draft: "bg-muted text-muted-foreground border-muted",
 };
 
 function StatusBadge({ value }) {

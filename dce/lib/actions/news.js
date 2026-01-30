@@ -5,7 +5,6 @@ import { redirect } from "next/navigation"
 import { z } from "zod"
 import { News } from "../../models/news"
 import mongoose from "mongoose"
-import { stat } from "fs"
 
 const newsSchema = z.object({
     title: z.string().min(5).max(150),
@@ -54,6 +53,7 @@ export async function upsertNews(form) {
 
         return { success: true, message: "Artigo publicado com sucesso." }
     } catch (err) {
+        console.error("Erro ao publicar o artigo:", err)
         return { success: false, message: "Erro ao publicar o artigo." }
     }
 }
