@@ -10,6 +10,8 @@ import { Badge } from "@/components/ui/badge";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { useRouter } from "next/navigation";
 import { formatDate } from "../../ui/formatDate";
+import { toast } from "sonner";
+import { deleteNews } from "../../../lib/actions/news";
 
 const STATUS_OPTIONS = [
     { value: "draft", label: "Rascunho" },
@@ -40,11 +42,18 @@ export function Row({ newsItem }) {
         router.push(`/dashboard/news/${newsItem._id}`);
     }
 
+    async function handleDelete() {
+        try {
+            await deleteNews(newsItem._id);
+            router.refresh();
+            toast.success("Notícia deletada com sucesso.");
+        } catch (err) {
+            toast.error("Erro ao deletar a notícia. " + (err?.message ?? ""));
+        }
+    }
+
     return (
-        <TableRow
-            className="cursor-pointer"
-            onClick={handleClick}
-        >
+        <TableRow>
             <TableCell>{newsItem.title}</TableCell>
             <TableCell>{newsItem.author?.name ?? "-"}</TableCell>
             <TableCell>{formatDate(newsItem.publishedAt) ?? "-"}</TableCell>
@@ -54,13 +63,13 @@ export function Row({ newsItem }) {
                 className="cursor-default"
             >
                 <div className="flex flex-row items-center gap-2">
-                    <Button variant="ghost" size="icon">
+                    <Button variant="ghost" size="icon" onClick={handleClick}>
                         <PenSquare className="size-4" />
                     </Button>
                     <ConfirmDialog
                         title={"Excluir notícia"}
                         subtitle={"Tem certeza que deseja deletar esta notícia?"}
-
+                        onClick={handleDelete}
                     >
                         <Button variant="ghost" size="icon">
                             <Trash2 className="w-4 h-4" />

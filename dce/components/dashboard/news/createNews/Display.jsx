@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useRouter } from 'next/navigation'
 
-export function Display({ newItem }) {
+export function Display() {
     const { register, control, handleSubmit, formState: { isSubmitting }, } = useForm({})
     const router = useRouter();
 

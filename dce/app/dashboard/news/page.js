@@ -5,7 +5,6 @@ import { News } from "@/models/news"
 
 export default async function Page() {
     const session = await auth()
-
     if (!session) { redirect("/login") }
 
     const news = await News.aggregate([

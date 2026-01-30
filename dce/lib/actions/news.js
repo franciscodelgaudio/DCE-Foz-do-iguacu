@@ -66,3 +66,12 @@ export async function upsertNews(form) {
         return { success: false, message: "Erro ao publicar o artigo." }
     }
 }
+
+export async function deleteNews(newsId) {
+    try {
+        await News.deleteOne({ _id: newsId })
+        return { success: true, message: "Notícia deletada com sucesso." }
+    } catch {
+        return { success: false, message: "Erro ao deletar a notícia." }
+    }
+}

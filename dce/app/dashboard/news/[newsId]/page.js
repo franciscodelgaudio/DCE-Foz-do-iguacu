@@ -13,7 +13,7 @@ export default async function Page({ params }) {
 
     return (
         <Display
-            newItem={newItem}
+            newItem={JSON.parse(JSON.stringify(newItem))}
         />
     )
 }

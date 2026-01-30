@@ -3,7 +3,8 @@ import Google from "next-auth/providers/google"
 
 const ALLOWED_EMAILS = new Set([
   "delgaudiofrancisco.junior@gmail.com",
-  "foz.dce@gmail.com"
+  "foz.dce@gmail.com",
+  "foz.dce@unioeste.br"
 ])
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
