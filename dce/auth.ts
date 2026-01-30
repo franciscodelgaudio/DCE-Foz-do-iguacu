@@ -5,7 +5,8 @@ const ALLOWED_EMAILS = new Set([
   "delgaudiofrancisco.junior@gmail.com",
   "foz.dce@gmail.com",
   "foz.dce@unioeste.br",
-  "alcierisxp@gmail.com"
+  "alcierisxp@gmail.com",
+  "pietramartins86@gmail.com"
 ])
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
