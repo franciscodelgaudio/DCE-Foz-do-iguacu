@@ -5,12 +5,14 @@ import { redirect } from "next/navigation"
 import { z } from "zod"
 import { News } from "../../models/news"
 import mongoose from "mongoose"
+import { stat } from "fs"
 
 const newsSchema = z.object({
     title: z.string().min(5).max(150),
     excerpt: z.string().max(400).optional(),
     contentHtml: z.string().min(20),
     contentJson: z.unknown(),
+    status: z.enum(["draft", "published", "scheduled", "archived"]).optional(),
 })
 
 export async function upsertNews(form) {
@@ -19,11 +21,10 @@ export async function upsertNews(form) {
 
     const parsed = newsSchema.safeParse(form)
     if (!parsed.success) {
-        console.error("Zod errors:", parsed.error.format())
         return { success: false, message: "Zod falhou!" }
     }
 
-    const { title, excerpt, contentHtml, contentJson } = parsed.data
+    const { title, excerpt, contentHtml, contentJson, status } = parsed.data
 
     const newItem = {
         title,
@@ -34,7 +35,9 @@ export async function upsertNews(form) {
             id: session.user.id,
             name: session.user.name,
             avatarUrl: session.user.image
-        }
+        },
+        publishedAt: new Date(),
+        status,
     }
 
     try {
@@ -51,7 +54,6 @@ export async function upsertNews(form) {
 
         return { success: true, message: "Artigo publicado com sucesso." }
     } catch (err) {
-        console.error("Erro ao publicar artigo:", err)
         return { success: false, message: "Erro ao publicar o artigo." }
     }
 }

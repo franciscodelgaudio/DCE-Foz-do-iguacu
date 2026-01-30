@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { Row } from "./Row"
-import { Calendar, Heading, Plus, Settings, User } from "lucide-react"
+import { Calendar, CircleDot, Heading, Plus, Settings, User } from "lucide-react"
 import { useRouter } from "next/navigation"
 
 export function Display({ news }) {
@@ -44,6 +44,12 @@ export function Display({ news }) {
                             <div className="flex flex-row items-center space-x-2">
                                 <Calendar className="size-4" />
                                 <span>Data de Criação</span>
+                            </div>
+                        </TableHead>
+                        <TableHead>
+                            <div className="flex flex-row items-center space-x-2">
+                                <CircleDot className="size-4" />
+                                <span>Status</span>
                             </div>
                         </TableHead>
                         <TableHead>
