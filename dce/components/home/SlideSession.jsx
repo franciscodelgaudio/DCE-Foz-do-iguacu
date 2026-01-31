@@ -108,7 +108,7 @@ export function SlideSession() {
                 {/* Painel de texto animado (sync com slide) */}
                 <div className="pointer-events-none absolute inset-0 z-20 flex items-end md:items-center md:justify-end p-4 md:p-8">
                     <div
-                        key={active} // re-dispara animação quando muda
+                        key={active}
                         className="pointer-events-auto w-full md:w-[420px] animate-heroIn"
                         style={{
                             backgroundColor: "rgba(246,241,231,0.88)",
@@ -116,13 +116,6 @@ export function SlideSession() {
                         }}
                     >
                         <div className="relative p-6 md:p-7">
-                            {/* “blob” decorativo com cor da logo */}
-                            <div
-                                className="absolute -top-10 -right-10 h-28 w-28 blur-2xl opacity-40 animate-float"
-                                style={{
-                                    background: `radial-gradient(circle, ${BRAND.magenta} 0%, transparent 60%)`,
-                                }}
-                            />
                             <div
                                 className="absolute -bottom-10 -left-10 h-28 w-28 blur-2xl opacity-35 animate-floatSlow"
                                 style={{
@@ -150,7 +143,6 @@ export function SlideSession() {
                                     <Link href={current.ctaHref}>{current.ctaLabel}</Link>
                                 </Button>
 
-                                {/* dots clicáveis */}
                                 <div className="ml-auto flex items-center gap-2">
                                     {slides.map((_, i) => (
                                         <button

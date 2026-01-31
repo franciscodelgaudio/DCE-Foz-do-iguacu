@@ -28,22 +28,58 @@ export function MemberSession() {
                     <h2 className="text-lg font-extrabold text-white">Coordenação do DCE</h2>
                 </div>
 
-                {/* espaçamento grande entre eles */}
-                <div className="mt-10 flex flex-wrap justify-between gap-y-12 gap-x-7">
-                    {team.map((p) => (
-                        <article key={p.name} className="w-44 text-center">
-                            <div className="relative h-44 w-44 mx-auto overflow-hidden rounded-full">
-                                <Image src={p.photo} alt={p.name} fill className="object-cover" />
-                            </div>
+                {/* MOBILE (<md) */}
+                <div className="md:hidden mt-8">
+                    <div
+                        className="
+              flex gap-5 overflow-x-auto pb-2
+              snap-x snap-mandatory scroll-smooth
+              [-webkit-overflow-scrolling:touch]
+            "
+                    >
+                        {team.map((p) => (
+                            <article key={p.name} className="snap-start shrink-0 w-[150px] text-center">
+                                <div className="relative h-[132px] w-[132px] mx-auto overflow-hidden rounded-full">
+                                    <Image src={p.photo} alt={p.name} fill className="object-cover" sizes="132px" />
+                                </div>
+                                <h3 className="mt-4 text-base font-extrabold text-slate-900">{p.name}</h3>
+                                <p className="mt-1 text-xs leading-relaxed text-slate-700">{p.role}</p>
+                            </article>
+                        ))}
+                    </div>
 
-                            <h3 className="mt-6 text-lg font-extrabold text-slate-900">{p.name}</h3>
-                            <p className="mt-2 text-sm leading-relaxed text-slate-700">{p.role}</p>
-                        </article>
-                    ))}
+                    <p className="mt-3 text-xs text-slate-500">
+                        Arraste para o lado para ver toda a coordenação →
+                    </p>
+                </div>
+
+                {/* DESKTOP (md+) agora também é scroll horizontal */}
+                <div className="hidden md:block mt-10">
+                    <div
+                        className="
+              flex flex-nowrap gap-7 overflow-x-auto pb-3
+              snap-x snap-mandatory scroll-smooth
+              [-webkit-overflow-scrolling:touch]
+            "
+                    >
+                        {team.map((p) => (
+                            <article key={p.name} className="snap-start shrink-0 w-44 text-center">
+                                <div className="relative h-44 w-44 mx-auto overflow-hidden rounded-full">
+                                    <Image src={p.photo} alt={p.name} fill className="object-cover" sizes="176px" />
+                                </div>
+
+                                <h3 className="mt-6 text-lg font-extrabold text-slate-900">{p.name}</h3>
+                                <p className="mt-2 text-sm leading-relaxed text-slate-700">{p.role}</p>
+                            </article>
+                        ))}
+                    </div>
+
+                    {/* hint discreto (desktop) */}
+                    <p className="mt-3 text-sm text-slate-500">
+                        Role para o lado para ver toda a coordenação →
+                    </p>
                 </div>
             </div>
         </section>
-
-
     )
 }
