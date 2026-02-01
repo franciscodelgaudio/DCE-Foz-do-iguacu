@@ -1,11 +1,9 @@
 'use client'
 
-import Link from "next/link"
 import Image from "next/image"
 import { useEffect, useRef, useState } from "react"
 import Autoplay from "embla-carousel-autoplay"
-
-import { Button } from "@/components/ui/button"
+import { AnimatePresence, motion } from "framer-motion"
 import { Card, CardContent } from "@/components/ui/card"
 import {
     Carousel,
@@ -16,30 +14,20 @@ import {
 } from "@/components/ui/carousel"
 
 const BRAND = {
-    navy: "#0B1F3B",     // azul escuro
-    magenta: "#B0125B",  // rosa/magenta
-    cream: "#F6F1E7",    // off-white (fundo)
+    navy: "#0B1F3B",
+    magenta: "#B0125B",
+    cream: "#F6F1E7",
 }
 
 const slides = [
     {
-        image: "/images/home/slide-1.jpg",
-        kicker: "DCE Honestino Guimarães",
-        title: "Sua vida estudantil começa aqui",
-        description:
-            "A gente conecta estudantes com eventos, projetos, suporte e representação. Cola com a gente e participa de algo maior.",
-        ctaLabel: "Ver projetos",
-        ctaHref: "/projects",
+        text: "Sua voz no campus",
+        image: "/images/home/slide-1.jpg"
     },
     {
-        image: "/images/home/slide-2.jpg",
-        kicker: "Comunidade • Acolhimento • Luta",
-        title: "Eventos, apoio e oportunidades",
-        description:
-            "Divulgação de ações, editais, reuniões e iniciativas do campus — tudo em um só lugar.",
-        ctaLabel: "Conhecer o DCE",
-        ctaHref: "/about",
-    },
+        text: "Sua vida acadêmica começa aqui",
+        image: "/images/home/slide-2.jpg"
+    }
 ]
 
 export function SlideSession() {
@@ -83,8 +71,6 @@ export function SlideSession() {
                                             className="object-cover"
                                             priority={index === 0}
                                         />
-
-                                        {/* véu/gradiente pra dar contraste no texto */}
                                         <div
                                             className="absolute inset-0"
                                             style={{
@@ -105,81 +91,25 @@ export function SlideSession() {
                     <CarouselNext className="right-4 z-30 bg-white/85 hover:bg-white" />
                 </Carousel>
 
-                {/* Painel de texto animado (sync com slide) */}
-                <div className="pointer-events-none absolute inset-0 z-20 flex items-end md:items-center md:justify-end p-4 md:p-8">
+                <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 flex justify-center">
                     <div
-                        key={active}
-                        className="pointer-events-auto w-full md:w-[420px] animate-heroIn"
-                        style={{
-                            backgroundColor: "rgba(246,241,231,0.88)",
-                            borderLeft: `6px solid ${BRAND.magenta}`,
-                        }}
+                        className="pointer-events-auto translate-y-1/2 px-10 py-3"
+                        style={{ backgroundColor: BRAND.magenta }}
                     >
-                        <div className="relative p-6 md:p-7">
-                            <div
-                                className="absolute -bottom-10 -left-10 h-28 w-28 blur-2xl opacity-35 animate-floatSlow"
-                                style={{
-                                    background: `radial-gradient(circle, ${BRAND.navy} 0%, transparent 62%)`,
-                                }}
-                            />
-
-                            <p
-                                className="text-xs font-semibold tracking-wide uppercase"
-                                style={{ color: BRAND.navy }}
+                        <AnimatePresence mode="wait">
+                            <motion.span
+                                key={current.text}
+                                initial={{ opacity: 0, y: 6 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -6 }}
+                                transition={{ duration: 0.45, ease: [0.2, 0.8, 0.2, 1] }}
+                                className="block text-5xl md:text-6xl font-bold text-white leading-none"
                             >
-                                {current.kicker}
-                            </p>
-
-                            <h2 className="mt-2 text-2xl md:text-3xl font-extrabold leading-tight">
-                                <span style={{ color: BRAND.navy }}>{current.title}</span>
-                            </h2>
-
-                            <p className="mt-3 text-sm md:text-base leading-relaxed text-zinc-700">
-                                {current.description}
-                            </p>
-
-                            <div className="mt-5 flex items-center gap-3">
-                                <Button asChild className="font-semibold">
-                                    <Link href={current.ctaHref}>{current.ctaLabel}</Link>
-                                </Button>
-
-                                <div className="ml-auto flex items-center gap-2">
-                                    {slides.map((_, i) => (
-                                        <button
-                                            key={i}
-                                            type="button"
-                                            onClick={() => api?.scrollTo(i)}
-                                            className="h-2.5 w-2.5 rounded-full transition-transform"
-                                            style={{
-                                                backgroundColor: i === active ? BRAND.magenta : "rgba(11,31,59,0.25)",
-                                                transform: i === active ? "scale(1.15)" : "scale(1)",
-                                            }}
-                                            aria-label={`Ir para slide ${i + 1}`}
-                                        />
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
+                                {current.text}
+                            </motion.span>
+                        </AnimatePresence>
                     </div>
                 </div>
-
-                {/* animações locais (sem config do Tailwind) */}
-                <style jsx>{`
-          @keyframes heroIn {
-            from { opacity: 0; transform: translateX(16px) translateY(8px); }
-            to   { opacity: 1; transform: translateX(0) translateY(0); }
-          }
-          .animate-heroIn {
-            animation: heroIn 420ms cubic-bezier(0.2, 0.8, 0.2, 1);
-          }
-
-          @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
-          }
-          .animate-float { animation: float 6s ease-in-out infinite; }
-          .animate-floatSlow { animation: float 8s ease-in-out infinite; }
-        `}</style>
             </div>
         </section>
     )

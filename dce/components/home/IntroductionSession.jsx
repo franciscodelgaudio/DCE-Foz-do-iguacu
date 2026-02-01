@@ -2,11 +2,11 @@
 
 export function IntroductionSession() {
     return (
-        <section className="w-full">
+        <section className="w-full mt-10">
             <div className="mx-auto max-w-6xl px-6 py-16 md:px-10">
                 <div className="grid grid-cols-1 gap-10 md:grid-cols-2 md:items-center">
 
-                    <h2 className="max-w-xl text-3xl font-extrabold tracking-tight md:text-4xl">
+                    <h2 className="max-w-xl text-3xl font-bold tracking-tight md:text-4xl">
                         Olá 👋 Nós somos o Diretório Central dos Estudantes!
                     </h2>
 
