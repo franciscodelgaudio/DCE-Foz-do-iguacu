@@ -92,23 +92,25 @@ export function SlideSession() {
                 </Carousel>
 
                 <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 flex justify-center">
-                    <div
-                        className="pointer-events-auto translate-y-1/2 px-10 py-3"
-                        style={{ backgroundColor: BRAND.magenta }}
-                    >
-                        <AnimatePresence mode="wait">
-                            <motion.span
-                                key={current.text}
-                                initial={{ opacity: 0, y: 6 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -6 }}
-                                transition={{ duration: 0.45, ease: [0.2, 0.8, 0.2, 1] }}
-                                className="block text-5xl md:text-6xl font-bold text-white leading-none"
+
+                    <AnimatePresence mode="wait">
+                        <motion.span
+                            key={current.text}
+                            initial={{ opacity: 0, y: 6 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -6 }}
+                            transition={{ duration: 0.45, ease: [0.2, 0.8, 0.2, 1] }}
+                            className="block text-5xl md:text-6xl font-bold text-white leading-none"
+                        >
+                            <div
+                                className="pointer-events-auto translate-y-1/2 px-10 py-3"
+                                style={{ backgroundColor: BRAND.magenta }}
                             >
                                 {current.text}
-                            </motion.span>
-                        </AnimatePresence>
-                    </div>
+                            </div>
+                        </motion.span>
+                    </AnimatePresence>
+
                 </div>
             </div>
         </section>
