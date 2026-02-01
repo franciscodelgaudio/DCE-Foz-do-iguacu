@@ -27,9 +27,6 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { signInWithGoogle, logout } from "@/lib/actions/auth"
 
-// ✅ Menu mobile (Sheet)
-// Se você ainda não tiver esse componente no shadcn:
-// npx shadcn@latest add sheet
 import {
     Sheet,
     SheetContent,
@@ -37,31 +34,48 @@ import {
     SheetTitle,
     SheetTrigger,
 } from "@/components/ui/sheet"
+import { useState } from "react"
 
 export function Header({ user }) {
+
+    const [mobileSearchOpen, setMobileSearchOpen] = useState(false)
+
     return (
-        <header>
-            {/* =========================
-          MOBILE (<md)
-          ========================= */}
+        <header className="border-b bg-white">
+            {/* MOBILE */}
             <div className="md:hidden px-4 py-3">
-                {/* Linha 1: logo + ações */}
                 <div className="flex items-center justify-between gap-3">
-                    <Link href="/" className="font-semibold whitespace-nowrap">
+                    {/* Logo */}
+                    <Link href="/" className="shrink-0">
                         <Image
                             src="/images/home/logo.png"
                             alt="DCE Logo"
-                            width={100}
-                            height={40}
+                            width={120}
+                            height={48}
+                            className="h-auto w-[120px] shrink-0"
+                            priority
                         />
                     </Link>
 
-                    <div className="flex items-center gap-2">
-                        {/* Drawer do MENU no mobile */}
+                    {/* Ícones (direita) */}
+                    <div className="flex items-center gap-1">
+                        {/* Lupa (toggle da busca) */}
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            className="h-10 w-10 p-0"
+                            onClick={() => setMobileSearchOpen(v => !v)}
+                            aria-label="Pesquisar"
+                            aria-expanded={mobileSearchOpen}
+                        >
+                            <Search className="size-6" />
+                        </Button>
+
+                        {/* Menu (Sheet) */}
                         <Sheet>
                             <SheetTrigger asChild>
-                                <Button variant="ghost" className="h-10 w-10 p-0">
-                                    <Menu className="h-6 w-6" aria-hidden="true" />
+                                <Button variant="ghost" className="h-10 w-10 p-0" aria-label="Menu">
+                                    <Menu className="size-6" />
                                 </Button>
                             </SheetTrigger>
 
@@ -71,28 +85,24 @@ export function Header({ user }) {
                                 </SheetHeader>
 
                                 <nav className="mt-6 flex flex-col gap-2">
-                                    {/* Coloque aqui seus links reais */}
-                                    <Link
-                                        href="/#"
-                                        className="rounded-md px-3 py-2 text-sm hover:bg-slate-100"
-                                    >
+                                    <Link href="/#" className="rounded-md px-3 py-2 text-sm hover:bg-slate-100">
                                         #
                                     </Link>
                                 </nav>
                             </SheetContent>
                         </Sheet>
 
-                        {/* Login / Avatar (compacto no mobile) */}
+                        {/* Login / Avatar */}
                         {!user ? (
                             <form action={signInWithGoogle}>
-                                <Button type="submit" variant="outline" className="h-10 w-10 p-0">
-                                    <CircleUser className="h-5 w-5" />
+                                <Button type="submit" variant="ghost" className="h-10 w-10 p-0" aria-label="Login">
+                                    <CircleUser className="h-6 w-6" />
                                 </Button>
                             </form>
                         ) : (
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" className="h-10 w-10 p-0">
+                                    <Button variant="ghost" className="h-10 w-10 p-0" aria-label="Conta">
                                         <Avatar className="h-8 w-8">
                                             <AvatarImage src={user?.image} alt={user?.name} />
                                             <AvatarFallback>{user?.name?.[0] || "U"}</AvatarFallback>
@@ -111,39 +121,48 @@ export function Header({ user }) {
                                     <DropdownMenuSeparator />
 
                                     <DropdownMenuItem asChild>
-                                        <button
-                                            type="button"
-                                            className="w-full text-left"
-                                            onClick={logout}
-                                        >
+                                        <button type="button" className="w-full text-left" onClick={logout}>
                                             Sair
                                         </button>
                                     </DropdownMenuItem>
                                 </DropdownMenuContent>
                             </DropdownMenu>
                         )}
+
+
                     </div>
                 </div>
 
-                {/* Linha 2: busca embaixo (full width) */}
-                <div className="mt-3">
+                {/* Busca colapsável com transição suave */}
+                <div
+                    className={[
+                        "overflow-hidden transition-[max-height,opacity,margin-top] duration-300 ease-out",
+                        mobileSearchOpen ? "max-h-24 opacity-100 mt-3" : "max-h-0 opacity-0 mt-0",
+                    ].join(" ")}
+                >
                     <div className="flex items-center gap-2">
-                        <Input placeholder="Pesquisar..." className="w-full h-10" />
-                        <Search className="shrink-0" />
+                        <Input placeholder="Pesquisar..." className="h-10 w-full" />
+                        <Button type="button" variant="ghost" className="h-10 w-10 p-0" aria-label="Buscar">
+                            <Search className="h-5 w-5" />
+                        </Button>
                     </div>
                 </div>
             </div>
 
-            {/* =========================
-          DESKTOP (md+)
-          (mantém sua estrutura atual)
-          ========================= */}
-            <div className="hidden md:grid h-30 items-center gap-3 px-4 grid-cols-[1fr_auto_1fr_auto]">
-                <div>
-                    <Link href="/" className="font-semibold whitespace-nowrap">
-                        <Image src="/images/home/logo.png" alt="DCE Logo" width={100} height={40} />
+            <div className="hidden md:grid h-30 items-center gap-3 px-4 grid-cols-[auto_1fr_auto_auto]">
+                <div className="min-w-[100px]">
+                    <Link href="/" className="block w-[100px]">
+                        <Image
+                            src="/images/home/logo.png"
+                            alt="DCE Logo"
+                            width={100}
+                            height={40}
+                            className="w-[100px] h-auto"
+                            priority
+                        />
                     </Link>
                 </div>
+
 
                 <div className="justify-self-center w-[32rem] max-w-full">
                     <div className="flex items-center gap-2">

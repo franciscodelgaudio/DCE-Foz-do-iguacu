@@ -2,7 +2,7 @@
 
 export function IntroductionSession() {
     return (
-        <section className="w-full mt-10">
+        <section className="w-full mt-15">
             <div className="mx-auto max-w-6xl px-6 py-16 md:px-10">
                 <div className="grid grid-cols-1 gap-10 md:grid-cols-2 md:items-center">
 
