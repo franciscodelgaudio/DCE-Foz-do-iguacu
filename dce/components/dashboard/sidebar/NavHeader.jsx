@@ -2,24 +2,17 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { ChevronRight } from "lucide-react";
 
-import {
-    Collapsible,
-    CollapsibleContent,
-    CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+import { Collapsible } from "@/components/ui/collapsible";
 
 import {
     SidebarGroup,
     SidebarMenu,
-    SidebarMenuAction,
     SidebarMenuButton,
     SidebarMenuItem,
-    SidebarMenuSub,
-    SidebarMenuSubItem,
-    SidebarMenuSubButton,
 } from "@/components/ui/sidebar";
+
+const LOGO_SRC = "/images/home/logo.png";
 
 export function NavHeader() {
     return (
@@ -36,7 +29,7 @@ export function NavHeader() {
                                 {/* Logo */}
                                 <span className="relative size-20 overflow-hidden rounded-full border bg-white shrink-0">
                                     <Image
-                                        src="/images/home/logo.png"
+                                        src={LOGO_SRC}
                                         alt="DCE"
                                         fill
                                         className="object-contain p-1"

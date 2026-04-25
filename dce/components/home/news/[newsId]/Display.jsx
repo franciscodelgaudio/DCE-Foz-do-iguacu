@@ -13,12 +13,12 @@ export function Display({ newItem }) {
         <div className="mx-auto w-full max-w-[850px] px-6 py-12 md:px-10">
             <header className="mb-8 space-y-3">
                 {newItem?.category ? (
-                    <div className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                    <div className="text-xs font-semibold uppercase tracking-wider text-[#2708ab]">
                         {newItem.category}
                     </div>
                 ) : null}
 
-                <h1 className="text-3xl font-extrabold leading-tight tracking-tight text-slate-900 sm:text-5xl">
+                <h1 className="text-3xl font-extrabold leading-tight tracking-tight text-[#2708ab] sm:text-5xl">
                     {newItem?.title}
                 </h1>
 
@@ -38,7 +38,7 @@ export function Display({ newItem }) {
                     ) : null}
                 </div>
 
-                <div className="h-px w-full bg-slate-200" />
+                <div className="h-0.5 w-20 bg-[#fdf25a]" />
             </header>
 
 

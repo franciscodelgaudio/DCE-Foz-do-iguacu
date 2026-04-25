@@ -48,14 +48,14 @@ export function Display({ news = [] }) {
     }
 
     return (
-        <section className="w-full bg-gray-200">
+        <section className="w-full bg-[#f3f1ff]">
             <div className="mx-auto w-full max-w-[1500px] px-6 py-12 md:px-10">
                 {/* Header */}
                 <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
                     <div className="space-y-2">
-                        <div className="inline-flex items-center gap-2 bg-slate-900 px-4 py-2">
-                            <Newspaper className="h-4 w-4 text-white" />
-                            <h2 className="text-lg font-extrabold text-white">Nosso Jornal</h2>
+                        <div className="inline-flex items-center gap-2 border-b-4 border-[#2708ab] bg-[#fdf25a] px-4 py-2 shadow-[4px_4px_0_#2708ab]">
+                            <Newspaper className="h-4 w-4 text-[#2708ab]" />
+                            <h2 className="text-lg font-extrabold text-[#2708ab]">Nosso Jornal</h2>
                         </div>
                         <p className="text-sm text-muted-foreground">
                             Acompanhe as publicações do DCE — notícias, eventos e comunicados.
@@ -81,14 +81,19 @@ export function Display({ news = [] }) {
                                 />
                             </div>
 
-                            <Button type="submit" className="shrink-0">
+                            <Button
+                                type="submit"
+                                className="shrink-0 border-2 border-[#2708ab] bg-[#fdf25a] font-bold text-[#2708ab] hover:bg-[#fff86f]"
+                            >
                                 Buscar
                             </Button>
                         </div>
 
                         {activeTitle ? (
                             <div className="mt-2 flex items-center gap-2">
-                                <Badge variant="secondary">Filtro: {activeTitle}</Badge>
+                                <Badge className="bg-[#fdf25a] text-[#2708ab] hover:bg-[#fff86f]">
+                                    Filtro: {activeTitle}
+                                </Badge>
                                 <Button
                                     type="button"
                                     variant="ghost"

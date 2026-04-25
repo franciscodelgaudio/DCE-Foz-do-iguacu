@@ -36,6 +36,52 @@ import {
 } from "@/components/ui/sheet"
 import { useState } from "react"
 
+const LOGO_MARK_SRC = "/images/home/logo.png"
+
+function HeaderLogo({ compact = false }) {
+    return (
+        <div className="flex items-center">
+            <Image
+                src={LOGO_MARK_SRC}
+                alt="DCE"
+                width={2000}
+                height={2000}
+                className={compact ? "h-12 w-12 object-contain" : "h-20 w-20 object-contain"}
+                priority
+            />
+
+            <div className={compact ? "mx-3 h-10 w-0.5 bg-[#2708ab]" : "mx-5 h-17 w-0.5 bg-[#2708ab]"} />
+
+            <div className="flex min-w-0 flex-col justify-center text-[#2708ab]">
+                <div
+                    className={
+                        compact
+                            ? "text-[18px] font-extrabold leading-none tracking-normal"
+                            : "text-[22px] font-extrabold leading-none tracking-normal"
+                    }
+                >
+                    DCE UNIOESTE
+                </div>
+                <div
+                    className={
+                        compact
+                            ? "mt-1 text-[11px] leading-none text-[#3322a3]"
+                            : "mt-1 text-[12px] leading-none text-[#3322a3]"
+                    }
+                >
+                    Diretório Central dos Estudantes
+                </div>
+                <div className={compact ? "mt-1.5 flex items-center gap-2" : "mt-1.5 flex items-center gap-2.5"}>
+                    <span className={compact ? "h-0.5 w-10 bg-[#fdf25a]" : "h-0.5 w-12 bg-[#fdf25a]"} />
+                    {/* <span className={compact ? "text-[12px] font-bold leading-none" : "text-[11px] font-bold leading-none"}>
+                        Foz do Iguaçu
+                    </span> */}
+                </div>
+            </div>
+        </div>
+    )
+}
+
 export function Header({ user }) {
 
     const [mobileSearchOpen, setMobileSearchOpen] = useState(false)
@@ -46,15 +92,8 @@ export function Header({ user }) {
             <div className="md:hidden px-4 py-3">
                 <div className="flex items-center justify-between gap-3">
                     {/* Logo */}
-                    <Link href="/" className="shrink-0">
-                        <Image
-                            src="/images/home/logo.png"
-                            alt="DCE Logo"
-                            width={120}
-                            height={48}
-                            className="h-auto w-[120px] shrink-0"
-                            priority
-                        />
+                    <Link href="/home" className="shrink-0">
+                        <HeaderLogo compact />
                     </Link>
 
                     {/* Ícones (direita) */}
@@ -74,7 +113,11 @@ export function Header({ user }) {
                         {/* Menu (Sheet) */}
                         <Sheet>
                             <SheetTrigger asChild>
-                                <Button variant="ghost" className="h-10 w-10 p-0" aria-label="Menu">
+                                <Button
+                                    variant="ghost"
+                                    className="h-10 w-10 border-2 border-[#2708ab] bg-[#fdf25a] p-0 text-[#2708ab] shadow-[2px_2px_0_#2708ab] hover:bg-[#fff86f] hover:text-[#2708ab]"
+                                    aria-label="Menu"
+                                >
                                     <Menu className="size-6" />
                                 </Button>
                             </SheetTrigger>
@@ -85,8 +128,11 @@ export function Header({ user }) {
                                 </SheetHeader>
 
                                 <nav className="mt-6 flex flex-col gap-2">
-                                    <Link href="/#" className="rounded-md px-3 py-2 text-sm hover:bg-slate-100">
-                                        #
+                                    <Link href="/home" className="rounded-md px-3 py-2 text-sm hover:bg-slate-100">
+                                        Início
+                                    </Link>
+                                    <Link href="/home/news" className="rounded-md px-3 py-2 text-sm hover:bg-slate-100">
+                                        Jornal
                                     </Link>
                                 </nav>
                             </SheetContent>
@@ -149,17 +195,10 @@ export function Header({ user }) {
                 </div>
             </div>
 
-            <div className="hidden md:grid h-30 items-center gap-3 px-4 grid-cols-[auto_1fr_auto_auto]">
-                <div className="min-w-[100px]">
-                    <Link href="/" className="block w-[100px]">
-                        <Image
-                            src="/images/home/logo.png"
-                            alt="DCE Logo"
-                            width={100}
-                            height={40}
-                            className="w-[100px] h-auto"
-                            priority
-                        />
+            <div className="hidden md:grid h-30 items-center gap-3 px-4 grid-cols-[560px_1fr_auto_auto]">
+                <div className="min-w-[560px]">
+                    <Link href="/home" className="block w-[530px]">
+                        <HeaderLogo />
                     </Link>
                 </div>
 
@@ -176,18 +215,19 @@ export function Header({ user }) {
                         <NavigationMenuList>
                             <NavigationMenuItem>
                                 <NavigationMenuTrigger
-                                    className="h-10 px-4 rounded-md hover:bg-slate-100 justify-center items-center flex gap-2"
+                                    className="flex h-10 items-center justify-center gap-2 rounded-md border-2 border-[#2708ab] bg-[#fdf25a] px-4 text-[#2708ab] shadow-[3px_3px_0_#2708ab] hover:bg-[#fff86f] hover:text-[#2708ab] data-[state=open]:bg-[#fff86f] data-[state=open]:text-[#2708ab]"
                                     menu={true}
                                 >
                                     <Menu
                                         className="relative size-6 transition duration-300 group-data-[state=open]:rotate-180"
                                         aria-hidden="true"
                                     />
-                                    <span className="font-bold text-base">MENU</span>
+                                    <span className="font-extrabold text-base">MENU</span>
                                 </NavigationMenuTrigger>
 
                                 <NavigationMenuContent>
-                                    <NavigationMenuLink href="/#">#</NavigationMenuLink>
+                                    <NavigationMenuLink href="/home">Início</NavigationMenuLink>
+                                    <NavigationMenuLink href="/home/news">Jornal</NavigationMenuLink>
                                 </NavigationMenuContent>
                             </NavigationMenuItem>
                         </NavigationMenuList>

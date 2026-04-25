@@ -3,20 +3,17 @@
 import Image from "next/image"
 
 const team = [
-    { name: "Beatriz", role: "Presidenta", photo: "/images/team/beatriz.jpg" },
-    { name: "Alcieris", role: "Vice-Presidente e Tesouraria", photo: "/images/team/alcieris.jpg" },
-    { name: "Ana", role: "Secretário", photo: "/images/team/ana.jpg" },
-    { name: "Francisco", role: "Coordenação de Comunicação & Imprensa", photo: "/images/team/francisco.jpg" },
-    { name: "Pietra", role: "Coordenação de Comunicação & Imprensa", photo: "/images/team/pietra.jpg" },
-    { name: "Ana Clara", role: "Coordenação de Assistência Estudantil", photo: "/images/team/ana-clara.jpg" },
-    { name: "João", role: "Coordenação de Assistência Estudantil", photo: "/images/team/joao.jpg" },
-    { name: "Evy", role: "Coordenação de Cultura", photo: "/images/team/evy.jpg" },
-    { name: "Felipe", role: "Coordenação de Movimento Estudantil & Formações Políticas", photo: "/images/team/felipe.jpg" },
-    { name: "Daf", role: "Coordenação de Movimento Estudantil & Formações Políticas", photo: "/images/team/daf.jpg" },
-    { name: "Sara", role: "Coordenação de Movimento Estudantil & Formações Políticas", photo: "/images/team/sara.jpg" },
-    { name: "André", role: "Coordenação de Integração de Campus", photo: "/images/team/andre.jpg" },
-    { name: "Shayni", role: "Coordenação de Integração de Campus", photo: "/images/team/shayni.jpg" },
-    { name: "Lohana", role: "Coordenação de Diversidade", photo: "/images/team/lohana.jpg" },
+    { name: "Beatriz", role: "Presidente e Coordenadora de Movimento Estudantil & Formação Política", photo: "/images/team/beatriz-20260425.jpg" },
+    { name: "Alcieris", role: "Vice-Presidente e Tesoureiro", photo: "/images/team/alcieres-20260425.jpg" },
+    { name: "Francisco", role: "Secretário e Coordenador de Comunicação e Imprensa", photo: "/images/team/francisco-20260425.jpg" },
+    { name: "Pietra", role: "Coordenadora de Comunicação & Imprensa", photo: "/images/team/pietra-20260425.jpg" },
+    { name: "Ana Clara", role: "Coordenadora de Assistência Estudantil", photo: "/images/team/ana-clara-20260425.jpg" },
+    { name: "Victor", role: "Coordenador de Assistência Estudantil", photo: "/images/team/victor-20260425.jpg" },
+    { name: "Evy", role: "Coordenadora de Cultura", photo: "/images/team/evy-20260425.jpg" },
+    { name: "Ketlyn", role: "Coordenadora de Ensino, Pesquisa & Extensão", photo: "/images/team/ketlyn-20260425.jpg" },
+    { name: "André", role: "Coordenador de Integração de Campus", photo: "/images/team/andre-20260425.jpg" },
+    { name: "Lohana", role: "Coordenadora de Diversidade", photo: "/images/team/lohana-20260425.jpg" },
+    { name: "Izzy", role: "Coordenadora de Diversidade", photo: "/images/team/izzy-20260425.jpg" },
 ]
 
 export function MemberSession() {
@@ -24,8 +21,8 @@ export function MemberSession() {
         <section className="w-full">
             <div className="mx-auto w-full max-w-[1500px] px-6 py-16 md:px-10">
                 {/* chip alinhado à esquerda */}
-                <div className="inline-flex bg-slate-900 px-4 py-2">
-                    <h2 className="text-lg font-extrabold text-white">Coordenação do DCE</h2>
+                <div className="inline-flex border-b-4 border-[#2708ab] bg-[#fdf25a] px-4 py-2 shadow-[4px_4px_0_#2708ab]">
+                    <h2 className="text-lg font-extrabold text-[#2708ab]">Coordenação do DCE</h2>
                 </div>
 
                 {/* MOBILE (<md) */}
@@ -42,7 +39,7 @@ export function MemberSession() {
                                 <div className="relative h-[132px] w-[132px] mx-auto overflow-hidden rounded-full">
                                     <Image src={p.photo} alt={p.name} fill className="object-cover" sizes="132px" />
                                 </div>
-                                <h3 className="mt-4 text-base font-extrabold text-slate-900">{p.name}</h3>
+                                <h3 className="mt-4 text-base font-extrabold text-[#2708ab]">{p.name}</h3>
                                 <p className="mt-1 text-xs leading-relaxed text-slate-700">{p.role}</p>
                             </article>
                         ))}
@@ -68,7 +65,7 @@ export function MemberSession() {
                                     <Image src={p.photo} alt={p.name} fill className="object-cover" sizes="176px" />
                                 </div>
 
-                                <h3 className="mt-6 text-lg font-extrabold text-slate-900">{p.name}</h3>
+                                <h3 className="mt-6 text-lg font-extrabold text-[#2708ab]">{p.name}</h3>
                                 <p className="mt-2 text-sm leading-relaxed text-slate-700">{p.role}</p>
                             </article>
                         ))}

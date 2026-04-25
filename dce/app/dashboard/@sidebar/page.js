@@ -1,5 +1,5 @@
 import AppSidebar from "@/components/dashboard/sidebar/AppSidebar";
-import { redirect } from "next/dist/server/api-utils";
+import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 
 export default async function Page() {

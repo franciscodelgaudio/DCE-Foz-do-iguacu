@@ -34,7 +34,7 @@ function StatusBadge({ value }) {
     return <Badge variant="outline" className={cls}>{label}</Badge>;
 }
 
-export function Row({ newsItem }) {
+export function Row({ newsItem, selected = false, onSelectChange }) {
 
     const router = useRouter();
 
@@ -54,6 +54,18 @@ export function Row({ newsItem }) {
 
     return (
         <TableRow>
+            <TableCell
+                onClick={(e) => e.stopPropagation()}
+                className="cursor-default"
+            >
+                <input
+                    type="checkbox"
+                    aria-label={`Selecionar ${newsItem.title}`}
+                    checked={selected}
+                    onChange={() => onSelectChange?.(newsItem._id)}
+                    className="size-4 accent-[#2708ab]"
+                />
+            </TableCell>
             <TableCell>{newsItem.title}</TableCell>
             <TableCell>{newsItem.author?.name ?? "-"}</TableCell>
             <TableCell>{formatDate(newsItem.publishedAt) ?? "-"}</TableCell>

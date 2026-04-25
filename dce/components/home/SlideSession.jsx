@@ -14,9 +14,9 @@ import {
 } from "@/components/ui/carousel"
 
 const BRAND = {
-    navy: "#0B1F3B",
-    magenta: "#B0125B",
-    cream: "#F6F1E7",
+    indigo: "#2708ab",
+    indigoDark: "#16045f",
+    yellow: "#fdf25a",
 }
 
 const slides = [
@@ -76,9 +76,9 @@ export function SlideSession() {
                                             style={{
                                                 background:
                                                     `linear-gradient(90deg,
-                            rgba(11,31,59,0.55) 0%,
-                            rgba(11,31,59,0.15) 45%,
-                            rgba(11,31,59,0.70) 100%)`,
+                            rgba(0,0,0,0.55) 0%,
+                            rgba(0,0,0,0.15) 45%,
+                            rgba(0,0,0,0.70) 100%)`,
                                             }}
                                         />
                                     </CardContent>
@@ -100,11 +100,14 @@ export function SlideSession() {
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -6 }}
                             transition={{ duration: 0.45, ease: [0.2, 0.8, 0.2, 1] }}
-                            className="block text-5xl md:text-6xl font-bold text-white leading-none"
+                            className="block text-5xl md:text-6xl font-bold leading-none text-[#2708ab]"
                         >
                             <div
-                                className="pointer-events-auto translate-y-1/2 px-10 py-3"
-                                style={{ backgroundColor: BRAND.magenta }}
+                                className="pointer-events-auto translate-y-1/2 border-b-4 border-[#2708ab] px-10 py-3 shadow-[0_10px_0_rgba(39,8,171,0.18)]"
+                                style={{
+                                    backgroundColor: BRAND.yellow,
+                                    textShadow: "0 2px 0 rgba(255,255,255,0.55)",
+                                }}
                             >
                                 {current.text}
                             </div>

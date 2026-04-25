@@ -2,7 +2,7 @@
 
 import { auth } from "@/auth"
 import { redirect } from "next/navigation"
-import { email, z } from "zod"
+import { z } from "zod"
 import { News } from "../../models/news"
 import mongoose from "mongoose"
 
@@ -73,5 +73,33 @@ export async function deleteNews(newsId) {
         return { success: true, message: "Notícia deletada com sucesso." }
     } catch {
         return { success: false, message: "Erro ao deletar a notícia." }
+    }
+}
+
+export async function deleteManyNews(newsIds) {
+    const session = await auth()
+    if (!session) redirect("/login")
+
+    if (!Array.isArray(newsIds) || newsIds.length === 0) {
+        return { success: false, message: "Nenhuma notícia selecionada." }
+    }
+
+    const ids = newsIds
+        .filter((id) => mongoose.Types.ObjectId.isValid(id))
+        .map((id) => new mongoose.Types.ObjectId(id))
+
+    if (!ids.length) {
+        return { success: false, message: "Nenhuma notícia válida selecionada." }
+    }
+
+    try {
+        const result = await News.deleteMany({ _id: { $in: ids } })
+        return {
+            success: true,
+            deletedCount: result.deletedCount,
+            message: `${result.deletedCount} notícia(s) deletada(s) com sucesso.`,
+        }
+    } catch {
+        return { success: false, message: "Erro ao deletar as notícias." }
     }
 }
