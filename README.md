@@ -68,14 +68,14 @@ MONGODB_URI="mongodb+srv://..."
 
 # Auth (exemplos - ajuste conforme seu setup)
 AUTH_SECRET="..."
-GOOGLE_CLIENT_ID="..."
-GOOGLE_CLIENT_SECRET="..."
+AUTH_GOOGLE_ID="..."
+AUTH_GOOGLE_SECRET="..."
 
 # URL do app
-NEXTAUTH_URL="http://localhost:3000"
+AUTH_URL="http://localhost:3000"
 ```
 
-> Os nomes podem variar conforme seu `auth` e sua lib de conexão.  
+> Em produção, use `AUTH_URL="https://www.dceunioestefoz.org"` ou o domínio canônico configurado no Google OAuth.  
 > Se tiver dúvidas, procure pelos usos em `@/auth`, `@/lib/db` e `@/lib/actions`.
 
 ### 4) Rode o projeto
