@@ -1,6 +1,10 @@
 import { Display } from "../../components/home/Display"
 import { News } from "@/models/news";
 
+export const metadata = {
+    title: "DCE | Home",
+};
+
 export default async function Page() {
 
     const news = await News.aggregate([
