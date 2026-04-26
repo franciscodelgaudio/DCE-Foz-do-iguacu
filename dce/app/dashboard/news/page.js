@@ -3,6 +3,10 @@ import { redirect } from "next/navigation"
 import { Display } from "../../../components/dashboard/news/Display"
 import { News } from "@/models/news"
 
+export const metadata = {
+    title: "Gerenciar Jornal",
+}
+
 export default async function Page() {
     const session = await auth()
     if (!session) { redirect("/login") }

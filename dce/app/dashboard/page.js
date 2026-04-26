@@ -3,6 +3,10 @@ import { redirect } from "next/navigation"
 import { Display } from "@/components/dashboard/Display"
 import { News } from "@/models/news" 
 
+export const metadata = {
+    title: "Dashboard",
+}
+
 export const revalidate = 0 // dashboard sempre atualizado (sem cache)
 
 function last7DaysSkeleton() {

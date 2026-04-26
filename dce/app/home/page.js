@@ -2,7 +2,7 @@ import { Display } from "../../components/home/Display"
 import { News } from "@/models/news";
 
 export const metadata = {
-    title: "DCE | Home",
+    title: "Home",
 };
 
 export default async function Page() {

@@ -12,6 +12,13 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+export const metadata = {
+  title: {
+    default: "DCE",
+    template: "DCE | %s",
+  },
+};
+
 export default function RootLayout({ children }) {
   return (
     <html lang="en">

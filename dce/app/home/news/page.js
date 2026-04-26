@@ -1,6 +1,10 @@
 import { News } from "@/models/news";
 import { Display } from "../../../components/home/news/Display";
 
+export const metadata = {
+    title: "Jornal",
+};
+
 export default async function Page({ searchParams }) {
 
     const { title } = await searchParams;
