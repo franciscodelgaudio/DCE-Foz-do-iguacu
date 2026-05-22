@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { useEditor, EditorContent } from '@tiptap/react'
+import { useEditor, EditorContent, ReactNodeViewRenderer, NodeViewWrapper } from '@tiptap/react'
 import { BubbleMenu } from '@tiptap/react/menus'
 import StarterKit from '@tiptap/starter-kit'
 import Underline from '@tiptap/extension-underline'
@@ -41,39 +41,108 @@ import {
 
 import { ImageUpload } from '../editor/extensions/image-upload'
 
-/**
- * ✅ Imagem com atributo align (left|center|right)
- * - center => mx-auto block
- * - right  => ml-auto block
- * - left   => mr-auto block
- */
-const AlignedImage = Image.extend({
+function ResizableImageView({ node, updateAttributes, selected, editor }) {
+    const { src, alt, title, align, width } = node.attrs
+    const containerRef = React.useRef(null)
+
+    const handleResizeStart = React.useCallback((e) => {
+        e.preventDefault()
+        e.stopPropagation()
+        const startX = e.clientX
+        const startWidth = containerRef.current?.offsetWidth ?? (Number(width) || 300)
+
+        const onMove = (ev) => {
+            const newWidth = Math.max(80, startWidth + (ev.clientX - startX))
+            updateAttributes({ width: Math.round(newWidth) })
+        }
+        const onUp = () => {
+            window.removeEventListener('mousemove', onMove)
+            window.removeEventListener('mouseup', onUp)
+        }
+        window.addEventListener('mousemove', onMove)
+        window.addEventListener('mouseup', onUp)
+    }, [updateAttributes, width])
+
+    const w = Number(width) || 300
+    const marginStyle =
+        align === 'center' ? { margin: '0 auto' } :
+        align === 'right'  ? { marginLeft: 'auto', marginRight: 0 } :
+                             { marginLeft: 0, marginRight: 'auto' }
+
+    return (
+        <NodeViewWrapper>
+            <div
+                ref={containerRef}
+                contentEditable={false}
+                style={{
+                    display: 'block',
+                    width: `${w}px`,
+                    position: 'relative',
+                    outline: selected && editor.isEditable ? '2px solid #3b82f6' : 'none',
+                    outlineOffset: 2,
+                    ...marginStyle,
+                }}
+            >
+                <img
+                    src={src}
+                    alt={alt || ''}
+                    title={title}
+                    draggable={false}
+                    style={{ width: '100%', height: 'auto', display: 'block', borderRadius: 6 }}
+                />
+                {editor.isEditable && selected && (
+                    <div
+                        onMouseDown={handleResizeStart}
+                        style={{
+                            position: 'absolute',
+                            bottom: 4,
+                            right: 4,
+                            width: 12,
+                            height: 12,
+                            background: 'white',
+                            border: '2px solid #3b82f6',
+                            borderRadius: 2,
+                            cursor: 'nwse-resize',
+                        }}
+                    />
+                )}
+            </div>
+        </NodeViewWrapper>
+    )
+}
+
+const ResizableImage = Image.extend({
     addAttributes() {
         return {
             ...this.parent?.(),
             align: {
                 default: 'center',
-                parseHTML: (element) => element.getAttribute('data-align') || 'center',
-                renderHTML: (attrs) => {
-                    const align = attrs.align || 'center'
-
-                    const alignClass =
-                        align === 'center'
-                            ? 'mx-auto'
-                            : align === 'right'
-                                ? 'ml-auto'
-                                : 'mr-auto'
-
-                    return {
-                        'data-align': align,
-                        class: cn(
-                            'max-w-full h-auto rounded-md block',
-                            alignClass
-                        ),
-                    }
-                },
+                parseHTML: (el) => el.getAttribute('data-align') ?? 'center',
+                renderHTML: () => ({}),
+            },
+            width: {
+                default: 300,
+                parseHTML: (el) => parseInt(el.getAttribute('width') ?? '300') || 300,
+                renderHTML: () => ({}),
             },
         }
+    },
+    renderHTML({ node, HTMLAttributes }) {
+        const align = node.attrs.align ?? 'center'
+        const w = Number(node.attrs.width ?? 300) || 300
+        const marginStyle =
+            align === 'center' ? 'margin:0 auto' :
+            align === 'right'  ? 'margin-left:auto;margin-right:0' :
+                                 'margin-left:0;margin-right:auto'
+        return ['img', {
+            ...HTMLAttributes,
+            'data-align': align,
+            width: w,
+            style: `width:${w}px;height:auto;display:block;border-radius:6px;${marginStyle}`,
+        }]
+    },
+    addNodeView() {
+        return ReactNodeViewRenderer(ResizableImageView)
     },
 })
 
@@ -126,10 +195,7 @@ export default function Tiptap({
                 HTMLAttributes: { class: 'underline underline-offset-4' },
             }),
 
-            // ✅ imagem com align
-            AlignedImage.configure({
-                allowBase64: true,
-            }),
+            ResizableImage,
 
             ImageUpload.configure({
                 maxFiles: 3,
