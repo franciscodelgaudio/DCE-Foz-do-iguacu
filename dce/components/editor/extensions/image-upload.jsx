@@ -5,18 +5,13 @@ import { Node, mergeAttributes } from '@tiptap/core'
 import { ReactNodeViewRenderer, NodeViewWrapper } from '@tiptap/react'
 import { Plugin, PluginKey } from 'prosemirror-state'
 
-function readFileAsDataURL(file) {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader()
-        reader.onload = () => resolve(String(reader.result))
-        reader.onerror = reject
-        reader.readAsDataURL(file)
-    })
-}
-
 async function defaultUpload(file) {
-    // ✅ fácil pra começar (não recomendado pra produção)
-    return await readFileAsDataURL(file)
+    const formData = new FormData()
+    formData.append('file', file)
+    const res = await fetch('/api/upload', { method: 'POST', body: formData })
+    if (!res.ok) throw new Error('Falha no upload da imagem')
+    const data = await res.json()
+    return data.url
 }
 
 function isImageFile(file) {
