@@ -10,17 +10,34 @@ import { Input } from '@/components/ui/input'
 import { useRouter } from 'next/navigation'
 
 export function Display() {
-    const { register, control, handleSubmit, formState: { isSubmitting }, } = useForm({})
+    const { register, control, handleSubmit, watch, formState: { isSubmitting }, } = useForm({})
     const router = useRouter();
+    const scheduledAt = watch('scheduledAt')
 
     async function onSubmit(values, status) {
         try {
-            await upsertNews({
+            const data = {
                 ...values,
+                excerpt: values.excerpt?.html ?? '',
                 status,
-            })
+            }
 
-            toast.success(status === 'published' ? 'Notícia publicada!' : 'Rascunho salvo!')
+            if (status === 'scheduled') {
+                if (!values.scheduledAt) {
+                    toast.error('Selecione uma data e horário para agendar.')
+                    return
+                }
+                data.scheduledAt = new Date(values.scheduledAt).toISOString()
+            }
+
+            await upsertNews(data)
+
+            const messages = {
+                published: 'Notícia publicada!',
+                draft: 'Rascunho salvo!',
+                scheduled: 'Publicação agendada!',
+            }
+            toast.success(messages[status] ?? 'Salvo!')
             router.refresh()
             router.push('/dashboard/news')
         } catch (err) {
@@ -37,11 +54,20 @@ export function Display() {
                     {...register('title', { required: true })}
                 />
 
-                <Input
-                    placeholder="Resumo"
-                    className="border p-2 w-full rounded-md"
-                    {...register('excerpt')}
-                />
+                <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">Resumo</p>
+                    <Controller
+                        control={control}
+                        name="excerpt"
+                        render={({ field }) => (
+                            <Tiptap
+                                minimal
+                                initialHtml={field.value?.html ?? ''}
+                                onChange={({ html, json }) => field.onChange({ html, json })}
+                            />
+                        )}
+                    />
+                </div>
 
                 <Controller
                     control={control}
@@ -63,10 +89,9 @@ export function Display() {
                     )}
                 />
 
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                     <Button
                         type="button"
-                        className="border px-4 py-2"
                         disabled={isSubmitting}
                         onClick={handleSubmit((values) => onSubmit(values, 'published'))}
                     >
@@ -76,11 +101,27 @@ export function Display() {
                     <Button
                         type="button"
                         variant="outline"
-                        className="border px-4 py-2"
                         disabled={isSubmitting}
                         onClick={handleSubmit((values) => onSubmit(values, 'draft'))}
                     >
                         {isSubmitting ? 'Salvando…' : 'Salvar rascunho'}
+                    </Button>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2 pt-2 border-t">
+                    <span className="text-sm text-muted-foreground">Agendar publicação:</span>
+                    <Input
+                        type="datetime-local"
+                        className="w-auto"
+                        {...register('scheduledAt')}
+                    />
+                    <Button
+                        type="button"
+                        variant="outline"
+                        disabled={isSubmitting || !scheduledAt}
+                        onClick={handleSubmit((values) => onSubmit(values, 'scheduled'))}
+                    >
+                        {isSubmitting ? 'Salvando…' : 'Agendar'}
                     </Button>
                 </div>
             </form>

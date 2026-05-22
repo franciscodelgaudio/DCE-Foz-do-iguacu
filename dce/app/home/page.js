@@ -1,11 +1,14 @@
 import { Display } from "../../components/home/Display"
 import { News } from "@/models/news";
+import { publishScheduled } from "@/lib/publishScheduled";
 
 export const metadata = {
     title: "Home",
 };
 
 export default async function Page() {
+
+    await publishScheduled()
 
     const news = await News.aggregate([
         { $match: { status: 'published' } },

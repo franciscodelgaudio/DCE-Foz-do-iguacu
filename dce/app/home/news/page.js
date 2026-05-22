@@ -1,11 +1,14 @@
 import { News } from "@/models/news";
 import { Display } from "../../../components/home/news/Display";
+import { publishScheduled } from "@/lib/publishScheduled";
 
 export const metadata = {
     title: "Jornal",
 };
 
 export default async function Page({ searchParams }) {
+
+    await publishScheduled()
 
     const { title } = await searchParams;
 

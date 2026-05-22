@@ -15,6 +15,7 @@ const newsSchema = z.object({
         json: z.coerce.string(),
     }),
     status: z.enum(["draft", "published", "scheduled", "archived"]).optional(),
+    scheduledAt: z.string().optional(),
 })
 
 export async function upsertNews(form) {
@@ -27,9 +28,18 @@ export async function upsertNews(form) {
     const parsed = newsSchema.safeParse(form)
     if (!parsed.success) { return { success: false, message: "Zod falhou!" } }
 
-    const { _id, title, excerpt, content, status } = parsed.data
+    const { _id, title, excerpt, content, status, scheduledAt } = parsed.data
 
     const id = _id === undefined ? new mongoose.Types.ObjectId() : new mongoose.Types.ObjectId(_id)
+
+    const dateFields = {}
+    if (status === 'published') {
+        dateFields.publishedAt = new Date()
+        dateFields.scheduledAt = null
+    } else if (status === 'scheduled' && scheduledAt) {
+        dateFields.scheduledAt = new Date(scheduledAt)
+        dateFields.publishedAt = null
+    }
 
     const newItem = {
         _id: id,
@@ -42,8 +52,8 @@ export async function upsertNews(form) {
             email: session.user.email,
             avatarUrl: session.user.image
         },
-        publishedAt: new Date(),
         status,
+        ...dateFields,
     }
 
     console.log(newItem);
@@ -74,6 +84,11 @@ export async function deleteNews(newsId) {
     } catch {
         return { success: false, message: "Erro ao deletar a notícia." }
     }
+}
+
+export async function incrementViewCount(newsId) {
+    if (!mongoose.Types.ObjectId.isValid(newsId)) return
+    await News.findByIdAndUpdate(newsId, { $inc: { viewCount: 1 } })
 }
 
 export async function deleteManyNews(newsIds) {
