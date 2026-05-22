@@ -1,6 +1,5 @@
 import mongoose, { Schema } from "mongoose";
 import { dbConnect } from "../lib/mongoose.js";
-import { email } from "zod";
 
 const NewsSchema = new Schema(
     {
@@ -67,6 +66,11 @@ const NewsSchema = new Schema(
                 type: String,
                 trim: true
             },
+        },
+
+        viewCount: {
+            type: Number,
+            default: 0,
         },
     },
     {

@@ -23,9 +23,10 @@ export function Display({ newItem }) {
                 </h1>
 
                 {newItem?.excerpt ? (
-                    <p className="max-w-3xl text-base leading-relaxed text-slate-600 sm:text-lg">
-                        {newItem.excerpt}
-                    </p>
+                    <div
+                        className="max-w-3xl text-base leading-relaxed text-slate-600 sm:text-lg [&>p]:m-0"
+                        dangerouslySetInnerHTML={{ __html: newItem.excerpt }}
+                    />
                 ) : null}
 
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-slate-500">
