@@ -9,7 +9,6 @@ import Link from '@tiptap/extension-link'
 import Image from '@tiptap/extension-image'
 import TextAlign from '@tiptap/extension-text-align'
 import Highlight from '@tiptap/extension-highlight'
-// Se você usa Table mesmo, mantenha seus imports como já estavam.
 
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
@@ -37,9 +36,11 @@ import {
     AlignRight,
     AlignJustify,
     Minus,
+    Columns2,
 } from 'lucide-react'
 
 import { ImageUpload } from '../editor/extensions/image-upload'
+import { Columns, Column } from '../editor/extensions/columns'
 
 function ResizableImageView({ node, updateAttributes, selected, editor }) {
     const { src, alt, title, align, width } = node.attrs
@@ -146,13 +147,7 @@ const ResizableImage = Image.extend({
     },
 })
 
-function ToolbarButton({
-    active,
-    disabled,
-    onClick,
-    children,
-    title,
-}) {
+function ToolbarButton({ active, disabled, onClick, children, title }) {
     return (
         <Button
             type="button"
@@ -177,45 +172,42 @@ export default function Tiptap({
     onChange,
     className,
     readOnly = false,
+    minimal = false,
 }) {
     const editor = useEditor({
         immediatelyRender: false,
         editable: !readOnly,
         extensions: [
             StarterKit.configure({
-                heading: { levels: [1, 2, 3] },
-                codeBlock: { HTMLAttributes: { class: 'rounded-md bg-muted p-3' } },
+                heading: minimal ? false : { levels: [1, 2, 3] },
+                codeBlock: minimal ? false : { HTMLAttributes: { class: 'rounded-md bg-muted p-3' } },
             }),
             Underline,
-            Highlight,
+            ...(minimal ? [] : [Highlight]),
             Link.configure({
                 openOnClick: false,
                 autolink: true,
                 linkOnPaste: true,
                 HTMLAttributes: { class: 'underline underline-offset-4' },
             }),
-
-            ResizableImage,
-
-            ImageUpload.configure({
-                maxFiles: 3,
-                maxSizeMB: 5,
-            }),
-
-            // ✅ incluir listItem pra alinhar dentro de bullets
+            ...(minimal ? [] : [
+                ResizableImage,
+                ImageUpload.configure({ maxFiles: 3, maxSizeMB: 5 }),
+                Columns,
+                Column,
+            ]),
             TextAlign.configure({
-                types: ['heading', 'paragraph', 'listItem'],
+                types: minimal
+                    ? ['paragraph']
+                    : ['heading', 'paragraph', 'listItem'],
             }),
-
-            // ❌ remover placeholder se você quer “texto real” e não placeholder
-            // Placeholder.configure({ placeholder: 'Digite aqui…' }),
         ],
         content: initialHtml,
         editorProps: {
             attributes: {
                 class: cn(
-                    'min-h-[240px] w-full rounded-md border bg-background p-4 outline-none',
-                    // IMPORTANTE: isso só funciona “de verdade” se você tiver @tailwindcss/typography
+                    minimal ? 'min-h-[80px]' : 'min-h-[240px]',
+                    'w-full rounded-md border bg-background p-4 outline-none',
                     'prose prose-sm sm:prose-base dark:prose-invert max-w-none',
                     'focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ring-offset-background'
                 ),
@@ -230,7 +222,6 @@ export default function Tiptap({
         },
     })
 
-    // ✅ Se você editar notícia existente e initialHtml mudar, isso sincroniza
     React.useEffect(() => {
         if (!editor) return
         if (typeof initialHtml !== 'string') return
@@ -255,13 +246,11 @@ export default function Tiptap({
         editor.chain().focus().extendMarkRange('link').setLink({ href: url.trim() }).run()
     }, [editor])
 
-    // ✅ Alinha texto OU imagem (se imagem estiver selecionada)
     const applyAlign = React.useCallback(
         (align) => {
             if (!editor) return
             const chain = editor.chain().focus()
 
-            // justify só faz sentido em texto
             if (align === 'justify') {
                 chain.setTextAlign('justify').run()
                 return
@@ -280,10 +269,7 @@ export default function Tiptap({
         (align) => {
             if (!editor) return false
             if (align === 'justify') return editor.isActive({ textAlign: 'justify' })
-
-            // Se imagem selecionada, usa atributo align da imagem
             if (editor.isActive('image')) return editor.isActive('image', { align })
-
             return editor.isActive({ textAlign: align })
         },
         [editor]
@@ -328,83 +314,94 @@ export default function Tiptap({
                 </ToolbarButton>
 
                 <ToolbarButton
-                    title="Highlight"
-                    active={editor.isActive('highlight')}
-                    onClick={() => editor.chain().focus().toggleHighlight().run()}
+                    title="Link"
+                    active={editor.isActive('link')}
+                    onClick={setLink}
                 >
-                    <Highlighter className="h-4 w-4" />
+                    <Link2 className="h-4 w-4" />
                 </ToolbarButton>
+
+                {!minimal && (
+                    <>
+                        <ToolbarButton
+                            title="Highlight"
+                            active={editor.isActive('highlight')}
+                            onClick={() => editor.chain().focus().toggleHighlight().run()}
+                        >
+                            <Highlighter className="h-4 w-4" />
+                        </ToolbarButton>
+
+                        <Separator orientation="vertical" className="mx-1 h-6" />
+
+                        <ToolbarButton
+                            title="H1"
+                            active={editor.isActive('heading', { level: 1 })}
+                            onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
+                        >
+                            <Heading1 className="h-4 w-4" />
+                        </ToolbarButton>
+
+                        <ToolbarButton
+                            title="H2"
+                            active={editor.isActive('heading', { level: 2 })}
+                            onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+                        >
+                            <Heading2 className="h-4 w-4" />
+                        </ToolbarButton>
+
+                        <ToolbarButton
+                            title="H3"
+                            active={editor.isActive('heading', { level: 3 })}
+                            onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
+                        >
+                            <Heading3 className="h-4 w-4" />
+                        </ToolbarButton>
+
+                        <Separator orientation="vertical" className="mx-1 h-6" />
+
+                        <ToolbarButton
+                            title="Lista"
+                            active={editor.isActive('bulletList')}
+                            onClick={() => editor.chain().focus().toggleBulletList().run()}
+                        >
+                            <List className="h-4 w-4" />
+                        </ToolbarButton>
+
+                        <ToolbarButton
+                            title="Lista numerada"
+                            active={editor.isActive('orderedList')}
+                            onClick={() => editor.chain().focus().toggleOrderedList().run()}
+                        >
+                            <ListOrdered className="h-4 w-4" />
+                        </ToolbarButton>
+
+                        <ToolbarButton
+                            title="Citação"
+                            active={editor.isActive('blockquote')}
+                            onClick={() => editor.chain().focus().toggleBlockquote().run()}
+                        >
+                            <Quote className="h-4 w-4" />
+                        </ToolbarButton>
+
+                        <ToolbarButton
+                            title="Código inline"
+                            active={editor.isActive('code')}
+                            onClick={() => editor.chain().focus().toggleCode().run()}
+                        >
+                            <Code className="h-4 w-4" />
+                        </ToolbarButton>
+
+                        <ToolbarButton
+                            title="Linha horizontal"
+                            onClick={() => editor.chain().focus().setHorizontalRule().run()}
+                        >
+                            <Minus className="h-4 w-4" />
+                        </ToolbarButton>
+                    </>
+                )}
 
                 <Separator orientation="vertical" className="mx-1 h-6" />
 
-                <ToolbarButton
-                    title="H1"
-                    active={editor.isActive('heading', { level: 1 })}
-                    onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
-                >
-                    <Heading1 className="h-4 w-4" />
-                </ToolbarButton>
-
-                <ToolbarButton
-                    title="H2"
-                    active={editor.isActive('heading', { level: 2 })}
-                    onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-                >
-                    <Heading2 className="h-4 w-4" />
-                </ToolbarButton>
-
-                <ToolbarButton
-                    title="H3"
-                    active={editor.isActive('heading', { level: 3 })}
-                    onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
-                >
-                    <Heading3 className="h-4 w-4" />
-                </ToolbarButton>
-
-                <Separator orientation="vertical" className="mx-1 h-6" />
-
-                <ToolbarButton
-                    title="Lista"
-                    active={editor.isActive('bulletList')}
-                    onClick={() => editor.chain().focus().toggleBulletList().run()}
-                >
-                    <List className="h-4 w-4" />
-                </ToolbarButton>
-
-                <ToolbarButton
-                    title="Lista numerada"
-                    active={editor.isActive('orderedList')}
-                    onClick={() => editor.chain().focus().toggleOrderedList().run()}
-                >
-                    <ListOrdered className="h-4 w-4" />
-                </ToolbarButton>
-
-                <ToolbarButton
-                    title="Citação"
-                    active={editor.isActive('blockquote')}
-                    onClick={() => editor.chain().focus().toggleBlockquote().run()}
-                >
-                    <Quote className="h-4 w-4" />
-                </ToolbarButton>
-
-                <ToolbarButton
-                    title="Código inline"
-                    active={editor.isActive('code')}
-                    onClick={() => editor.chain().focus().toggleCode().run()}
-                >
-                    <Code className="h-4 w-4" />
-                </ToolbarButton>
-
-                <ToolbarButton
-                    title="Linha horizontal"
-                    onClick={() => editor.chain().focus().setHorizontalRule().run()}
-                >
-                    <Minus className="h-4 w-4" />
-                </ToolbarButton>
-
-                <Separator orientation="vertical" className="mx-1 h-6" />
-
-                {/* ✅ alinhamento texto + imagem */}
                 <ToolbarButton
                     title="Alinhar esquerda"
                     active={isAlignActive('left')}
@@ -429,30 +426,34 @@ export default function Tiptap({
                     <AlignRight className="h-4 w-4" />
                 </ToolbarButton>
 
-                <ToolbarButton
-                    title="Justificar"
-                    active={isAlignActive('justify')}
-                    onClick={() => applyAlign('justify')}
-                >
-                    <AlignJustify className="h-4 w-4" />
-                </ToolbarButton>
+                {!minimal && (
+                    <>
+                        <ToolbarButton
+                            title="Justificar"
+                            active={isAlignActive('justify')}
+                            onClick={() => applyAlign('justify')}
+                        >
+                            <AlignJustify className="h-4 w-4" />
+                        </ToolbarButton>
 
-                <Separator orientation="vertical" className="mx-1 h-6" />
+                        <Separator orientation="vertical" className="mx-1 h-6" />
 
-                <ToolbarButton
-                    title="Link"
-                    active={editor.isActive('link')}
-                    onClick={setLink}
-                >
-                    <Link2 className="h-4 w-4" />
-                </ToolbarButton>
+                        <ToolbarButton
+                            title="Inserir upload de imagem"
+                            onClick={() => editor.chain().focus().insertImageUpload().run()}
+                        >
+                            <ImagePlus className="h-4 w-4" />
+                        </ToolbarButton>
 
-                <ToolbarButton
-                    title="Inserir upload de imagem"
-                    onClick={() => editor.chain().focus().insertImageUpload().run()}
-                >
-                    <ImagePlus className="h-4 w-4" />
-                </ToolbarButton>
+                        <ToolbarButton
+                            title="Inserir layout de 2 colunas"
+                            active={editor.isActive('columns')}
+                            onClick={() => editor.chain().focus().insertColumns().run()}
+                        >
+                            <Columns2 className="h-4 w-4" />
+                        </ToolbarButton>
+                    </>
+                )}
 
                 <div className="ml-auto flex items-center gap-1">
                     <ToolbarButton

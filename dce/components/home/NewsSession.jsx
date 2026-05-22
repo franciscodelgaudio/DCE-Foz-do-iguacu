@@ -73,9 +73,10 @@ export function NewsSession({ news = [] }) {
                                             </CardTitle>
 
                                             {n.excerpt ? (
-                                                <p className="text-sm text-muted-foreground line-clamp-3">
-                                                    {n.excerpt}
-                                                </p>
+                                                <div
+                                                    className="text-sm text-muted-foreground line-clamp-3 [&>p]:m-0"
+                                                    dangerouslySetInnerHTML={{ __html: n.excerpt }}
+                                                />
                                             ) : null}
                                         </CardHeader>
                                     </Link>
@@ -123,9 +124,10 @@ export function NewsSession({ news = [] }) {
                                         </CardTitle>
 
                                         {n.excerpt ? (
-                                            <p className="text-sm text-muted-foreground line-clamp-3">
-                                                {n.excerpt}
-                                            </p>
+                                            <div
+                                                className="text-sm text-muted-foreground line-clamp-3 [&>p]:m-0"
+                                                dangerouslySetInnerHTML={{ __html: n.excerpt }}
+                                            />
                                         ) : null}
                                     </CardHeader>
                                 </Link>
