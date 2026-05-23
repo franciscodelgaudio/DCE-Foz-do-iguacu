@@ -5,15 +5,8 @@ import Image from "next/image"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { CircleUser, Menu, Search } from "lucide-react"
-
-import {
-    NavigationMenu,
-    NavigationMenuContent,
-    NavigationMenuItem,
-    NavigationMenuLink,
-    NavigationMenuList,
-    NavigationMenuTrigger,
-} from "@/components/ui/navigation-menu"
+import { useRouter, usePathname } from "next/navigation"
+import { useState } from "react"
 
 import {
     DropdownMenu,
@@ -34,9 +27,15 @@ import {
     SheetTitle,
     SheetTrigger,
 } from "@/components/ui/sheet"
-import { useState } from "react"
 
 const LOGO_MARK_SRC = "/images/home/logo.png"
+
+const NAV_LINKS = [
+    { href: "/home", label: "Início", exact: true },
+    { href: "/home/news", label: "Jornal" },
+    { href: "/home/events", label: "Eventos" },
+    { href: "/home/sobre-o-dce", label: "Sobre o DCE" },
+]
 
 function HeaderLogo({ compact = false }) {
     return (
@@ -46,126 +45,205 @@ function HeaderLogo({ compact = false }) {
                 alt="DCE"
                 width={2000}
                 height={2000}
-                className={compact ? "h-12 w-12 object-contain" : "h-20 w-20 object-contain"}
+                className={compact ? "h-10 w-10 object-contain" : "h-14 w-14 object-contain"}
                 priority
             />
-
-            <div className={compact ? "mx-3 h-10 w-0.5 bg-[#2708ab]" : "mx-5 h-17 w-0.5 bg-[#2708ab]"} />
-
+            <div className={compact ? "mx-2.5 h-8 w-0.5 bg-[#2708ab]" : "mx-3.5 h-11 w-0.5 bg-[#2708ab]"} />
             <div className="flex min-w-0 flex-col justify-center text-[#2708ab]">
-                <div
-                    className={
-                        compact
-                            ? "text-[18px] font-extrabold leading-none tracking-normal"
-                            : "text-[22px] font-extrabold leading-none tracking-normal"
-                    }
-                >
+                <div className={compact ? "text-base font-extrabold leading-none" : "text-[17px] font-extrabold leading-none"}>
                     DCE UNIOESTE
                 </div>
-                <div
-                    className={
-                        compact
-                            ? "mt-1 text-[11px] leading-none text-[#3322a3]"
-                            : "mt-1 text-[12px] leading-none text-[#3322a3]"
-                    }
-                >
+                <div className={compact ? "mt-1 text-[10px] leading-none text-[#3322a3]" : "mt-1 text-[11px] leading-none text-[#3322a3]"}>
                     Diretório Central dos Estudantes
                 </div>
-                <div className={compact ? "mt-1.5 flex items-center gap-2" : "mt-1.5 flex items-center gap-2.5"}>
-                    <span className={compact ? "h-0.5 w-10 bg-[#fdf25a]" : "h-0.5 w-12 bg-[#fdf25a]"} />
-                    {/* <span className={compact ? "text-[12px] font-bold leading-none" : "text-[11px] font-bold leading-none"}>
-                        Foz do Iguaçu
-                    </span> */}
-                </div>
+                <span className={compact ? "mt-1.5 block h-0.5 w-8 bg-[#fdf25a]" : "mt-1.5 block h-0.5 w-10 bg-[#fdf25a]"} />
             </div>
         </div>
     )
 }
 
-export function Header({ user }) {
+function SearchForm({ onSearch }) {
+    const [query, setQuery] = useState("")
+    const router = useRouter()
 
+    const handleSubmit = (e) => {
+        e.preventDefault()
+        const q = query.trim()
+        if (q) router.push(`/home/search?q=${encodeURIComponent(q)}`)
+        onSearch?.()
+    }
+
+    return (
+        <form onSubmit={handleSubmit} className="flex items-center gap-2 w-full">
+            <Input
+                placeholder="Pesquisar notícias..."
+                className="h-9 w-full"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+            />
+            <Button type="submit" variant="ghost" size="icon" className="h-9 w-9 shrink-0" aria-label="Buscar">
+                <Search className="h-4 w-4" />
+            </Button>
+        </form>
+    )
+}
+
+function UserMenu({ user }) {
+    return !user ? (
+        <form action={signInWithGoogle}>
+            <Button type="submit" variant="outline" size="sm" className="h-9 gap-2 shrink-0">
+                <CircleUser className="h-4 w-4" />
+                Login
+            </Button>
+        </form>
+    ) : (
+        <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="h-9 px-2 gap-2 shrink-0">
+                    <Avatar className="h-7 w-7">
+                        <AvatarImage src={user?.image} alt={user?.name} />
+                        <AvatarFallback className="text-xs">{user?.name?.[0] || "U"}</AvatarFallback>
+                    </Avatar>
+                    <span className="hidden lg:block max-w-[140px] truncate text-sm">{user?.name}</span>
+                </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-52">
+                <DropdownMenuLabel className="font-normal">
+                    <div className="flex flex-col gap-0.5">
+                        <span className="font-medium text-sm">{user?.name}</span>
+                        <span className="text-xs text-muted-foreground truncate">{user?.email}</span>
+                    </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                    <Link href="/dashboard">Dashboard</Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                    <button type="button" className="w-full text-left" onClick={logout}>
+                        Sair
+                    </button>
+                </DropdownMenuItem>
+            </DropdownMenuContent>
+        </DropdownMenu>
+    )
+}
+
+function DesktopNavLink({ href, label, exact }) {
+    const pathname = usePathname()
+    const isActive = exact ? pathname === href : pathname.startsWith(href)
+
+    return (
+        <Link
+            href={href}
+            className={[
+                "relative px-3 py-2 text-sm font-medium transition-colors",
+                isActive
+                    ? "text-[#2708ab] after:absolute after:bottom-0 after:left-3 after:right-3 after:h-0.5 after:rounded-full after:bg-[#2708ab]"
+                    : "text-slate-600 hover:text-[#2708ab]",
+            ].join(" ")}
+        >
+            {label}
+        </Link>
+    )
+}
+
+function MobileNavLink({ href, label }) {
+    const pathname = usePathname()
+    const isActive = pathname === href || pathname.startsWith(href + "/")
+
+    return (
+        <Link
+            href={href}
+            className={[
+                "rounded-md px-3 py-2.5 text-sm font-medium transition-colors",
+                isActive ? "bg-[#f3f1ff] text-[#2708ab]" : "hover:bg-slate-100 text-slate-700",
+            ].join(" ")}
+        >
+            {label}
+        </Link>
+    )
+}
+
+export function Header({ user }) {
     const [mobileSearchOpen, setMobileSearchOpen] = useState(false)
 
     return (
-        <header className="border-b bg-white">
-            {/* MOBILE */}
-            <div className="md:hidden px-4 py-3">
-                <div className="flex items-center justify-between gap-3">
-                    {/* Logo */}
+        <header className="sticky top-0 z-40 bg-white">
+            {/* ── MOBILE ── */}
+            <div className="md:hidden border-b px-4 py-2.5">
+                <div className="flex items-center justify-between gap-2">
                     <Link href="/home" className="shrink-0">
                         <HeaderLogo compact />
                     </Link>
 
-                    {/* Ícones (direita) */}
-                    <div className="flex items-center gap-1">
-                        {/* Lupa (toggle da busca) */}
+                    <div className="flex items-center gap-1.5">
                         <Button
                             type="button"
                             variant="ghost"
-                            className="h-10 w-10 p-0"
+                            size="icon"
+                            className={[
+                                "h-9 w-9 transition-colors",
+                                mobileSearchOpen ? "bg-slate-100 text-[#2708ab]" : "",
+                            ].join(" ")}
                             onClick={() => setMobileSearchOpen(v => !v)}
                             aria-label="Pesquisar"
                             aria-expanded={mobileSearchOpen}
                         >
-                            <Search className="size-6" />
+                            <Search className="h-5 w-5" />
                         </Button>
 
-                        {/* Menu (Sheet) */}
                         <Sheet>
                             <SheetTrigger asChild>
                                 <Button
                                     variant="ghost"
-                                    className="h-10 w-10 border-2 border-[#2708ab] bg-[#fdf25a] p-0 text-[#2708ab] shadow-[2px_2px_0_#2708ab] hover:bg-[#fff86f] hover:text-[#2708ab]"
+                                    size="icon"
+                                    className="h-9 w-9 border-2 border-[#2708ab] bg-[#fdf25a] text-[#2708ab] shadow-[2px_2px_0_#2708ab] hover:bg-[#fff86f]"
                                     aria-label="Menu"
                                 >
-                                    <Menu className="size-6" />
+                                    <Menu className="h-5 w-5" />
                                 </Button>
                             </SheetTrigger>
-
-                            <SheetContent side="right" className="w-[280px] sm:w-[320px]">
+                            <SheetContent side="right" className="w-[260px]">
                                 <SheetHeader>
                                     <SheetTitle>Menu</SheetTitle>
                                 </SheetHeader>
-
-                                <nav className="mt-6 flex flex-col gap-2">
-                                    <Link href="/home" className="rounded-md px-3 py-2 text-sm hover:bg-slate-100">
-                                        Início
-                                    </Link>
-                                    <Link href="/home/news" className="rounded-md px-3 py-2 text-sm hover:bg-slate-100">
-                                        Jornal
-                                    </Link>
+                                <nav className="mt-6 flex flex-col gap-1">
+                                    {NAV_LINKS.map((link) => (
+                                        <MobileNavLink key={link.href} href={link.href} label={link.label} />
+                                    ))}
                                 </nav>
                             </SheetContent>
                         </Sheet>
 
-                        {/* Login / Avatar */}
                         {!user ? (
                             <form action={signInWithGoogle}>
-                                <Button type="submit" variant="ghost" className="h-10 w-10 p-0" aria-label="Login">
-                                    <CircleUser className="h-6 w-6" />
+                                <Button type="submit" variant="ghost" size="icon" className="h-9 w-9" aria-label="Login">
+                                    <CircleUser className="h-5 w-5" />
                                 </Button>
                             </form>
                         ) : (
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" className="h-10 w-10 p-0" aria-label="Conta">
-                                        <Avatar className="h-8 w-8">
+                                    <Button variant="ghost" size="icon" className="h-9 w-9" aria-label="Conta">
+                                        <Avatar className="h-7 w-7">
                                             <AvatarImage src={user?.image} alt={user?.name} />
-                                            <AvatarFallback>{user?.name?.[0] || "U"}</AvatarFallback>
+                                            <AvatarFallback className="text-xs">{user?.name?.[0] || "U"}</AvatarFallback>
                                         </Avatar>
                                     </Button>
                                 </DropdownMenuTrigger>
-
-                                <DropdownMenuContent align="end" className="w-56">
-                                    <DropdownMenuLabel>Conta</DropdownMenuLabel>
+                                <DropdownMenuContent align="end" className="w-52">
+                                    <DropdownMenuLabel className="font-normal">
+                                        <div className="flex flex-col gap-0.5">
+                                            <span className="font-medium text-sm">{user?.name}</span>
+                                            <span className="text-xs text-muted-foreground truncate">{user?.email}</span>
+                                        </div>
+                                    </DropdownMenuLabel>
                                     <DropdownMenuSeparator />
-
                                     <DropdownMenuItem asChild>
-                                        <Link href="/dashboard">Ir para o dashboard</Link>
+                                        <Link href="/dashboard">Dashboard</Link>
                                     </DropdownMenuItem>
-
                                     <DropdownMenuSeparator />
-
                                     <DropdownMenuItem asChild>
                                         <button type="button" className="w-full text-left" onClick={logout}>
                                             Sair
@@ -174,106 +252,44 @@ export function Header({ user }) {
                                 </DropdownMenuContent>
                             </DropdownMenu>
                         )}
-
-
                     </div>
                 </div>
 
-                {/* Busca colapsável com transição suave */}
+                {/* Busca colapsável */}
                 <div
                     className={[
                         "overflow-hidden transition-[max-height,opacity,margin-top] duration-300 ease-out",
-                        mobileSearchOpen ? "max-h-24 opacity-100 mt-3" : "max-h-0 opacity-0 mt-0",
+                        mobileSearchOpen ? "max-h-16 opacity-100 mt-2" : "max-h-0 opacity-0 mt-0",
                     ].join(" ")}
                 >
-                    <div className="flex items-center gap-2">
-                        <Input placeholder="Pesquisar..." className="h-10 w-full" />
-                        <Button type="button" variant="ghost" className="h-10 w-10 p-0" aria-label="Buscar">
-                            <Search className="h-5 w-5" />
-                        </Button>
-                    </div>
+                    <SearchForm onSearch={() => setMobileSearchOpen(false)} />
                 </div>
             </div>
 
-            <div className="hidden md:grid h-30 items-center gap-3 px-4 grid-cols-[560px_1fr_auto_auto]">
-                <div className="min-w-[560px]">
-                    <Link href="/home" className="block w-[530px]">
+            {/* ── DESKTOP ── */}
+            <div className="hidden md:block">
+                {/* Barra superior: logo + busca + login */}
+                <div className="flex h-16 items-center gap-4 border-b px-6">
+                    <Link href="/home" className="shrink-0">
                         <HeaderLogo />
                     </Link>
-                </div>
 
+                    <div className="flex-1" />
 
-                <div className="justify-self-center w-[32rem] max-w-full">
-                    <div className="flex items-center gap-2">
-                        <Input placeholder="Pesquisar..." className="w-full h-10" />
-                        <Search />
+                    <div className="w-72">
+                        <SearchForm />
                     </div>
+
+                    <UserMenu user={user} />
                 </div>
 
-                <div className="justify-self-end">
-                    <NavigationMenu>
-                        <NavigationMenuList>
-                            <NavigationMenuItem>
-                                <NavigationMenuTrigger
-                                    className="flex h-10 items-center justify-center gap-2 rounded-md border-2 border-[#2708ab] bg-[#fdf25a] px-4 text-[#2708ab] shadow-[3px_3px_0_#2708ab] hover:bg-[#fff86f] hover:text-[#2708ab] data-[state=open]:bg-[#fff86f] data-[state=open]:text-[#2708ab]"
-                                    menu={true}
-                                >
-                                    <Menu
-                                        className="relative size-6 transition duration-300 group-data-[state=open]:rotate-180"
-                                        aria-hidden="true"
-                                    />
-                                    <span className="font-extrabold text-base">MENU</span>
-                                </NavigationMenuTrigger>
-
-                                <NavigationMenuContent>
-                                    <NavigationMenuLink href="/home">Início</NavigationMenuLink>
-                                    <NavigationMenuLink href="/home/news">Jornal</NavigationMenuLink>
-                                </NavigationMenuContent>
-                            </NavigationMenuItem>
-                        </NavigationMenuList>
-                    </NavigationMenu>
-                </div>
-
-                <div className="justify-self-end">
-                    {!user ? (
-                        <form action={signInWithGoogle}>
-                            <Button type="submit" variant="outline" className="h-10 gap-2">
-                                <CircleUser className="h-5 w-5" />
-                                Login
-                            </Button>
-                        </form>
-                    ) : (
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" className="h-10 px-2 gap-2">
-                                    <Avatar className="h-8 w-8">
-                                        <AvatarImage src={user?.image} alt={user?.name} />
-                                        <AvatarFallback>{user?.name?.[0] || "U"}</AvatarFallback>
-                                    </Avatar>
-                                    <span className="max-w-[160px] truncate text-sm font-medium">
-                                        {user?.name}
-                                    </span>
-                                </Button>
-                            </DropdownMenuTrigger>
-
-                            <DropdownMenuContent align="end" className="w-56">
-                                <DropdownMenuLabel>Conta</DropdownMenuLabel>
-                                <DropdownMenuSeparator />
-
-                                <DropdownMenuItem asChild>
-                                    <Link href="/dashboard">Ir para o dashboard</Link>
-                                </DropdownMenuItem>
-
-                                <DropdownMenuSeparator />
-
-                                <DropdownMenuItem asChild>
-                                    <button type="button" className="w-full text-left" onClick={logout}>
-                                        Sair
-                                    </button>
-                                </DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                    )}
+                {/* Barra de navegação */}
+                <div className="border-b bg-white">
+                    <nav className="flex items-center px-4 h-10">
+                        {NAV_LINKS.map((link) => (
+                            <DesktopNavLink key={link.href} {...link} />
+                        ))}
+                    </nav>
                 </div>
             </div>
         </header>

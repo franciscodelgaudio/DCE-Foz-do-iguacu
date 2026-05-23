@@ -1,10 +1,10 @@
 import { auth } from "@/auth"
 import { redirect } from "next/navigation"
-import { Display } from "../../../components/dashboard/news/Display"
-import { News } from "@/models/news"
+import { Display } from "@/components/dashboard/events/Display"
+import { Event } from "@/models/event"
 
 export const metadata = {
-    title: "Gerenciar Jornal",
+    title: "Gerenciar Eventos",
 }
 
 export default async function Page({ searchParams }) {
@@ -14,48 +14,35 @@ export default async function Page({ searchParams }) {
     const sp = await searchParams
     const title = sp?.title ?? ""
     const status = sp?.status ?? ""
-    const sortBy = sp?.sortBy ?? "publishedAt"
+    const sortBy = sp?.sortBy ?? "eventDate"
     const sortDir = sp?.sortDir ?? "desc"
 
     const match = {}
     if (title.trim()) match.title = { $regex: title.trim(), $options: "i" }
     if (status) match.status = status
 
-    const SORT_FIELDS = ["title", "author.name", "publishedAt", "status"]
-    const sortField = SORT_FIELDS.includes(sortBy) ? sortBy : "publishedAt"
+    const SORT_FIELDS = ["title", "location", "eventDate", "author.name", "status"]
+    const sortField = SORT_FIELDS.includes(sortBy) ? sortBy : "eventDate"
     const sortOrder = sortDir === "asc" ? 1 : -1
 
-    const news = await News.aggregate([
+    const events = await Event.aggregate([
         ...(Object.keys(match).length ? [{ $match: match }] : []),
         {
             $project: {
                 title: 1,
-                slug: 1,
-                excerpt: 1,
-                contentHtml: 1,
-                contentJson: 1,
-                contentText: 1,
-                cover: 1,
-                tags: 1,
-                category: 1,
+                location: 1,
+                eventDate: 1,
+                eventEndDate: 1,
                 status: 1,
                 publishedAt: 1,
-                scheduledAt: 1,
                 author: 1,
-                seo: 1,
-                pinned: 1,
                 viewCount: 1,
             },
         },
         { $sort: { [sortField]: sortOrder } },
     ])
 
-    const total = await News.countDocuments()
+    const total = await Event.countDocuments()
 
-    return (
-        <Display
-            news={JSON.parse(JSON.stringify(news))}
-            total={total}
-        />
-    )
+    return <Display events={JSON.parse(JSON.stringify(events))} total={total} />
 }

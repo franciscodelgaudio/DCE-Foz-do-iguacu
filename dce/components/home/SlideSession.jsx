@@ -91,29 +91,26 @@ export function SlideSession() {
                     <CarouselNext className="right-4 z-30 bg-white/85 hover:bg-white" />
                 </Carousel>
 
-                <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 flex justify-center">
-
+                <div className="pointer-events-none absolute inset-x-0 bottom-8 z-20 flex justify-start px-8 md:px-12">
                     <AnimatePresence mode="wait">
-                        <motion.span
+                        <motion.div
                             key={current.text}
-                            initial={{ opacity: 0, y: 6 }}
+                            initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -6 }}
-                            transition={{ duration: 0.45, ease: [0.2, 0.8, 0.2, 1] }}
-                            className="block text-5xl md:text-6xl font-bold leading-none text-[#2708ab]"
+                            exit={{ opacity: 0, y: -10 }}
+                            transition={{ duration: 0.4, ease: [0.2, 0.8, 0.2, 1] }}
+                            className="pointer-events-auto"
                         >
+                            <p className="mb-1.5 text-xs font-bold uppercase tracking-[0.18em] text-[#fdf25a]">
+                                DCE · UNIOESTE Foz
+                            </p>
                             <div
-                                className="pointer-events-auto translate-y-1/2 border-b-4 border-[#2708ab] px-10 py-3 shadow-[0_10px_0_rgba(39,8,171,0.18)]"
-                                style={{
-                                    backgroundColor: BRAND.yellow,
-                                    textShadow: "0 2px 0 rgba(255,255,255,0.55)",
-                                }}
+                                className="border-l-4 border-[#fdf25a] pl-4 text-3xl md:text-5xl font-extrabold leading-tight text-white drop-shadow-lg"
                             >
                                 {current.text}
                             </div>
-                        </motion.span>
+                        </motion.div>
                     </AnimatePresence>
-
                 </div>
             </div>
         </section>

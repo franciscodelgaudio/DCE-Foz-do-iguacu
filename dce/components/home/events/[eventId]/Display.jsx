@@ -1,0 +1,76 @@
+import { CalendarDays, MapPin } from "lucide-react"
+
+function formatEventDate(start, end) {
+    if (!start) return null
+    const s = new Date(start)
+    const opts = { day: "2-digit", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" }
+    const startStr = s.toLocaleDateString("pt-BR", opts)
+    if (!end) return startStr
+    const e = new Date(end)
+    if (s.toDateString() === e.toDateString()) {
+        return `${startStr} – ${e.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}`
+    }
+    return `${startStr} – ${e.toLocaleDateString("pt-BR", opts)}`
+}
+
+export function Display({ eventItem }) {
+    const html = eventItem?.contentHtml
+
+    if (!html) {
+        return (
+            <div className="rounded-md bg-muted p-6 text-sm text-muted-foreground">
+                Este evento não possui descrição.
+            </div>
+        )
+    }
+
+    const dateStr = formatEventDate(eventItem.eventDate, eventItem.eventEndDate)
+    const isUpcoming = eventItem.eventDate && new Date(eventItem.eventDate) >= new Date()
+
+    return (
+        <div className="mx-auto w-full max-w-[850px] px-6 py-12 md:px-10">
+            <header className="mb-8 space-y-3">
+                <div className="text-xs font-semibold uppercase tracking-wider text-[#2708ab]">
+                    {isUpcoming ? "Próximo evento" : "Evento"}
+                </div>
+
+                <h1 className="text-3xl font-extrabold leading-tight tracking-tight text-[#2708ab] sm:text-5xl">
+                    {eventItem.title}
+                </h1>
+
+                {eventItem.excerpt ? (
+                    <p className="max-w-3xl text-base leading-relaxed text-slate-600 sm:text-lg">
+                        {eventItem.excerpt}
+                    </p>
+                ) : null}
+
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-slate-500">
+                    {dateStr ? (
+                        <div className="flex items-center gap-1.5">
+                            <CalendarDays className="h-4 w-4 text-[#2708ab]" />
+                            <span>{dateStr}</span>
+                        </div>
+                    ) : null}
+
+                    {eventItem.location ? (
+                        <div className="flex items-center gap-1.5">
+                            <MapPin className="h-4 w-4 text-[#2708ab]" />
+                            <span>{eventItem.location}</span>
+                        </div>
+                    ) : null}
+                </div>
+
+                {eventItem.author?.name ? (
+                    <p className="text-xs text-slate-400">Publicado por {eventItem.author.name}</p>
+                ) : null}
+
+                <div className="h-0.5 w-20 bg-[#fdf25a]" />
+            </header>
+
+            <article
+                className="prose prose-slate max-w-none prose-img:rounded-lg prose-img:shadow prose-a:underline prose-a:underline-offset-4"
+                dangerouslySetInnerHTML={{ __html: html }}
+            />
+        </div>
+    )
+}

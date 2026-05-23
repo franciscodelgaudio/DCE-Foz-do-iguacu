@@ -14,24 +14,24 @@ import { Input } from "@/components/ui/input"
 import { Row } from "./Row"
 import {
     Calendar, ChevronDown, ChevronUp, ChevronsUpDown,
-    CircleDot, Heading, Newspaper, Plus, Search, Settings, Trash2, User,
+    CircleDot, CalendarDays, Heading, MapPin, Plus, Search, Settings, Trash2, User,
 } from "lucide-react"
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog"
 import { toast } from "sonner"
-import { deleteManyNews } from "@/lib/actions/news"
+import { deleteManyEvents } from "@/lib/actions/event"
 
 const STATUS_OPTIONS = [
     { value: "", label: "Todos os status" },
     { value: "draft", label: "Rascunho" },
     { value: "published", label: "Publicado" },
-    { value: "scheduled", label: "Agendado" },
     { value: "archived", label: "Arquivado" },
 ]
 
 const COLUMNS = [
     { key: "title", label: "Título", icon: Heading },
+    { key: "location", label: "Local", icon: MapPin },
+    { key: "eventDate", label: "Data do evento", icon: Calendar },
     { key: "author.name", label: "Autor", icon: User },
-    { key: "publishedAt", label: "Data de Criação", icon: Calendar },
     { key: "status", label: "Status", icon: CircleDot },
 ]
 
@@ -42,13 +42,13 @@ function SortIcon({ column, sortBy, sortDir }) {
         : <ChevronDown className="size-3.5" />
 }
 
-export function Display({ news, total }) {
+export function Display({ events, total }) {
     const router = useRouter()
     const params = useSearchParams()
 
     const activeTitle = params.get("title") ?? ""
     const activeStatus = params.get("status") ?? ""
-    const activeSortBy = params.get("sortBy") ?? "publishedAt"
+    const activeSortBy = params.get("sortBy") ?? "eventDate"
     const activeSortDir = params.get("sortDir") ?? "desc"
 
     const [titleInput, setTitleInput] = useState(activeTitle)
@@ -60,7 +60,7 @@ export function Display({ news, total }) {
             if (val) sp.set(key, val)
             else sp.delete(key)
         }
-        router.push(`/dashboard/news?${sp.toString()}`)
+        router.push(`/dashboard/events?${sp.toString()}`)
     }
 
     useEffect(() => {
@@ -78,31 +78,31 @@ export function Display({ news, total }) {
         }
     }
 
-    const newsIds = useMemo(() => news.map((item) => String(item._id)), [news])
+    const eventIds = useMemo(() => events.map((item) => String(item._id)), [events])
     const selectedCount = selectedIds.length
     const hasSelection = selectedCount > 0
-    const allSelected = newsIds.length > 0 && selectedCount === newsIds.length
+    const allSelected = eventIds.length > 0 && selectedCount === eventIds.length
 
-    function toggleSelected(newsId) {
+    function toggleSelected(eventId) {
         setSelectedIds((current) => {
-            const id = String(newsId)
+            const id = String(eventId)
             return current.includes(id) ? current.filter((item) => item !== id) : [...current, id]
         })
     }
 
     function toggleAllSelected() {
-        setSelectedIds(allSelected ? [] : newsIds)
+        setSelectedIds(allSelected ? [] : eventIds)
     }
 
     async function handleDeleteSelected() {
         try {
-            const result = await deleteManyNews(selectedIds)
+            const result = await deleteManyEvents(selectedIds)
             if (!result.success) { toast.error(result.message); return }
             setSelectedIds([])
             router.refresh()
             toast.success(result.message)
         } catch (err) {
-            toast.error("Erro ao deletar as notícias. " + (err?.message ?? ""))
+            toast.error("Erro ao deletar os eventos. " + (err?.message ?? ""))
         }
     }
 
@@ -113,18 +113,18 @@ export function Display({ news, total }) {
                 <div className="flex flex-wrap items-center justify-between gap-4">
                     <div className="flex items-center gap-3">
                         <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-[#2708ab]/10">
-                            <Newspaper className="size-5 text-[#2708ab]" />
+                            <CalendarDays className="size-5 text-[#2708ab]" />
                         </div>
                         <div>
-                            <h1 className="text-xl font-semibold text-gray-900">Jornal</h1>
+                            <h1 className="text-xl font-semibold text-gray-900">Eventos</h1>
                             <p className="text-sm text-muted-foreground">
-                                {news.length} de {total} artigo{total !== 1 ? "s" : ""}
+                                {events.length} de {total} evento{total !== 1 ? "s" : ""}
                             </p>
                         </div>
                     </div>
-                    <Button onClick={() => router.push("/dashboard/news/createNews")}>
+                    <Button onClick={() => router.push("/dashboard/events/createEvent")}>
                         <Plus className="size-4" />
-                        Nova notícia
+                        Novo evento
                     </Button>
                 </div>
             </div>
@@ -155,17 +155,17 @@ export function Display({ news, total }) {
             <div className="flex flex-wrap items-center justify-between gap-3 px-6 py-3">
                 <p className="text-sm text-muted-foreground">
                     {hasSelection
-                        ? `${selectedCount} selecionada(s)`
-                        : `${news.length} artigo(s) exibido(s)`}
+                        ? `${selectedCount} selecionado(s)`
+                        : `${events.length} evento(s) exibido(s)`}
                 </p>
                 <ConfirmDialog
-                    title="Excluir artigos selecionados"
-                    subtitle={`Tem certeza que deseja deletar ${selectedCount} artigo(s)? Esta ação não pode ser desfeita.`}
+                    title="Excluir eventos selecionados"
+                    subtitle={`Tem certeza que deseja deletar ${selectedCount} evento(s)? Esta ação não pode ser desfeita.`}
                     onClick={handleDeleteSelected}
                 >
                     <Button variant="destructive" disabled={!hasSelection} size="sm">
                         <Trash2 className="size-4" />
-                        Excluir selecionadas
+                        Excluir selecionados
                     </Button>
                 </ConfirmDialog>
             </div>
@@ -176,7 +176,7 @@ export function Display({ news, total }) {
                         <TableHead className="w-10">
                             <input
                                 type="checkbox"
-                                aria-label="Selecionar todas as notícias"
+                                aria-label="Selecionar todos os eventos"
                                 checked={allSelected}
                                 onChange={toggleAllSelected}
                                 className="size-4 accent-[#2708ab]"
@@ -204,16 +204,16 @@ export function Display({ news, total }) {
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {news.length === 0 ? (
+                    {events.length === 0 ? (
                         <tr>
-                            <td colSpan={6} className="py-16 text-center text-sm text-muted-foreground">
-                                Nenhuma notícia encontrada.
+                            <td colSpan={7} className="py-16 text-center text-sm text-muted-foreground">
+                                Nenhum evento encontrado.
                             </td>
                         </tr>
-                    ) : news.map((item) => (
+                    ) : events.map((item) => (
                         <Row
                             key={item._id}
-                            newsItem={item}
+                            eventItem={item}
                             selected={selectedIds.includes(String(item._id))}
                             onSelectChange={toggleSelected}
                         />
