@@ -126,3 +126,9 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Tiptap columns layout */
+.ProseMirror [data-type="columns"] > [data-type="column"] {
+  flex: 1;
+  min-width: 0;
+}
