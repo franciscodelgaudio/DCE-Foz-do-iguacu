@@ -128,7 +128,10 @@
 }
 
 /* Tiptap columns layout */
-.ProseMirror [data-type="columns"] > [data-type="column"] {
+.ProseMirror [data-type="columns"] [data-type="column"] {
   flex: 1;
   min-width: 0;
+  border: 1px dashed #cbd5e1;
+  border-radius: 4px;
+  padding: 4px 8px;
 }

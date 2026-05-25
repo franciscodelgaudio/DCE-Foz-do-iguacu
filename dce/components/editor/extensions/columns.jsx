@@ -4,14 +4,13 @@ export const Column = Node.create({
     name: 'column',
     group: 'block',
     content: 'block+',
-    isolating: true,
     parseHTML() {
         return [{ tag: 'div[data-type="column"]' }]
     },
     renderHTML({ HTMLAttributes }) {
         return ['div', mergeAttributes(HTMLAttributes, {
             'data-type': 'column',
-            style: 'flex:1;min-width:0;border:1px dashed #cbd5e1;border-radius:4px;padding:4px 8px',
+            style: 'flex:1;min-width:0',
         }), 0]
     },
 })

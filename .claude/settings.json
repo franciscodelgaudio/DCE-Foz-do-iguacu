@@ -43,7 +43,12 @@
       "PowerShell(Get-ChildItem -Path \"c:\\\\Users\\\\Admin\\\\OneDrive - UNIOESTE\\\\DCE\\\\SITE\\\\dce\" | Where-Object { $_.PSIsContainer } | Select-Object -ExpandProperty Name)",
       "PowerShell(Get-ChildItem -Path \"c:\\\\Users\\\\Admin\\\\OneDrive - UNIOESTE\\\\DCE\\\\SITE\\\\dce\\\\lib\" -Recurse | Where-Object { -not $_.PSIsContainer } | Select-Object -ExpandProperty FullName)",
       "PowerShell(Get-ChildItem -Path \"c:\\\\Users\\\\Admin\\\\OneDrive - UNIOESTE\\\\DCE\\\\SITE\\\\dce\\\\app\\\\dashboard\" -Recurse | Where-Object { $_.Name -match \"\\(page|layout\\)\" -and -not $_.PSIsContainer } | Select-Object -ExpandProperty FullName)",
-      "Bash(xargs grep -l \"filter\\\\|Filter\")"
+      "Bash(xargs grep -l \"filter\\\\|Filter\")",
+      "Bash(Get-ChildItem -Recurse -Directory -Name)",
+      "Bash(Select-Object -First 30)",
+      "PowerShell(Get-ChildItem -Path \"c:\\\\Users\\\\Admin\\\\OneDrive - UNIOESTE\\\\DCE\\\\SITE\\\\dce\\\\components\\\\editor\" -Recurse -Force | Where-Object {$_.Extension -match '\\\\.\\(jsx|js|tsx|ts|json\\)$'} | Select-Object FullName)",
+      "PowerShell(Get-ChildItem -Path \"c:\\\\Users\\\\Admin\\\\OneDrive - UNIOESTE\\\\DCE\\\\SITE\\\\dce\\\\components\\\\editor\" -Recurse | ForEach-Object { $_.FullName })",
+      "Bash(xargs grep -l \"prose-img\\\\|prose-a\\\\|prose-slate\")"
     ],
     "additionalDirectories": [
       "C:\\Users\\Admin\\OneDrive - UNIOESTE\\DCE"
