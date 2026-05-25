@@ -10,6 +10,7 @@ const ALLOWED_EMAILS = new Set([
   "foz.dce@unioeste.br",
   "alcierisxp@gmail.com",
   "pietramartins86@gmail.com",
+  "pietraferreira85@gmail.com",
   "beatriz.divino01@gmail.com"
 ])
 
