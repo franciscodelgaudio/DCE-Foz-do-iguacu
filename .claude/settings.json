@@ -55,7 +55,19 @@
       "Bash(xargs grep -l \"prose\\\\|EditorContent\\\\|document\")",
       "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\Admin\\\\OneDrive - UNIOESTE\\\\DCE\\\\SITE\\\\dce\" -Recurse -Filter \"*news*\")",
       "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\Admin\\\\OneDrive - UNIOESTE\\\\DCE\\\\SITE\\\\dce\\\\app\\\\home\\\\news\" -Recurse)",
-      "Read(//c/Users/Admin/OneDrive - UNIOESTE/DCE/SITE/dce/app/home/news/**)"
+      "Read(//c/Users/Admin/OneDrive - UNIOESTE/DCE/SITE/dce/app/home/news/**)",
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\Admin\\\\OneDrive - UNIOESTE\\\\DCE\\\\SITE\" -Recurse -Depth 2 -Force)",
+      "Bash(Select-Object FullName, Mode)",
+      "Bash(Format-Table -AutoSize)",
+      "Bash(findstr /i \"hookform\\\\|zod\\\\|react-hook\")",
+      "Bash(Select-String -Pattern \"hookform|zod|react-hook\" \"c:\\\\Users\\\\Admin\\\\OneDrive - UNIOESTE\\\\DCE\\\\SITE\\\\dce\\\\package.json\")",
+      "Bash(node -e \"const p = require\\('./node_modules/@hookform/resolvers/package.json'\\); console.log\\(p.version\\)\")",
+      "Bash(npx tsc *)",
+      "Bash(npm run *)",
+      "Bash(Select-Object -ExpandProperty FullName)",
+      "Bash(Get-ChildItem -Recurse \"c:\\\\Users\\\\Admin\\\\OneDrive - UNIOESTE\\\\DCE\\\\SITE\\\\dce\\\\app\\\\dashboard\" -Include \"*.js\",\"*.jsx\",\"*.ts\",\"*.tsx\")",
+      "Bash(git -C \"c:\\\\Users\\\\Admin\\\\OneDrive - UNIOESTE\\\\DCE\\\\SITE\\\\dce\" log --oneline --follow -- app/dashboard/usuarios/page.js)",
+      "Bash(git -C \"c:\\\\Users\\\\Admin\\\\OneDrive - UNIOESTE\\\\DCE\\\\SITE\\\\dce\" status --short)"
     ],
     "additionalDirectories": [
       "C:\\Users\\Admin\\OneDrive - UNIOESTE\\DCE"

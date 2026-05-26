@@ -1,0 +1,430 @@
+'use client'
+
+import { useState } from "react"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { z } from "zod"
+import { createOrder } from "@/lib/actions/correioElegante"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Heart, Copy, Check, ArrowLeft, User, MessageSquare, Phone, EyeOff } from "lucide-react"
+import Link from "next/link"
+
+const PKG_DISPLAY = [
+    {
+        key: "bombom_cartao",
+        emoji: "🍬",
+        label: "Bombom e Cartão",
+        price: "R$ 3,00",
+        items: ["1 bombom", "1 cartão personalizado"],
+    },
+    {
+        key: "rosa_cartao",
+        emoji: "🌹",
+        label: "Rosa e Cartão",
+        price: "R$ 8,00",
+        items: ["1 rosa vermelha", "1 cartão personalizado"],
+    },
+    {
+        key: "rosa_bombom_cartao",
+        emoji: "🌹🍬",
+        label: "Rosa, Bombom e Cartão",
+        price: "R$ 10,00",
+        items: ["1 rosa vermelha", "1 bombom", "1 cartão personalizado"],
+        highlight: true,
+    },
+]
+
+const PIX_TYPE_LABEL = {
+    email: "E-mail",
+    phone: "Telefone",
+    cpf: "CPF/CNPJ",
+    random: "Chave Aleatória",
+}
+
+const formSchema = z.object({
+    senderName: z.string().min(2, "Mínimo 2 caracteres"),
+    senderContact: z.string().min(1, "Campo obrigatório"),
+    recipientName: z.string().min(2, "Mínimo 2 caracteres"),
+    recipientClass: z.string().min(1, "Campo obrigatório"),
+    package: z.enum(["bombom_cartao", "rosa_cartao", "rosa_bombom_cartao"]),
+    cardMessage: z.string().max(500).optional(),
+    isAnonymous: z.boolean().optional(),
+})
+
+function CopyButton({ text }) {
+    const [copied, setCopied] = useState(false)
+    function handleCopy() {
+        navigator.clipboard.writeText(text)
+        setCopied(true)
+        setTimeout(() => setCopied(false), 2000)
+    }
+    return (
+        <button
+            onClick={handleCopy}
+            className="ml-2 inline-flex items-center gap-1 rounded-md bg-[#2708ab]/10 px-2 py-1 text-xs font-semibold text-[#2708ab] transition hover:bg-[#2708ab]/20"
+        >
+            {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+            {copied ? "Copiado!" : "Copiar"}
+        </button>
+    )
+}
+
+function SuccessScreen({ orderNumber, price, packageLabel, pixKey, pixKeyType, pixRecipientName, onReset }) {
+    return (
+        <div className="mx-auto max-w-lg px-4 py-12 text-center">
+            <div className="mb-6 flex justify-center">
+                <div className="flex h-20 w-20 items-center justify-center rounded-full bg-[#fdf25a] text-[#2708ab] shadow-[4px_4px_0_#2708ab]">
+                    <Heart className="h-10 w-10 fill-current" />
+                </div>
+            </div>
+            <h2 className="mb-2 text-2xl font-extrabold text-[#2708ab]">Pedido recebido!</h2>
+            <p className="mb-8 text-slate-600">
+                Agora é só pagar via PIX para confirmar. Assim que identificarmos seu pagamento, entraremos em contato.
+            </p>
+
+            <div className="mb-6 rounded-2xl border-2 border-[#2708ab]/20 bg-[#f3f1ff] p-6 text-left">
+                <div className="mb-4 flex items-center justify-between">
+                    <span className="text-sm font-semibold text-slate-500">Nº do pedido</span>
+                    <span className="rounded-full bg-[#2708ab] px-3 py-0.5 text-sm font-bold text-white">{orderNumber}</span>
+                </div>
+                <div className="mb-4 flex items-center justify-between">
+                    <span className="text-sm font-semibold text-slate-500">Pacote</span>
+                    <span className="text-sm font-bold text-slate-800">{packageLabel}</span>
+                </div>
+                <div className="flex items-center justify-between border-t border-[#2708ab]/20 pt-4">
+                    <span className="text-sm font-semibold text-slate-500">Valor</span>
+                    <span className="text-xl font-extrabold text-[#2708ab]">R$ {price},00</span>
+                </div>
+            </div>
+
+            {pixKey ? (
+                <div className="mb-6 rounded-2xl border-2 border-emerald-200 bg-emerald-50 p-6 text-left">
+                    <p className="mb-3 text-sm font-bold text-emerald-800">Pague via PIX</p>
+                    <div className="mb-2 flex items-center justify-between rounded-lg bg-white px-3 py-2 text-sm">
+                        <div>
+                            <span className="block text-xs text-slate-400">{PIX_TYPE_LABEL[pixKeyType] ?? "Chave PIX"}</span>
+                            <span className="font-mono font-semibold text-slate-800">{pixKey}</span>
+                        </div>
+                        <CopyButton text={pixKey} />
+                    </div>
+                    {pixRecipientName && (
+                        <p className="text-xs text-emerald-700">
+                            Favorecido: <strong>{pixRecipientName}</strong>
+                        </p>
+                    )}
+                    <p className="mt-3 text-xs text-emerald-700">
+                        Envie exatamente <strong>R$ {price},00</strong> e informe o nº do pedido <strong>{orderNumber}</strong> no campo de descrição.
+                    </p>
+                </div>
+            ) : (
+                <div className="mb-6 rounded-2xl border-2 border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+                    As informações de pagamento serão divulgadas em breve pelo DCE.
+                </div>
+            )}
+
+            <div className="space-y-3 rounded-xl border border-slate-200 bg-white p-4 text-left text-sm text-slate-600">
+                <p className="font-semibold text-slate-800">Próximos passos:</p>
+                <ol className="list-inside list-decimal space-y-1.5">
+                    <li>Realize o pagamento via PIX no valor indicado</li>
+                    <li>O DCE confirmará o pagamento e entrará em contato</li>
+                    <li>Seu Correio Elegante será entregue no dia <strong>12 de junho</strong></li>
+                </ol>
+            </div>
+
+            <button
+                onClick={onReset}
+                className="mt-8 inline-flex items-center gap-2 text-sm font-semibold text-[#2708ab] underline-offset-2 hover:underline"
+            >
+                <ArrowLeft className="h-4 w-4" />
+                Fazer outro pedido
+            </button>
+        </div>
+    )
+}
+
+export function Display({ isEnabled, pixKey, pixKeyType, pixRecipientName }) {
+    const [selectedPackage, setSelectedPackage] = useState(null)
+    const [successData, setSuccessData] = useState(null)
+    const [isSubmitting, setIsSubmitting] = useState(false)
+    const [serverError, setServerError] = useState(null)
+
+    const {
+        register,
+        handleSubmit,
+        setValue,
+        watch,
+        reset,
+        formState: { errors },
+    } = useForm({
+        resolver: zodResolver(formSchema),
+    })
+
+    const watchedPackage = watch("package")
+
+    function handleSelectPackage(key) {
+        setSelectedPackage(key)
+        setValue("package", key, { shouldValidate: true })
+    }
+
+    async function onSubmit(data) {
+        setIsSubmitting(true)
+        setServerError(null)
+        const result = await createOrder(data)
+        setIsSubmitting(false)
+        if (!result.success) {
+            setServerError(result.message)
+            return
+        }
+        setSuccessData(result)
+    }
+
+    function handleReset() {
+        setSuccessData(null)
+        setSelectedPackage(null)
+        setServerError(null)
+        reset()
+    }
+
+    if (successData) {
+        return (
+            <div className="min-h-screen bg-[#f9f8ff]">
+                <SuccessScreen
+                    orderNumber={successData.orderNumber}
+                    price={successData.price}
+                    packageLabel={successData.packageLabel}
+                    pixKey={pixKey}
+                    pixKeyType={pixKeyType}
+                    pixRecipientName={pixRecipientName}
+                    onReset={handleReset}
+                />
+            </div>
+        )
+    }
+
+    return (
+        <div className="min-h-screen bg-[#f9f8ff]">
+            {/* Hero */}
+            <div className="bg-[#2708ab] px-6 py-14 text-center text-white">
+                <div className="mx-auto max-w-2xl">
+                    <div className="mb-4 flex justify-center gap-2 text-4xl">
+                        <span>💌</span>
+                        <span>🌹</span>
+                        <span>🍬</span>
+                    </div>
+                    <h1 className="mb-3 text-4xl font-extrabold tracking-tight md:text-5xl">
+                        Correio Elegante
+                    </h1>
+                    <p className="mb-6 text-blue-200 text-lg">
+                        Surpreenda alguém especial com uma mensagem e um presentinho carinhoso do DCE!
+                    </p>
+                    <div className="inline-flex flex-wrap items-center justify-center gap-4 rounded-2xl bg-white/10 px-6 py-3 text-sm font-semibold backdrop-blur-sm">
+                        <span>📅 Pedidos: <strong>8 a 12 de junho</strong></span>
+                        <span className="hidden sm:inline text-white/40">|</span>
+                        <span>🎁 Entrega: <strong>12 de junho</strong></span>
+                    </div>
+                </div>
+            </div>
+
+            <div className="mx-auto max-w-3xl px-4 py-12">
+                {/* Packages */}
+                <div className="mb-10">
+                    <h2 className="mb-1 text-xl font-extrabold text-[#2708ab]">Escolha o pacote</h2>
+                    <p className="mb-5 text-sm text-slate-500">Selecione o que você quer enviar</p>
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                        {PKG_DISPLAY.map((pkg) => (
+                            <button
+                                key={pkg.key}
+                                type="button"
+                                onClick={() => handleSelectPackage(pkg.key)}
+                                className={[
+                                    "relative flex flex-col rounded-2xl border-2 p-5 text-left transition-all duration-200",
+                                    watchedPackage === pkg.key
+                                        ? "border-[#2708ab] bg-white shadow-[4px_4px_0_#2708ab]"
+                                        : "border-slate-200 bg-white hover:border-[#2708ab]/40 hover:shadow-md",
+                                ].join(" ")}
+                            >
+                                {pkg.highlight && (
+                                    <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 rounded-full bg-[#fdf25a] px-3 py-0.5 text-xs font-bold text-[#2708ab] shadow-[2px_2px_0_#2708ab]">
+                                        Mais completo
+                                    </span>
+                                )}
+                                <span className="mb-2 text-3xl">{pkg.emoji}</span>
+                                <p className="mb-1 font-bold text-slate-800">{pkg.label}</p>
+                                <ul className="mb-3 space-y-0.5 text-xs text-slate-500">
+                                    {pkg.items.map((item) => (
+                                        <li key={item}>• {item}</li>
+                                    ))}
+                                </ul>
+                                <p className="mt-auto text-xl font-extrabold text-[#2708ab]">{pkg.price}</p>
+                                {watchedPackage === pkg.key && (
+                                    <div className="absolute right-3 top-3 flex h-5 w-5 items-center justify-center rounded-full bg-[#2708ab]">
+                                        <Check className="h-3 w-3 text-white" />
+                                    </div>
+                                )}
+                            </button>
+                        ))}
+                    </div>
+                    {errors.package && (
+                        <p className="mt-2 text-sm text-red-500">{errors.package.message}</p>
+                    )}
+                </div>
+
+                {/* Form */}
+                <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+                    {/* Sender */}
+                    <div className="rounded-2xl border border-slate-200 bg-white p-6">
+                        <div className="mb-4 flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-2">
+                                <User className="h-4 w-4 text-[#2708ab]" />
+                                <h3 className="font-bold text-slate-800">Quem está enviando</h3>
+                            </div>
+                            <label className="flex cursor-pointer items-center gap-2 rounded-lg bg-slate-50 px-3 py-1.5 text-sm select-none hover:bg-slate-100">
+                                <input
+                                    type="checkbox"
+                                    {...register("isAnonymous")}
+                                    className="size-4 accent-[#2708ab]"
+                                />
+                                <span className="flex items-center gap-1.5 font-medium text-slate-700">
+                                    <EyeOff className="h-3.5 w-3.5 text-slate-400" />
+                                    Enviar anonimamente
+                                </span>
+                            </label>
+                        </div>
+                        {watch("isAnonymous") && (
+                            <p className="mb-4 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-700">
+                                Seu nome <strong>não aparecerá no cartão</strong>, mas seus dados abaixo são necessários para confirmarmos o pagamento.
+                            </p>
+                        )}
+                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                            <div className="space-y-1.5">
+                                <Label htmlFor="senderName">
+                                    Seu nome{" "}
+                                    <span className="text-xs font-normal text-slate-400">(apenas para o DCE)</span>
+                                </Label>
+                                <Input
+                                    id="senderName"
+                                    placeholder="Nome completo"
+                                    {...register("senderName")}
+                                    className={errors.senderName ? "border-red-400" : ""}
+                                />
+                                {errors.senderName && (
+                                    <p className="text-xs text-red-500">{errors.senderName.message}</p>
+                                )}
+                            </div>
+                            <div className="space-y-1.5">
+                                <Label htmlFor="senderContact">
+                                    <span className="flex items-center gap-1">
+                                        <Phone className="h-3 w-3" />
+                                        WhatsApp ou e-mail
+                                    </span>
+                                </Label>
+                                <Input
+                                    id="senderContact"
+                                    placeholder="Para confirmar o pagamento"
+                                    {...register("senderContact")}
+                                    className={errors.senderContact ? "border-red-400" : ""}
+                                />
+                                {errors.senderContact && (
+                                    <p className="text-xs text-red-500">{errors.senderContact.message}</p>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Recipient */}
+                    <div className="rounded-2xl border border-slate-200 bg-white p-6">
+                        <div className="mb-4 flex items-center gap-2">
+                            <Heart className="h-4 w-4 text-[#2708ab]" />
+                            <h3 className="font-bold text-slate-800">Quem vai receber</h3>
+                        </div>
+                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                            <div className="space-y-1.5">
+                                <Label htmlFor="recipientName">Nome do destinatário</Label>
+                                <Input
+                                    id="recipientName"
+                                    placeholder="Nome de quem vai receber"
+                                    {...register("recipientName")}
+                                    className={errors.recipientName ? "border-red-400" : ""}
+                                />
+                                {errors.recipientName && (
+                                    <p className="text-xs text-red-500">{errors.recipientName.message}</p>
+                                )}
+                            </div>
+                            <div className="space-y-1.5">
+                                <Label htmlFor="recipientClass">Turma / Curso</Label>
+                                <Input
+                                    id="recipientClass"
+                                    placeholder="Ex: Direito 3º ano, Info 2022"
+                                    {...register("recipientClass")}
+                                    className={errors.recipientClass ? "border-red-400" : ""}
+                                />
+                                {errors.recipientClass && (
+                                    <p className="text-xs text-red-500">{errors.recipientClass.message}</p>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Card message */}
+                    <div className="rounded-2xl border border-slate-200 bg-white p-6">
+                        <div className="mb-4 flex items-center gap-2">
+                            <MessageSquare className="h-4 w-4 text-[#2708ab]" />
+                            <h3 className="font-bold text-slate-800">Mensagem do cartão</h3>
+                        </div>
+                        <div className="space-y-1.5">
+                            <Label htmlFor="cardMessage">
+                                Escreva o que você quer no cartão{" "}
+                                <span className="text-xs font-normal text-slate-400">(opcional, máx. 500 caracteres)</span>
+                            </Label>
+                            <textarea
+                                id="cardMessage"
+                                rows={4}
+                                placeholder="Escreva sua mensagem aqui... 💌"
+                                {...register("cardMessage")}
+                                className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                            />
+                            {errors.cardMessage && (
+                                <p className="text-xs text-red-500">{errors.cardMessage.message}</p>
+                            )}
+                        </div>
+                    </div>
+
+                    {serverError && (
+                        <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+                            {serverError}
+                        </div>
+                    )}
+
+                    {!isEnabled ? (
+                        <div className="rounded-2xl border-2 border-dashed border-[#2708ab]/30 bg-[#f3f1ff] p-6 text-center">
+                            <p className="font-semibold text-[#2708ab]">Os pedidos ainda não estão abertos.</p>
+                            <p className="mt-1 text-sm text-slate-500">
+                                Volte entre os dias <strong>8 e 12 de junho</strong> para fazer seu pedido!
+                            </p>
+                        </div>
+                    ) : (
+                        <Button
+                            type="submit"
+                            disabled={isSubmitting}
+                            className="h-12 w-full rounded-xl bg-[#2708ab] text-base font-bold hover:bg-[#2708ab]/90"
+                        >
+                            {isSubmitting ? "Enviando pedido..." : "Fazer pedido 💌"}
+                        </Button>
+                    )}
+                </form>
+
+                <div className="mt-8 text-center">
+                    <Link
+                        href="/home"
+                        className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-[#2708ab]"
+                    >
+                        <ArrowLeft className="h-3.5 w-3.5" />
+                        Voltar para a home
+                    </Link>
+                </div>
+            </div>
+        </div>
+    )
+}
