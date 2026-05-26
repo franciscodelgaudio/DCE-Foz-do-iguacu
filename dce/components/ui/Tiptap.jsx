@@ -557,9 +557,9 @@ const ResizableImage = Image.extend({
                 'data-align': align,
                 'data-width': w,
                 'data-height': h ?? '',
-                style: `display:block;${marginStyle}`,
+                style: `display:block;width:${w}px;${marginStyle}`,
             },
-                ['img', { src: src || '', alt: alt || '', title: title || '', 'data-caption': caption, width: w, style: `width:${w}px;height:${h ? h + 'px' : 'auto'};display:block;border-radius:6px;` }],
+                ['img', { src: src || '', alt: alt || '', title: title || '', 'data-caption': caption, width: w, style: `width:${w}px;height:${h ? h + 'px' : 'auto'};display:block;border-radius:6px;margin-bottom:0;` }],
                 imgFigcaption,
             ]
         }

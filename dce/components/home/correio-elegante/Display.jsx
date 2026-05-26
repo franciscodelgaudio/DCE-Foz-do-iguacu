@@ -208,11 +208,6 @@ export function Display({ isEnabled, pixKey, pixKeyType, pixRecipientName }) {
             {/* Hero */}
             <div className="bg-gradient-to-br from-[#9f1239] to-[#e11d48] px-6 py-14 text-center text-white">
                 <div className="mx-auto max-w-2xl">
-                    <div className="mb-4 flex justify-center gap-2 text-4xl">
-                        <span>💌</span>
-                        <span>🌹</span>
-                        <span>🍬</span>
-                    </div>
                     <h1 className="mb-3 text-4xl font-extrabold tracking-tight md:text-5xl">
                         Correio Elegante
                     </h1>
@@ -220,8 +215,6 @@ export function Display({ isEnabled, pixKey, pixKeyType, pixRecipientName }) {
                         Surpreenda alguém especial com uma mensagem e um presentinho carinhoso do DCE!
                     </p>
                     <div className="inline-flex flex-wrap items-center justify-center gap-4 rounded-2xl bg-white/10 px-6 py-3 text-sm font-semibold backdrop-blur-sm">
-                        <span>📅 Pedidos: <strong>8 a 12 de junho</strong></span>
-                        <span className="hidden sm:inline text-white/40">|</span>
                         <span>🎁 Entrega: <strong>12 de junho</strong></span>
                     </div>
                 </div>

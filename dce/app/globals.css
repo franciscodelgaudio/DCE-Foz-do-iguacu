@@ -127,6 +127,17 @@
   }
 }
 
+/* Fix image+caption wrapper: shrink to content so margin:auto centers it */
+[data-image-wrapper] {
+  width: fit-content;
+}
+
+/* Remove prose auto-margins from images inside wrappers to keep caption close */
+[data-image-wrapper] img {
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+}
+
 /* Tiptap columns layout */
 .ProseMirror [data-type="columns"] [data-type="column"] {
   flex: 1;

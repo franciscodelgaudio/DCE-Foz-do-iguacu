@@ -12,7 +12,6 @@ const team = [
     { name: "Evy", role: "Coordenadora de Cultura", photo: "/images/team/evy-20260425.jpg" },
     { name: "Ketlyn", role: "Coordenadora de Ensino, Pesquisa & Extensão e Cultura", photo: "/images/team/ketlyn-20260425.jpg" },
     { name: "André", role: "Coordenador de Integração de Campus", photo: "/images/team/andre-20260425.jpg" },
-    { name: "Lohana", role: "Coordenadora de Diversidade", photo: "/images/team/lohana-20260425.jpg" },
     { name: "Izzy", role: "Coordenadora de Diversidade", photo: "/images/team/izzy-20260425.jpg" },
 ]
 

@@ -14,11 +14,11 @@ export function CorreioEleganteBanner() {
                             <div className="flex flex-wrap items-center gap-2">
                                 <span className="text-lg font-extrabold">Correio Elegante 💌</span>
                                 <span className="rounded-full bg-[#fdf25a] px-2 py-0.5 text-xs font-bold text-[#9f1239]">
-                                    Em breve!
+                                    Aberto!
                                 </span>
                             </div>
                             <p className="text-sm text-rose-200">
-                                Pedidos de 8 a 12/jun · Entrega 12/jun · A partir de R$ 3,00
+                                Entrega 12/jun · A partir de R$ 3,00
                             </p>
                         </div>
                     </div>

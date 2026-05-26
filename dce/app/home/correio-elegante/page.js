@@ -3,7 +3,7 @@ import { getSettings } from "@/lib/actions/settings"
 
 export const metadata = {
     title: "Correio Elegante — DCE",
-    description: "Surpreenda alguém especial com um Correio Elegante do DCE! Pedidos de 8 a 12 de junho, entrega no dia 12.",
+    description: "Surpreenda alguém especial com um Correio Elegante do DCE! Entrega no dia 12 de junho. A partir de R$ 3,00.",
 }
 
 export default async function Page() {

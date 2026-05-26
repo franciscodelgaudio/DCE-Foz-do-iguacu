@@ -10,7 +10,7 @@ const SettingsSchema = new Schema(
             default: "email",
         },
         pixRecipientName: { type: String, default: "" },
-        correioEleganteEnabled: { type: Boolean, default: false },
+        correioEleganteEnabled: { type: Boolean, default: true },
     },
     { timestamps: true }
 );
