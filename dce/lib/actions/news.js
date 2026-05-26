@@ -77,6 +77,25 @@ export async function upsertNews(form) {
     }
 }
 
+export async function publishNews(newsId) {
+    const session = await auth()
+    if (!session) redirect("/login")
+
+    if (!mongoose.Types.ObjectId.isValid(newsId)) {
+        return { success: false, message: "ID inválido." }
+    }
+
+    try {
+        await News.findByIdAndUpdate(newsId, {
+            $set: { status: "published", publishedAt: new Date(), scheduledAt: null },
+        })
+        return { success: true, message: "Artigo publicado com sucesso." }
+    } catch (err) {
+        console.error("Erro ao publicar o artigo:", err)
+        return { success: false, message: "Erro ao publicar o artigo." }
+    }
+}
+
 export async function deleteNews(newsId) {
     try {
         await News.deleteOne({ _id: newsId })

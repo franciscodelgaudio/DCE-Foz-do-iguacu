@@ -1,14 +1,14 @@
 'use client'
 
 import { TableCell, TableRow } from "@/components/ui/table"
-import { PenSquare, Trash2 } from "lucide-react"
+import { PenSquare, Trash2, Globe, ClipboardList } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog"
 import { useRouter } from "next/navigation"
 import { formatDate } from "../../ui/formatDate"
 import { toast } from "sonner"
-import { deleteEvent } from "@/lib/actions/event"
+import { deleteEvent, publishEvent } from "@/lib/actions/event"
 
 const STATUS_OPTIONS = [
     { value: "draft", label: "Rascunho" },
@@ -31,6 +31,17 @@ function StatusBadge({ value }) {
 
 export function Row({ eventItem, selected = false, onSelectChange }) {
     const router = useRouter()
+
+    async function handlePublish() {
+        try {
+            const res = await publishEvent(eventItem._id)
+            if (!res.success) throw new Error(res.message)
+            router.refresh()
+            toast.success("Evento publicado com sucesso.")
+        } catch (err) {
+            toast.error("Erro ao publicar o evento. " + (err?.message ?? ""))
+        }
+    }
 
     async function handleDelete() {
         try {
@@ -60,9 +71,29 @@ export function Row({ eventItem, selected = false, onSelectChange }) {
             <TableCell><StatusBadge value={eventItem.status} /></TableCell>
             <TableCell onClick={(e) => e.stopPropagation()} className="cursor-default">
                 <div className="flex flex-row items-center gap-2">
+                    {eventItem.status !== "published" && (
+                        <ConfirmDialog
+                            title="Publicar evento"
+                            subtitle="Tem certeza que deseja publicar este evento?"
+                            onClick={handlePublish}
+                        >
+                            <Button variant="ghost" size="icon" title="Publicar">
+                                <Globe className="size-4" />
+                            </Button>
+                        </ConfirmDialog>
+                    )}
                     <Button
                         variant="ghost"
                         size="icon"
+                        title="Ver inscrições"
+                        onClick={() => router.push(`/dashboard/events/${eventItem._id}/registrations`)}
+                    >
+                        <ClipboardList className="size-4" />
+                    </Button>
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        title="Editar"
                         onClick={() => router.push(`/dashboard/events/${eventItem._id}`)}
                     >
                         <PenSquare className="size-4" />

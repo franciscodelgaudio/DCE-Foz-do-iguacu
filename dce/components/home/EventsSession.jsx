@@ -15,7 +15,7 @@ export function EventsSession({ events = [] }) {
     const hasEvents = events.length > 0
 
     return (
-        <section className="w-full border-b border-zinc-100 bg-white">
+        <section className="w-full border-t-[5px] border-[#2708ab] bg-white">
             <div className="mx-auto max-w-6xl px-6 py-12 md:px-10">
 
                 <div className="mb-7 flex items-center justify-between">

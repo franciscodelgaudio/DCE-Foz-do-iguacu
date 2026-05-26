@@ -1,13 +1,13 @@
 import { auth } from "@/auth"
 import { redirect } from "next/navigation"
-import { Display } from "@/components/dashboard/events/[eventId]/Display"
 import { Event } from "@/models/event"
 import { EventRegistration } from "@/models/eventRegistration"
+import { RegistrationsDisplay } from "@/components/dashboard/events/[eventId]/RegistrationsDisplay"
 
 export async function generateMetadata({ params }) {
     const { eventId } = await params
     const event = await Event.findById(eventId).lean()
-    return { title: event?.title ?? "Editar Evento" }
+    return { title: `Inscrições — ${event?.title ?? "Evento"}` }
 }
 
 export default async function Page({ params }) {
@@ -19,12 +19,14 @@ export default async function Page({ params }) {
 
     if (!event) redirect("/dashboard/events")
 
-    const registrationCount = await EventRegistration.countDocuments({ eventId })
+    const registrations = await EventRegistration.find({ eventId })
+        .sort({ createdAt: -1 })
+        .lean()
 
     return (
-        <Display
-            eventItem={JSON.parse(JSON.stringify(event))}
-            registrationCount={registrationCount}
+        <RegistrationsDisplay
+            registrations={JSON.parse(JSON.stringify(registrations))}
+            event={JSON.parse(JSON.stringify(event))}
         />
     )
 }

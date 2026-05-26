@@ -67,7 +67,22 @@
       "Bash(Select-Object -ExpandProperty FullName)",
       "Bash(Get-ChildItem -Recurse \"c:\\\\Users\\\\Admin\\\\OneDrive - UNIOESTE\\\\DCE\\\\SITE\\\\dce\\\\app\\\\dashboard\" -Include \"*.js\",\"*.jsx\",\"*.ts\",\"*.tsx\")",
       "Bash(git -C \"c:\\\\Users\\\\Admin\\\\OneDrive - UNIOESTE\\\\DCE\\\\SITE\\\\dce\" log --oneline --follow -- app/dashboard/usuarios/page.js)",
-      "Bash(git -C \"c:\\\\Users\\\\Admin\\\\OneDrive - UNIOESTE\\\\DCE\\\\SITE\\\\dce\" status --short)"
+      "Bash(git -C \"c:\\\\Users\\\\Admin\\\\OneDrive - UNIOESTE\\\\DCE\\\\SITE\\\\dce\" status --short)",
+      "Bash(Select-Object Name, FullName, Attributes)",
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\Admin\\\\OneDrive - UNIOESTE\\\\DCE\\\\SITE\" -Recurse -Depth 2)",
+      "Bash(ls -la \"c:\\\\\\\\Users\\\\\\\\Admin\\\\\\\\OneDrive - UNIOESTE\\\\\\\\DCE\\\\\\\\SITE\")",
+      "Bash(ls -la \"c:\\\\\\\\Users\\\\\\\\Admin\\\\\\\\OneDrive - UNIOESTE\\\\\\\\DCE\\\\\\\\SITE\\\\\\\\dce\")",
+      "Bash(ls -la \"c:\\\\\\\\Users\\\\\\\\Admin\\\\\\\\OneDrive - UNIOESTE\\\\\\\\DCE\\\\\\\\SITE\\\\\\\\dce\\\\\\\\models\")",
+      "Bash(ls -la \"c:\\\\\\\\Users\\\\\\\\Admin\\\\\\\\OneDrive - UNIOESTE\\\\\\\\DCE\\\\\\\\SITE\\\\\\\\dce\\\\\\\\app\")",
+      "Bash(ls -la \"c:\\\\\\\\Users\\\\\\\\Admin\\\\\\\\OneDrive - UNIOESTE\\\\\\\\DCE\\\\\\\\SITE\\\\\\\\dce\\\\\\\\app\\\\\\\\api\")",
+      "Bash(find \"c:\\\\\\\\Users\\\\\\\\Admin\\\\\\\\OneDrive - UNIOESTE\\\\\\\\DCE\\\\\\\\SITE\\\\\\\\dce\\\\\\\\app\" -type f -name \"*.tsx\" -o -name \"*.ts\" -o -name \"*.jsx\" -o -name \"*.js\")",
+      "Bash(New-Item -ItemType Directory -Force \"c:\\\\Users\\\\Admin\\\\OneDrive - UNIOESTE\\\\DCE\\\\SITE\\\\dce\\\\public\\\\images\\\\partners\")",
+      "PowerShell(New-Item -ItemType Directory -Force \"c:\\\\Users\\\\Admin\\\\OneDrive - UNIOESTE\\\\DCE\\\\SITE\\\\dce\\\\public\\\\images\\\\partners\")",
+      "Bash(npx next *)",
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\Admin\\\\OneDrive - UNIOESTE\\\\DCE\\\\SITE\" -Recurse -Filter \"*.js\" -o \"*.jsx\" -o \"*.tsx\" -o \"*.ts\")",
+      "PowerShell(Get-ChildItem -Path \"c:\\\\Users\\\\Admin\\\\OneDrive - UNIOESTE\\\\DCE\\\\SITE\" -Recurse -Directory | Where-Object { $_.Name -eq \"home\" } | Select-Object FullName)",
+      "Bash(grep -E \"\\\\.jsx?$\")",
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\Admin\\\\OneDrive - UNIOESTE\\\\DCE\\\\SITE\" -Recurse -Include \"*event*\" -Directory)"
     ],
     "additionalDirectories": [
       "C:\\Users\\Admin\\OneDrive - UNIOESTE\\DCE"

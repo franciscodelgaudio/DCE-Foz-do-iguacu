@@ -1,4 +1,5 @@
-import { CalendarDays, MapPin } from "lucide-react"
+import { CalendarDays, MapPin, ArrowRight } from "lucide-react"
+import Link from "next/link"
 
 function formatEventDate(start, end) {
     if (!start) return null
@@ -26,6 +27,11 @@ export function Display({ eventItem }) {
 
     const dateStr = formatEventDate(eventItem.eventDate, eventItem.eventEndDate)
     const isUpcoming = eventItem.eventDate && new Date(eventItem.eventDate) >= new Date()
+
+    const reg = eventItem.registration
+    const registrationOpen =
+        reg?.enabled &&
+        (!reg.deadline || new Date(reg.deadline) > new Date())
 
     return (
         <div className="mx-auto w-full max-w-[850px] px-6 py-12 md:px-10">
@@ -63,6 +69,20 @@ export function Display({ eventItem }) {
                 {eventItem.author?.name ? (
                     <p className="text-xs text-slate-400">Publicado por {eventItem.author.name}</p>
                 ) : null}
+
+                {registrationOpen && (
+                    <Link
+                        href={`/home/events/${eventItem._id}/inscricao`}
+                        className="inline-flex items-center gap-2 rounded-lg bg-[#2708ab] px-5 py-2.5 text-sm font-semibold text-white shadow hover:bg-[#2708ab]/90 transition-colors"
+                    >
+                        Inscrever-se
+                        <ArrowRight className="size-4" />
+                    </Link>
+                )}
+
+                {reg?.enabled && reg.deadline && new Date(reg.deadline) <= new Date() && (
+                    <p className="text-sm font-medium text-slate-500">Inscrições encerradas</p>
+                )}
 
                 <div className="h-0.5 w-20 bg-[#fdf25a]" />
             </header>

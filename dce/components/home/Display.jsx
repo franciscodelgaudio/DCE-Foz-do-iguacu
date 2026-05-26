@@ -6,6 +6,8 @@ import { SlideSession } from "./SlideSession"
 import { AboutCalloutSession } from "./AboutCalloutSession"
 import { EventsSession } from "./EventsSession"
 import { CorreioEleganteBanner } from "./CorreioEleganteBanner"
+import { PartnersSession } from "./PartnersSession"
+import { ContactSession } from "./ContactSession"
 
 export function Display({ news, events, showBanner = false }) {
 
@@ -13,10 +15,12 @@ export function Display({ news, events, showBanner = false }) {
         <>
             <SlideSession />
             {showBanner && <CorreioEleganteBanner />}
-            <AboutCalloutSession />
             <EventsSession events={events} />
             <NewsSession news={news} />
+            <AboutCalloutSession />
             <MemberSession />
+            <PartnersSession />
+            <ContactSession />
         </>
     )
 }

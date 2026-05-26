@@ -8,6 +8,9 @@ import { upsertEvent } from '@/lib/actions/event'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import { ClipboardList } from 'lucide-react'
+import { RegistrationSection } from './RegistrationSection'
 
 const DEFAULT_HTML = '<p>Descreva o evento…</p>'
 
@@ -18,11 +21,16 @@ function toDatetimeLocalValue(date) {
     return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 
-export function EventForm({ eventItem }) {
+function toDatetimeLocalFromISO(date) {
+    if (!date) return ''
+    return toDatetimeLocalValue(new Date(date))
+}
+
+export function EventForm({ eventItem, registrationCount = 0 }) {
     const router = useRouter()
     const isEditing = !!eventItem
 
-    const { register, control, handleSubmit, formState: { isSubmitting }, reset } = useForm({
+    const { register, control, handleSubmit, watch, setValue, formState: { isSubmitting, errors }, reset } = useForm({
         defaultValues: {
             title: '',
             location: '',
@@ -30,11 +38,23 @@ export function EventForm({ eventItem }) {
             eventEndDate: '',
             excerpt: '',
             content: { html: DEFAULT_HTML, json: null },
+            registration: {
+                enabled: false,
+                deadline: '',
+                limit: '',
+                requiresPayment: false,
+                paymentAmount: '',
+                pixKey: '',
+                pixKeyType: 'email',
+                pixRecipientName: '',
+                formFields: [],
+            },
         },
     })
 
     useEffect(() => {
         if (!eventItem) return
+        const reg = eventItem.registration
         reset({
             title: eventItem.title ?? '',
             location: eventItem.location ?? '',
@@ -44,6 +64,23 @@ export function EventForm({ eventItem }) {
             content: {
                 html: eventItem.contentHtml ?? DEFAULT_HTML,
                 json: eventItem.contentJson ?? null,
+            },
+            registration: {
+                enabled: reg?.enabled ?? false,
+                deadline: toDatetimeLocalFromISO(reg?.deadline),
+                limit: reg?.limit ?? '',
+                requiresPayment: reg?.requiresPayment ?? false,
+                paymentAmount: reg?.paymentAmount ?? '',
+                pixKey: reg?.pixKey ?? '',
+                pixKeyType: reg?.pixKeyType ?? 'email',
+                pixRecipientName: reg?.pixRecipientName ?? '',
+                formFields: (reg?.formFields ?? []).map((f) => ({
+                    key: f.key,
+                    label: f.label,
+                    type: f.type,
+                    required: f.required ?? false,
+                    optionsText: (f.options ?? []).join(', '),
+                })),
             },
         })
     }, [eventItem, reset])
@@ -78,6 +115,23 @@ export function EventForm({ eventItem }) {
 
     return (
         <div className="p-4 max-w-3xl">
+            {isEditing && (
+                <div className="mb-4 flex items-center gap-2">
+                    <Link
+                        href={`/dashboard/events/${eventItem._id}/registrations`}
+                        className="inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-50"
+                    >
+                        <ClipboardList className="size-4" />
+                        Ver inscrições
+                        {registrationCount > 0 && (
+                            <span className="ml-1 rounded-full bg-[#2708ab]/10 px-1.5 py-0.5 text-xs font-semibold text-[#2708ab]">
+                                {registrationCount}
+                            </span>
+                        )}
+                    </Link>
+                </div>
+            )}
+
             <form className="space-y-5">
                 <Input
                     placeholder="Título do evento"
@@ -124,6 +178,14 @@ export function EventForm({ eventItem }) {
                         )}
                     />
                 </div>
+
+                <RegistrationSection
+                    control={control}
+                    register={register}
+                    watch={watch}
+                    setValue={setValue}
+                    errors={errors}
+                />
 
                 <div className="flex flex-wrap gap-2 pt-2 border-t">
                     <Button

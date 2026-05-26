@@ -35,6 +35,7 @@ const NAV_LINKS = [
     { href: "/home/news", label: "Jornal" },
     { href: "/home/events", label: "Eventos" },
     { href: "/home/sobre-o-dce", label: "Sobre o DCE" },
+    { href: "/home/contato", label: "Contato" },
 ]
 
 function HeaderLogo({ compact = false }) {

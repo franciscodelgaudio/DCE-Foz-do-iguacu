@@ -4,14 +4,14 @@ import {
     TableCell,
     TableRow,
 } from "@/components/ui/table"
-import { PenSquare, Trash2 } from "lucide-react";
+import { PenSquare, Trash2, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { useRouter } from "next/navigation";
 import { formatDate } from "../../ui/formatDate";
 import { toast } from "sonner";
-import { deleteNews } from "../../../lib/actions/news";
+import { deleteNews, publishNews } from "../../../lib/actions/news";
 
 const STATUS_OPTIONS = [
     { value: "draft", label: "Rascunho" },
@@ -40,6 +40,17 @@ export function Row({ newsItem, selected = false, onSelectChange }) {
 
     async function handleClick() {
         router.push(`/dashboard/news/${newsItem._id}`);
+    }
+
+    async function handlePublish() {
+        try {
+            const res = await publishNews(newsItem._id)
+            if (!res.success) throw new Error(res.message)
+            router.refresh()
+            toast.success("Artigo publicado com sucesso.")
+        } catch (err) {
+            toast.error("Erro ao publicar o artigo. " + (err?.message ?? ""))
+        }
     }
 
     async function handleDelete() {
@@ -75,6 +86,17 @@ export function Row({ newsItem, selected = false, onSelectChange }) {
                 className="cursor-default"
             >
                 <div className="flex flex-row items-center gap-2">
+                    {newsItem.status !== "published" && (
+                        <ConfirmDialog
+                            title="Publicar artigo"
+                            subtitle="Tem certeza que deseja publicar este artigo?"
+                            onClick={handlePublish}
+                        >
+                            <Button variant="ghost" size="icon" title="Publicar">
+                                <Globe className="size-4" />
+                            </Button>
+                        </ConfirmDialog>
+                    )}
                     <Button variant="ghost" size="icon" onClick={handleClick}>
                         <PenSquare className="size-4" />
                     </Button>

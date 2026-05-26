@@ -2,9 +2,36 @@
 
 import { auth } from "@/auth"
 import { redirect } from "next/navigation"
+import { revalidatePath } from "next/cache"
 import { z } from "zod"
 import { Event } from "../../models/event"
 import mongoose from "mongoose"
+
+const formFieldInputSchema = z.object({
+    key: z.string(),
+    label: z.string().min(1),
+    type: z.enum(["text", "email", "tel", "number", "select", "textarea", "checkbox"]),
+    required: z.boolean().default(false),
+    optionsText: z.string().optional().default(""),
+})
+
+const registrationInputSchema = z.object({
+    enabled: z.boolean().default(false),
+    deadline: z.string().optional(),
+    limit: z.preprocess(
+        (v) => (v === "" || v == null ? undefined : Number(v)),
+        z.number().positive().optional()
+    ),
+    requiresPayment: z.boolean().default(false),
+    paymentAmount: z.preprocess(
+        (v) => (v === "" || v == null ? undefined : Number(v)),
+        z.number().positive().optional()
+    ),
+    pixKey: z.string().optional(),
+    pixKeyType: z.enum(["email", "phone", "cpf", "random"]).optional(),
+    pixRecipientName: z.string().optional(),
+    formFields: z.array(formFieldInputSchema).default([]),
+}).optional()
 
 const eventSchema = z.object({
     _id: z.string().optional(),
@@ -18,6 +45,7 @@ const eventSchema = z.object({
         json: z.coerce.string(),
     }),
     status: z.enum(["draft", "published", "archived"]).optional(),
+    registration: registrationInputSchema,
 })
 
 export async function upsertEvent(form) {
@@ -27,9 +55,35 @@ export async function upsertEvent(form) {
     const parsed = eventSchema.safeParse(form)
     if (!parsed.success) return { success: false, message: "Dados inválidos." }
 
-    const { _id, title, excerpt, location, eventDate, eventEndDate, content, status } = parsed.data
+    const { _id, title, excerpt, location, eventDate, eventEndDate, content, status, registration } = parsed.data
 
     const id = _id ? new mongoose.Types.ObjectId(_id) : new mongoose.Types.ObjectId()
+
+    const processedRegistration = registration
+        ? {
+              enabled: registration.enabled,
+              deadline: registration.deadline ? new Date(registration.deadline) : undefined,
+              limit: registration.limit,
+              requiresPayment: registration.requiresPayment,
+              paymentAmount: registration.paymentAmount,
+              pixKey: registration.pixKey ?? "",
+              pixKeyType: registration.pixKeyType,
+              pixRecipientName: registration.pixRecipientName ?? "",
+              formFields: registration.formFields.map((f, i) => ({
+                  key: f.key || `field_${Date.now()}_${i}`,
+                  label: f.label,
+                  type: f.type,
+                  required: f.required,
+                  options: f.optionsText
+                      ? f.optionsText
+                            .split(",")
+                            .map((o) => o.trim())
+                            .filter(Boolean)
+                      : [],
+                  order: i,
+              })),
+          }
+        : undefined
 
     const item = {
         _id: id,
@@ -47,6 +101,7 @@ export async function upsertEvent(form) {
         ...(eventDate ? { eventDate: new Date(eventDate) } : {}),
         ...(eventEndDate ? { eventEndDate: new Date(eventEndDate) } : { eventEndDate: null }),
         ...(status === "published" ? { publishedAt: new Date() } : {}),
+        ...(processedRegistration !== undefined ? { registration: processedRegistration } : {}),
     }
 
     try {
@@ -55,10 +110,32 @@ export async function upsertEvent(form) {
             { $set: item },
             { upsert: true, new: true, runValidators: true, setDefaultsOnInsert: true }
         )
+        revalidatePath('/dashboard/events')
+        revalidatePath(`/dashboard/events/${id.toString()}`)
+        revalidatePath(`/home/events/${id.toString()}`)
         return { success: true, message: "Evento salvo com sucesso." }
     } catch (err) {
         console.error("Erro ao salvar o evento:", err)
         return { success: false, message: "Erro ao salvar o evento." }
+    }
+}
+
+export async function publishEvent(eventId) {
+    const session = await auth()
+    if (!session) redirect("/login")
+
+    if (!mongoose.Types.ObjectId.isValid(eventId)) {
+        return { success: false, message: "ID inválido." }
+    }
+
+    try {
+        await Event.findByIdAndUpdate(eventId, {
+            $set: { status: "published", publishedAt: new Date() },
+        })
+        return { success: true, message: "Evento publicado com sucesso." }
+    } catch (err) {
+        console.error("Erro ao publicar o evento:", err)
+        return { success: false, message: "Erro ao publicar o evento." }
     }
 }
 
