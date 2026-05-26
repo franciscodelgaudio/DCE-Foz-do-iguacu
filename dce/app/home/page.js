@@ -50,7 +50,7 @@ export default async function Page() {
         <Display
             news={JSON.parse(JSON.stringify(news))}
             events={JSON.parse(JSON.stringify(events))}
-            showBanner={settings.correioEleganteEnabled}
+            showBanner={false}
         />
     )
 }
