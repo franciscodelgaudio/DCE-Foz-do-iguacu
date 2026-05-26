@@ -132,6 +132,11 @@
   width: fit-content;
 }
 
+/* Fix cropped image wrapper with caption: same centering fix */
+[data-image-crop][data-caption] {
+  width: fit-content;
+}
+
 /* Remove prose auto-margins from images inside wrappers to keep caption close */
 [data-image-wrapper] img {
   margin-top: 0 !important;

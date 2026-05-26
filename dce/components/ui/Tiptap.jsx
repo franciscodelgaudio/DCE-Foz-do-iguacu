@@ -544,7 +544,7 @@ const ResizableImage = Image.extend({
                     'data-crop-height': cH,
                     'data-crop-x': cX,
                     'data-crop-y': cY,
-                    style: `display:block;${marginStyle}`,
+                    style: `display:block;width:${cW}px;${marginStyle}`,
                 },
                     ['div', { style: `overflow:hidden;width:${cW}px;height:${cH}px;display:block;border-radius:6px;` },
                         ['img', { src: src || '', alt: alt || '', title: title || '', 'data-caption': caption, draggable: 'false', style: `width:${w}px;height:${h ? h + 'px' : 'auto'};display:block;margin-left:-${cX}px;margin-top:-${cY}px;max-width:none;` }]],
