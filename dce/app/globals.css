@@ -126,3 +126,19 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Tiptap columns layout */
+.ProseMirror [data-type="columns"] [data-type="column"] {
+  flex: 1;
+  min-width: 0;
+  outline: 1px dashed #cbd5e1;
+  border-radius: 4px;
+}
+
+[data-type="column"] > :first-child {
+  margin-top: 0 !important;
+}
+
+[data-type="column"] > :last-child {
+  margin-bottom: 0 !important;
+}

@@ -4,228 +4,264 @@ import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
+import { LineChart, Line, XAxis, YAxis } from "recharts"
 import {
-    ChartContainer,
-    ChartTooltip,
-    ChartTooltipContent,
-} from "@/components/ui/chart"
+    FilePlus2, CalendarPlus, Eye, Pencil, Clock,
+    CheckCircle2, ArrowRight, Calendar, Newspaper,
+} from "lucide-react"
 
-import {
-    LineChart,
-    Line,
-    XAxis,
-    YAxis,
-    BarChart,
-    Bar,
-} from "recharts"
+const statusLabels = {
+    published: "Publicado",
+    draft: "Rascunho",
+    scheduled: "Agendado",
+    archived: "Arquivado",
+}
 
-import { FilePlus2, Newspaper, Eye, Clock, Pencil, CheckCircle2 } from "lucide-react"
+const statusVariants = {
+    published: "default",
+    draft: "secondary",
+    scheduled: "outline",
+    archived: "destructive",
+}
 
-function formatDateBR(iso) {
-    const [y, m, d] = iso.split("-")
+function formatAxisDate(iso) {
+    const [, m, d] = iso.split("-")
     return `${d}/${m}`
 }
 
-// configs do shadcn chart (serve p/ legenda/tooltip com label)
-const last7Config = {
-    published: { label: "Publicados" },
+function formatShortDate(iso) {
+    if (!iso) return "—"
+    return new Date(iso).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" })
 }
 
-const categoryConfig = {
-    count: { label: "Artigos" },
+const last7Config = { published: { label: "Publicados" } }
+
+function KpiCard({ title, value, icon: Icon, primary }) {
+    return (
+        <Card className="rounded-2xl">
+            <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
+            </CardHeader>
+            <CardContent className="flex items-end justify-between">
+                <span className={`text-3xl font-extrabold${primary ? " text-primary" : ""}`}>{value}</span>
+                <Icon className={`h-5 w-5${primary ? " text-primary" : " text-muted-foreground"}`} />
+            </CardContent>
+        </Card>
+    )
 }
 
-export function Display({ name, stats }) {
+export function Display({ name, stats, eventStats }) {
     const t = stats.totals
 
     return (
         <div className="space-y-6">
+
             {/* Header */}
             <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                     <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
-                        Olá, {name} 👋
+                        Olá, {name}
                     </h1>
-                    <p className="text-sm text-muted-foreground">
-                        Aqui está um resumo do desempenho do jornal e do seu fluxo editorial.
+                    <p className="mt-1 text-sm text-muted-foreground">
+                        Painel de controle do DCE — visão geral do conteúdo publicado.
                     </p>
                 </div>
-
-                <div className="flex gap-2">
-                    <Button asChild>
+                <div className="flex flex-wrap gap-2">
+                    <Button asChild size="sm">
                         <Link href="/dashboard/news/createNews">
                             <FilePlus2 className="mr-2 h-4 w-4" />
                             Nova notícia
                         </Link>
                     </Button>
-
-                    <Button variant="outline" asChild>
-                        <Link href="/dashboard/news">
-                            <Newspaper className="mr-2 h-4 w-4" />
-                            Ver notícias
+                    <Button asChild size="sm" variant="outline">
+                        <Link href="/dashboard/events/createEvent">
+                            <CalendarPlus className="mr-2 h-4 w-4" />
+                            Novo evento
                         </Link>
                     </Button>
                 </div>
             </div>
 
-            {/* KPI Cards */}
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                <Card className="rounded-2xl">
-                    <CardHeader className="pb-2">
-                        <CardTitle className="text-sm font-medium text-muted-foreground">Total</CardTitle>
-                    </CardHeader>
-                    <CardContent className="flex items-end justify-between">
-                        <div className="text-3xl font-extrabold">{t.total}</div>
-                        <Badge variant="secondary">Artigos</Badge>
-                    </CardContent>
-                </Card>
-
-                <Card className="rounded-2xl">
-                    <CardHeader className="pb-2">
-                        <CardTitle className="text-sm font-medium text-muted-foreground">Publicados</CardTitle>
-                    </CardHeader>
-                    <CardContent className="flex items-end justify-between">
-                        <div className="text-3xl font-extrabold">{t.published}</div>
-                        <CheckCircle2 className="h-5 w-5 text-muted-foreground" />
-                    </CardContent>
-                </Card>
-
-                <Card className="rounded-2xl">
-                    <CardHeader className="pb-2">
-                        <CardTitle className="text-sm font-medium text-muted-foreground">Rascunhos</CardTitle>
-                    </CardHeader>
-                    <CardContent className="flex items-end justify-between">
-                        <div className="text-3xl font-extrabold">{t.draft}</div>
-                        <Pencil className="h-5 w-5 text-muted-foreground" />
-                    </CardContent>
-                </Card>
-
-                <Card className="rounded-2xl">
-                    <CardHeader className="pb-2">
-                        <CardTitle className="text-sm font-medium text-muted-foreground">Views</CardTitle>
-                    </CardHeader>
-                    <CardContent className="flex items-end justify-between">
-                        <div className="text-3xl font-extrabold">{t.views}</div>
-                        <Eye className="h-5 w-5 text-muted-foreground" />
-                    </CardContent>
-                </Card>
+            {/* KPIs */}
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+                <KpiCard title="Total de notícias" value={t.total} icon={Newspaper} />
+                <KpiCard title="Publicadas" value={t.published} icon={CheckCircle2} primary />
+                <KpiCard title="Rascunhos" value={t.draft} icon={Pencil} />
+                <KpiCard title="Agendadas" value={t.scheduled} icon={Clock} />
+                <KpiCard title="Visualizações" value={t.views} icon={Eye} />
             </div>
 
-            {/* Charts */}
+            {/* Gráfico + Próximos eventos */}
             <div className="grid gap-4 lg:grid-cols-2">
-                {/* Line chart (shadcn chart wrapper) */}
+
                 <Card className="rounded-2xl">
                     <CardHeader>
                         <CardTitle className="text-base">Publicações nos últimos 7 dias</CardTitle>
-                        <p className="text-sm text-muted-foreground">Apenas artigos com status publicado.</p>
+                        <p className="text-sm text-muted-foreground">Artigos publicados por dia.</p>
                     </CardHeader>
-
-                    <CardContent className="h-[280px]">
+                    <CardContent className="h-[240px]">
                         <ChartContainer config={last7Config} className="h-full w-full">
                             <LineChart data={stats.last7Days}>
-                                <XAxis dataKey="date" tickFormatter={formatDateBR} />
+                                <XAxis dataKey="date" tickFormatter={formatAxisDate} />
                                 <YAxis allowDecimals={false} />
-
                                 <ChartTooltip
                                     content={
                                         <ChartTooltipContent
-                                            labelFormatter={(v) => `Dia ${formatDateBR(String(v))}`}
+                                            labelFormatter={(v) => `Dia ${formatAxisDate(String(v))}`}
                                         />
                                     }
                                 />
-
                                 <Line type="monotone" dataKey="published" strokeWidth={2} dot={false} />
                             </LineChart>
                         </ChartContainer>
                     </CardContent>
                 </Card>
 
-                {/* Bar chart (shadcn chart wrapper) */}
                 <Card className="rounded-2xl">
-                    <CardHeader>
-                        <CardTitle className="text-base">Categorias mais usadas</CardTitle>
-                        <p className="text-sm text-muted-foreground">Top categorias por quantidade de artigos.</p>
+                    <CardHeader className="flex flex-row items-center justify-between">
+                        <div>
+                            <CardTitle className="text-base">Próximos eventos</CardTitle>
+                            <p className="text-sm text-muted-foreground">
+                                {eventStats.totalEvents} evento{eventStats.totalEvents !== 1 ? "s" : ""} cadastrado{eventStats.totalEvents !== 1 ? "s" : ""}.
+                            </p>
+                        </div>
+                        <Button asChild variant="ghost" size="sm">
+                            <Link href="/dashboard/events">
+                                Ver todos <ArrowRight className="ml-1 h-3 w-3" />
+                            </Link>
+                        </Button>
                     </CardHeader>
-
-                    <CardContent className="h-[280px]">
-                        <ChartContainer config={categoryConfig} className="h-full w-full">
-                            <BarChart data={stats.byCategory}>
-                                {/* pode esconder o eixo se tiver muitos */}
-                                <XAxis dataKey="category" hide />
-                                <YAxis allowDecimals={false} />
-
-                                <ChartTooltip
-                                    content={
-                                        <ChartTooltipContent
-                                            labelFormatter={(v) => String(v)}
-                                            formatter={(value) => [value, "Artigos"]}
-                                        />
-                                    }
-                                />
-
-                                <Bar dataKey="count" />
-                            </BarChart>
-                        </ChartContainer>
+                    <CardContent>
+                        {eventStats.upcoming.length ? (
+                            <ul className="space-y-3">
+                                {eventStats.upcoming.map((e) => (
+                                    <li key={e.id} className="flex items-center justify-between gap-3">
+                                        <div className="flex min-w-0 items-center gap-2">
+                                            <Calendar className="h-4 w-4 shrink-0 text-muted-foreground" />
+                                            <Link
+                                                href={`/dashboard/events/${e.id}`}
+                                                className="truncate text-sm font-medium hover:underline"
+                                            >
+                                                {e.title}
+                                            </Link>
+                                        </div>
+                                        <div className="flex shrink-0 items-center gap-2">
+                                            {e.location && (
+                                                <span className="hidden text-xs text-muted-foreground sm:block">
+                                                    {e.location}
+                                                </span>
+                                            )}
+                                            <Badge variant="outline" className="text-xs">
+                                                {formatShortDate(e.eventDate)}
+                                            </Badge>
+                                        </div>
+                                    </li>
+                                ))}
+                            </ul>
+                        ) : (
+                            <p className="py-6 text-center text-sm text-muted-foreground">
+                                Nenhum evento publicado futuro.
+                            </p>
+                        )}
                     </CardContent>
                 </Card>
             </div>
 
-            {/* Table / Top Posts */}
-            <Card className="rounded-2xl">
-                <CardHeader className="flex flex-row items-center justify-between">
-                    <div>
-                        <CardTitle className="text-base">Top matérias por visualizações</CardTitle>
+            {/* Top notícias + Atividade recente */}
+            <div className="grid gap-4 lg:grid-cols-2">
+
+                <Card className="rounded-2xl">
+                    <CardHeader>
+                        <CardTitle className="text-base">Top notícias por views</CardTitle>
                         <p className="text-sm text-muted-foreground">As 5 mais acessadas.</p>
-                    </div>
-
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Clock className="h-4 w-4" />
-                        <span>Atualizado agora</span>
-                    </div>
-                </CardHeader>
-
-                <CardContent>
-                    <div className="overflow-x-auto rounded-md border">
-                        <table className="w-full text-sm">
-                            <thead className="bg-muted/40">
-                                <tr className="text-left">
-                                    <th className="px-3 py-2 font-medium">Título</th>
-                                    <th className="px-3 py-2 font-medium">Status</th>
-                                    <th className="px-3 py-2 font-medium">Views</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {stats.topPosts.length ? (
-                                    stats.topPosts.map((p) => (
-                                        <tr key={p.id} className="border-t">
-                                            <td className="px-3 py-2">
-                                                <span className="line-clamp-1 font-medium">{p.title}</span>
-                                            </td>
-                                            <td className="px-3 py-2">
-                                                <Badge variant={p.status === "published" ? "default" : "secondary"}>
-                                                    {p.status}
-                                                </Badge>
-                                            </td>
-                                            <td className="px-3 py-2">{p.viewCount}</td>
-                                        </tr>
-                                    ))
-                                ) : (
-                                    <tr>
-                                        <td className="px-3 py-6 text-muted-foreground" colSpan={3}>
-                                            Nenhuma matéria encontrada ainda.
-                                        </td>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="overflow-x-auto rounded-md border">
+                            <table className="w-full text-sm">
+                                <thead className="bg-muted/40">
+                                    <tr className="text-left">
+                                        <th className="px-3 py-2 font-medium">Título</th>
+                                        <th className="px-3 py-2 font-medium">Status</th>
+                                        <th className="px-3 py-2 text-right font-medium">Views</th>
                                     </tr>
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
+                                </thead>
+                                <tbody>
+                                    {stats.topPosts.length ? (
+                                        stats.topPosts.map((p) => (
+                                            <tr key={p.id} className="border-t transition-colors hover:bg-muted/20">
+                                                <td className="px-3 py-2">
+                                                    <Link
+                                                        href={`/dashboard/news/${p.id}`}
+                                                        className="line-clamp-1 font-medium hover:underline"
+                                                    >
+                                                        {p.title}
+                                                    </Link>
+                                                </td>
+                                                <td className="px-3 py-2">
+                                                    <Badge variant={statusVariants[p.status] ?? "secondary"}>
+                                                        {statusLabels[p.status] ?? p.status}
+                                                    </Badge>
+                                                </td>
+                                                <td className="px-3 py-2 text-right">{p.viewCount}</td>
+                                            </tr>
+                                        ))
+                                    ) : (
+                                        <tr>
+                                            <td className="px-3 py-6 text-muted-foreground" colSpan={3}>
+                                                Nenhuma notícia encontrada ainda.
+                                            </td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </CardContent>
+                </Card>
 
-                    <div className="mt-4 flex flex-wrap gap-2">
-                        <Badge variant="secondary">Agendados: {stats.totals.scheduled}</Badge>
-                    </div>
-                </CardContent>
-            </Card>
+                <Card className="rounded-2xl">
+                    <CardHeader className="flex flex-row items-center justify-between">
+                        <div>
+                            <CardTitle className="text-base">Atividade recente</CardTitle>
+                            <p className="text-sm text-muted-foreground">Últimas notícias editadas.</p>
+                        </div>
+                        <Button asChild variant="ghost" size="sm">
+                            <Link href="/dashboard/news">
+                                Ver todas <ArrowRight className="ml-1 h-3 w-3" />
+                            </Link>
+                        </Button>
+                    </CardHeader>
+                    <CardContent>
+                        {stats.recentArticles.length ? (
+                            <ul className="space-y-3">
+                                {stats.recentArticles.map((p) => (
+                                    <li key={p.id} className="flex items-center justify-between gap-3">
+                                        <Link
+                                            href={`/dashboard/news/${p.id}`}
+                                            className="truncate text-sm font-medium hover:underline"
+                                        >
+                                            {p.title}
+                                        </Link>
+                                        <div className="flex shrink-0 items-center gap-2">
+                                            <span className="hidden text-xs text-muted-foreground sm:block">
+                                                {formatShortDate(p.updatedAt)}
+                                            </span>
+                                            <Badge variant={statusVariants[p.status] ?? "secondary"}>
+                                                {statusLabels[p.status] ?? p.status}
+                                            </Badge>
+                                        </div>
+                                    </li>
+                                ))}
+                            </ul>
+                        ) : (
+                            <p className="py-6 text-center text-sm text-muted-foreground">
+                                Nenhuma notícia ainda.
+                            </p>
+                        )}
+                    </CardContent>
+                </Card>
+            </div>
+
         </div>
     )
 }

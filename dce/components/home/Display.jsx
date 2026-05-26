@@ -1,19 +1,21 @@
 'use client'
 
-import { IntroductionSession } from "./IntroductionSession"
 import { MemberSession } from "./MemberSession"
 import { NewsSession } from "./NewsSession"
 import { SlideSession } from "./SlideSession"
+import { AboutCalloutSession } from "./AboutCalloutSession"
+import { EventsSession } from "./EventsSession"
+import { CorreioEleganteBanner } from "./CorreioEleganteBanner"
 
-export function Display({ news }) {
+export function Display({ news, events, showBanner = false }) {
 
     return (
         <>
             <SlideSession />
-            <IntroductionSession />
-            <NewsSession
-                news={news}
-            />
+            {showBanner && <CorreioEleganteBanner />}
+            <AboutCalloutSession />
+            <EventsSession events={events} />
+            <NewsSession news={news} />
             <MemberSession />
         </>
     )

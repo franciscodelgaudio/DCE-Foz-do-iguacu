@@ -18,6 +18,8 @@ export const metadata = {
     default: "DCE",
     template: "DCE | %s",
   },
+  description:
+    "O DCE representa todos os estudantes da UNIOESTE Foz — defende seus direitos, organiza eventos, fiscaliza a gestão e articula os 14 Centros Acadêmicos do campus.",
 };
 
 export default function RootLayout({ children }) {
