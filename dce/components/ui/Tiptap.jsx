@@ -2,6 +2,7 @@
 
 import * as React from 'react'
 import { createPortal } from 'react-dom'
+import { TextSelection } from 'prosemirror-state'
 import { useEditor, EditorContent, ReactNodeViewRenderer, NodeViewWrapper } from '@tiptap/react'
 import { BubbleMenu } from '@tiptap/react/menus'
 import StarterKit from '@tiptap/starter-kit'
@@ -49,8 +50,8 @@ import { ImageUpload } from '../editor/extensions/image-upload'
 import { Columns, Column } from '../editor/extensions/columns'
 import { ParagraphSpacing } from '../editor/extensions/paragraph-spacing'
 
-function ResizableImageView({ node, updateAttributes, selected, editor }) {
-    const { src, alt, title, align, width, height, cropEnabled, cropWidth, cropHeight, cropX, cropY } = node.attrs
+function ResizableImageView({ node, updateAttributes, selected, editor, getPos }) {
+    const { src, alt, title, align, width, height, cropEnabled, cropWidth, cropHeight, cropX, cropY, caption } = node.attrs
 
     const [naturalRatio, setNaturalRatio] = React.useState(1)
     const [contextMenu, setContextMenu] = React.useState(null)
@@ -189,10 +190,23 @@ function ResizableImageView({ node, updateAttributes, selected, editor }) {
         color: active ? '#2563eb' : '#6b7280', display: 'flex', alignItems: 'center', flexShrink: 0,
     })
 
+    const handleMouseDown = React.useCallback((e) => {
+        if (!e.shiftKey || !editor.isEditable) return
+        e.preventDefault()
+        e.stopPropagation()
+        const pos = getPos()
+        const anchor = editor.state.selection.anchor
+        const head = anchor <= pos ? pos + node.nodeSize : pos
+        editor.view.dispatch(
+            editor.state.tr.setSelection(TextSelection.create(editor.state.doc, anchor, head))
+        )
+    }, [editor, getPos, node.nodeSize])
+
     return (
         <NodeViewWrapper>
             <div
                 contentEditable={false}
+                onMouseDown={handleMouseDown}
                 onContextMenu={(e) => {
                     if (!editor.isEditable) return
                     e.preventDefault()
@@ -217,6 +231,39 @@ function ResizableImageView({ node, updateAttributes, selected, editor }) {
                     />
                 )}
             </div>
+
+            {/* Caption */}
+            {(editor.isEditable || caption) && (
+                <div
+                    contentEditable={false}
+                    style={{ ...marginStyle, width: wrapperSize.width, marginTop: 4 }}
+                >
+                    {editor.isEditable ? (
+                        <input
+                            type="text"
+                            value={caption || ''}
+                            onChange={e => updateAttributes({ caption: e.target.value })}
+                            onMouseDown={e => e.stopPropagation()}
+                            placeholder="Adicionar legenda..."
+                            style={{
+                                width: '100%',
+                                border: 'none',
+                                borderBottom: '1px dashed #d1d5db',
+                                background: 'transparent',
+                                textAlign: 'center',
+                                fontSize: 13,
+                                color: caption ? '#374151' : '#9ca3af',
+                                outline: 'none',
+                                padding: '4px 0',
+                            }}
+                        />
+                    ) : (
+                        <span style={{ display: 'block', textAlign: 'center', fontSize: 13, color: '#6b7280' }}>
+                            {caption}
+                        </span>
+                    )}
+                </div>
+            )}
 
             {/* Context menu */}
             {contextMenu && createPortal(
@@ -391,6 +438,11 @@ const ResizableImage = Image.extend({
                 parseHTML: (el) => parseInt(el.getAttribute('data-crop-y') ?? '0') || 0,
                 renderHTML: () => ({}),
             },
+            caption: {
+                default: '',
+                parseHTML: (el) => el.getAttribute('data-caption') ?? '',
+                renderHTML: (attrs) => attrs.caption ? { 'data-caption': attrs.caption } : {},
+            },
         }
     },
 
@@ -414,6 +466,46 @@ const ResizableImage = Image.extend({
                         cropHeight: parseInt(el.getAttribute('data-crop-height') || '0') || null,
                         cropX: parseInt(el.getAttribute('data-crop-x') || '0') || 0,
                         cropY: parseInt(el.getAttribute('data-crop-y') || '0') || 0,
+                        caption: el.getAttribute('data-caption') || el.querySelector('img')?.getAttribute('data-caption') || '',
+                    }
+                },
+            },
+            {
+                tag: 'div[data-image-wrapper]',
+                getAttrs: (el) => {
+                    const img = el.querySelector('img')
+                    if (!img) return false
+                    return {
+                        src: img.getAttribute('src') || '',
+                        alt: img.getAttribute('alt') || '',
+                        title: img.getAttribute('title') || '',
+                        align: el.getAttribute('data-align') || 'center',
+                        width: parseInt(el.getAttribute('data-width') || '300') || 300,
+                        height: el.getAttribute('data-height') ? parseInt(el.getAttribute('data-height')) || null : null,
+                        caption: el.getAttribute('data-caption') || img.getAttribute('data-caption') || '',
+                    }
+                },
+            },
+            {
+                tag: 'figure',
+                getAttrs: (el) => {
+                    const img = el.querySelector('img')
+                    if (!img) return false
+                    const caption = el.getAttribute('data-caption') || el.querySelector('figcaption')?.textContent || ''
+                    const isCrop = el.getAttribute('data-image-crop') === 'true'
+                    return {
+                        src: img.getAttribute('src') || '',
+                        alt: img.getAttribute('alt') || '',
+                        title: img.getAttribute('title') || '',
+                        align: el.getAttribute('data-align') || 'center',
+                        width: parseInt(el.getAttribute('data-width') || '300') || 300,
+                        height: el.getAttribute('data-height') ? parseInt(el.getAttribute('data-height')) || null : null,
+                        cropEnabled: isCrop,
+                        cropWidth: isCrop ? parseInt(el.getAttribute('data-crop-width') || '0') || null : null,
+                        cropHeight: isCrop ? parseInt(el.getAttribute('data-crop-height') || '0') || null : null,
+                        cropX: isCrop ? parseInt(el.getAttribute('data-crop-x') || '0') || 0 : 0,
+                        cropY: isCrop ? parseInt(el.getAttribute('data-crop-y') || '0') || 0 : 0,
+                        caption,
                     }
                 },
             },
@@ -430,11 +522,47 @@ const ResizableImage = Image.extend({
         const cH = Number(node.attrs.cropHeight) || w
         const cX = Number(node.attrs.cropX) || 0
         const cY = Number(node.attrs.cropY) || 0
+        const caption = node.attrs.caption || ''
 
         const marginStyle =
             align === 'center' ? 'margin:0 auto' :
             align === 'right'  ? 'margin-left:auto;margin-right:0' :
                                  'margin-left:0;margin-right:auto'
+
+        if (caption) {
+            const cropFigcaption = ['figcaption', { style: `display:block;width:${cW}px;margin:0 auto;text-align:center;font-size:0.85em;color:#6b7280;margin-top:4px;` }, caption]
+            const imgFigcaption  = ['figcaption', { style: `display:block;width:${w}px;margin:0 auto;text-align:center;font-size:0.85em;color:#6b7280;margin-top:4px;` }, caption]
+
+            if (cEnabled) {
+                return ['div', {
+                    'data-image-crop': 'true',
+                    'data-caption': caption,
+                    'data-align': align,
+                    'data-width': w,
+                    'data-height': h ?? '',
+                    'data-crop-width': cW,
+                    'data-crop-height': cH,
+                    'data-crop-x': cX,
+                    'data-crop-y': cY,
+                    style: `display:block;${marginStyle}`,
+                },
+                    ['div', { style: `overflow:hidden;width:${cW}px;height:${cH}px;display:block;border-radius:6px;` },
+                        ['img', { src: src || '', alt: alt || '', title: title || '', 'data-caption': caption, draggable: 'false', style: `width:${w}px;height:${h ? h + 'px' : 'auto'};display:block;margin-left:-${cX}px;margin-top:-${cY}px;max-width:none;` }]],
+                    cropFigcaption,
+                ]
+            }
+            return ['div', {
+                'data-image-wrapper': 'true',
+                'data-caption': caption,
+                'data-align': align,
+                'data-width': w,
+                'data-height': h ?? '',
+                style: `display:block;${marginStyle}`,
+            },
+                ['img', { src: src || '', alt: alt || '', title: title || '', 'data-caption': caption, width: w, style: `width:${w}px;height:${h ? h + 'px' : 'auto'};display:block;border-radius:6px;` }],
+                imgFigcaption,
+            ]
+        }
 
         if (cEnabled) {
             return ['div', {
@@ -605,7 +733,7 @@ export default function Tiptap({
     return (
         <div className={cn('w-full', className)}>
             {/* Toolbar */}
-            <div className="mb-2 flex flex-wrap items-center gap-1 rounded-md border bg-background p-2">
+            <div className="sticky top-0 z-10 mb-2 flex flex-wrap items-center gap-1 rounded-md border bg-background p-2 shadow-sm">
                 <ToolbarButton
                     title="Negrito"
                     active={editor.isActive('bold')}
@@ -764,13 +892,14 @@ export default function Tiptap({
                         <Separator orientation="vertical" className="mx-1 h-6" />
 
                         <select
-                            title="Espaçamento após parágrafo"
+                            title="Espaçamento entre parágrafos"
                             value={editor.getAttributes('paragraph').spacing ?? ''}
-                            onChange={e => editor.chain().focus().setParagraphSpacing(e.target.value || null).run()}
+                            onChange={e => editor.chain().focus().setParagraphSpacingAll(e.target.value || null).run()}
                             className="h-9 cursor-pointer rounded-md border border-input bg-background px-2 text-sm"
                         >
                             <option value="">↕ Padrão</option>
-                            <option value="0rem">↕ Compacto</option>
+                            <option value="0rem">↕ Sem espaço</option>
+                            <option value="0.5rem">↕ Compacto</option>
                             <option value="1.5rem">↕ Médio</option>
                             <option value="2.5rem">↕ Espaçado</option>
                             <option value="4rem">↕ Largo</option>
@@ -817,7 +946,6 @@ export default function Tiptap({
             {/* BubbleMenu */}
             <BubbleMenu
                 editor={editor}
-                tippyOptions={{ offset: [0, 6], placement: 'top' }}
                 className="flex items-center gap-1 rounded-md border bg-background p-1 shadow"
             >
                 <ToolbarButton
@@ -853,7 +981,18 @@ export default function Tiptap({
                 </ToolbarButton>
             </BubbleMenu>
 
-            <EditorContent editor={editor} />
+            {minimal ? (
+                <EditorContent editor={editor} />
+            ) : (
+                <div className="relative rounded-sm bg-muted/30 p-2">
+                    <div className="max-w-[850px] mx-auto">
+                        <EditorContent editor={editor} />
+                    </div>
+                    <span className="pointer-events-none select-none absolute bottom-3 right-3 text-[10px] text-muted-foreground/50">
+                        largura da página: 850px
+                    </span>
+                </div>
+            )}
         </div>
     )
 }

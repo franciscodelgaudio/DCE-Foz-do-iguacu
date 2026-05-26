@@ -216,15 +216,32 @@ export const ImageUpload = Node.create({
                 key,
                 props: {
                     handlePaste(view, event) {
-                        // conteúdo copiado de dentro do editor — deixa o ProseMirror tratar
+                        // conteúdo copiado de dentro do editor na mesma aba — deixa o ProseMirror tratar via pm-slice
                         if (event.clipboardData?.getData('application/x-pm-slice')) return false
 
                         const files = Array.from(event.clipboardData?.files ?? [])
-                        if (!files.some(isImageFile)) return false
 
-                        const pos = view.state.selection.from
-                        void insertImagesAt(pos, files)
-                        return true
+                        // arquivos de imagem colados do sistema operacional
+                        if (files.some(isImageFile)) {
+                            const pos = view.state.selection.from
+                            void insertImagesAt(pos, files)
+                            return true
+                        }
+
+                        // HTML do clipboard gerado por este editor (outra aba/página sem pm-slice)
+                        const html = event.clipboardData?.getData('text/html') ?? ''
+                        if (html) {
+                            const imageNodes = parseEditorImagesFromHtml(html)
+                            if (imageNodes.length > 0) {
+                                const editor = getEditor()
+                                const pos = view.state.selection.from
+                                const content = imageNodes.flatMap(n => [n, { type: 'paragraph' }])
+                                editor.chain().focus().insertContentAt(pos, content).run()
+                                return true
+                            }
+                        }
+
+                        return false
                     },
 
                     handleDrop(view, event) {
@@ -241,3 +258,61 @@ export const ImageUpload = Node.create({
         ]
     },
 })
+
+// Extrai nós de imagem do HTML gerado por este editor (marcadores data-align / data-image-crop)
+function parseEditorImagesFromHtml(html) {
+    const tmp = document.createElement('div')
+    tmp.innerHTML = html
+    const nodes = []
+
+    const walk = (el) => {
+        if (el.nodeType !== 1) return
+
+        if (el.matches('div[data-image-crop]')) {
+            const img = el.querySelector('img')
+            const src = img?.getAttribute('src')
+            if (src) {
+                nodes.push({
+                    type: 'image',
+                    attrs: {
+                        src,
+                        alt: img.getAttribute('alt') || '',
+                        align: el.getAttribute('data-align') || 'center',
+                        width: parseInt(el.getAttribute('data-width') || '300') || 300,
+                        height: el.getAttribute('data-height') ? parseInt(el.getAttribute('data-height')) || null : null,
+                        cropEnabled: true,
+                        cropWidth: parseInt(el.getAttribute('data-crop-width') || '0') || null,
+                        cropHeight: parseInt(el.getAttribute('data-crop-height') || '0') || null,
+                        cropX: parseInt(el.getAttribute('data-crop-x') || '0') || 0,
+                        cropY: parseInt(el.getAttribute('data-crop-y') || '0') || 0,
+                    },
+                })
+            }
+            return
+        }
+
+        // img com data-align é marcador exclusivo deste editor
+        if (el.matches('img[src][data-align]')) {
+            const src = el.getAttribute('src')
+            if (src) {
+                nodes.push({
+                    type: 'image',
+                    attrs: {
+                        src,
+                        alt: el.getAttribute('alt') || '',
+                        align: el.getAttribute('data-align') || 'center',
+                        width: parseInt(el.getAttribute('data-width') || el.getAttribute('width') || '300') || 300,
+                        height: el.getAttribute('data-height') ? parseInt(el.getAttribute('data-height')) || null : null,
+                        cropEnabled: false,
+                    },
+                })
+            }
+            return
+        }
+
+        Array.from(el.children).forEach(walk)
+    }
+
+    Array.from(tmp.children).forEach(walk)
+    return nodes
+}

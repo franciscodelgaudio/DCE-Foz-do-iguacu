@@ -88,6 +88,42 @@ export function Display({ newItem }) {
     return (
         <div className="p-4">
             <form className="space-y-4">
+                <div className="-mx-4 px-4 py-3 bg-background border-b flex flex-wrap items-center justify-between gap-3">
+                    <div className="flex items-center gap-2">
+                        <Button
+                            type="button"
+                            disabled={isSubmitting}
+                            onClick={handleSubmit((values) => onSubmit(values, 'published'))}
+                        >
+                            {isSubmitting ? 'Salvando…' : 'Editar e publicar'}
+                        </Button>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            disabled={isSubmitting}
+                            onClick={handleSubmit((values) => onSubmit(values, 'draft'))}
+                        >
+                            {isSubmitting ? 'Salvando…' : 'Salvar rascunho'}
+                        </Button>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2">
+                        <span className="text-sm text-muted-foreground whitespace-nowrap">Agendar publicação:</span>
+                        <Input
+                            type="datetime-local"
+                            className="w-auto"
+                            {...register('scheduledAt')}
+                        />
+                        <Button
+                            type="button"
+                            variant="outline"
+                            disabled={isSubmitting || !scheduledAt}
+                            onClick={handleSubmit((values) => onSubmit(values, 'scheduled'))}
+                        >
+                            {isSubmitting ? 'Salvando…' : 'Agendar'}
+                        </Button>
+                    </div>
+                </div>
+
                 <Input
                     placeholder="Título"
                     className="border p-2 w-full rounded-md"
@@ -128,42 +164,6 @@ export function Display({ newItem }) {
                         </div>
                     )}
                 />
-
-                <div className="flex flex-wrap gap-2">
-                    <Button
-                        type="button"
-                        disabled={isSubmitting}
-                        onClick={handleSubmit((values) => onSubmit(values, 'published'))}
-                    >
-                        {isSubmitting ? 'Salvando…' : 'Editar e publicar'}
-                    </Button>
-
-                    <Button
-                        type="button"
-                        variant="outline"
-                        disabled={isSubmitting}
-                        onClick={handleSubmit((values) => onSubmit(values, 'draft'))}
-                    >
-                        {isSubmitting ? 'Salvando…' : 'Editar e salvar rascunho'}
-                    </Button>
-                </div>
-
-                <div className="flex flex-wrap items-center gap-2 pt-2 border-t">
-                    <span className="text-sm text-muted-foreground">Agendar publicação:</span>
-                    <Input
-                        type="datetime-local"
-                        className="w-auto"
-                        {...register('scheduledAt')}
-                    />
-                    <Button
-                        type="button"
-                        variant="outline"
-                        disabled={isSubmitting || !scheduledAt}
-                        onClick={handleSubmit((values) => onSubmit(values, 'scheduled'))}
-                    >
-                        {isSubmitting ? 'Salvando…' : 'Agendar'}
-                    </Button>
-                </div>
             </form>
         </div>
     )
