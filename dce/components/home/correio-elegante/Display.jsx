@@ -63,7 +63,7 @@ function CopyButton({ text }) {
     return (
         <button
             onClick={handleCopy}
-            className="ml-2 inline-flex items-center gap-1 rounded-md bg-[#2708ab]/10 px-2 py-1 text-xs font-semibold text-[#2708ab] transition hover:bg-[#2708ab]/20"
+            className="ml-2 inline-flex items-center gap-1 rounded-md bg-[#be123c]/10 px-2 py-1 text-xs font-semibold text-[#be123c] transition hover:bg-[#be123c]/20"
         >
             {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
             {copied ? "Copiado!" : "Copiar"}
@@ -75,27 +75,27 @@ function SuccessScreen({ orderNumber, price, packageLabel, pixKey, pixKeyType, p
     return (
         <div className="mx-auto max-w-lg px-4 py-12 text-center">
             <div className="mb-6 flex justify-center">
-                <div className="flex h-20 w-20 items-center justify-center rounded-full bg-[#fdf25a] text-[#2708ab] shadow-[4px_4px_0_#2708ab]">
+                <div className="flex h-20 w-20 items-center justify-center rounded-full bg-[#fdf25a] text-[#be123c] shadow-[4px_4px_0_#be123c]">
                     <Heart className="h-10 w-10 fill-current" />
                 </div>
             </div>
-            <h2 className="mb-2 text-2xl font-extrabold text-[#2708ab]">Pedido recebido!</h2>
+            <h2 className="mb-2 text-2xl font-extrabold text-[#be123c]">Pedido recebido!</h2>
             <p className="mb-8 text-slate-600">
                 Agora é só pagar via PIX para confirmar. Assim que identificarmos seu pagamento, entraremos em contato.
             </p>
 
-            <div className="mb-6 rounded-2xl border-2 border-[#2708ab]/20 bg-[#f3f1ff] p-6 text-left">
+            <div className="mb-6 rounded-2xl border-2 border-[#be123c]/20 bg-rose-50 p-6 text-left">
                 <div className="mb-4 flex items-center justify-between">
                     <span className="text-sm font-semibold text-slate-500">Nº do pedido</span>
-                    <span className="rounded-full bg-[#2708ab] px-3 py-0.5 text-sm font-bold text-white">{orderNumber}</span>
+                    <span className="rounded-full bg-[#be123c] px-3 py-0.5 text-sm font-bold text-white">{orderNumber}</span>
                 </div>
                 <div className="mb-4 flex items-center justify-between">
                     <span className="text-sm font-semibold text-slate-500">Pacote</span>
                     <span className="text-sm font-bold text-slate-800">{packageLabel}</span>
                 </div>
-                <div className="flex items-center justify-between border-t border-[#2708ab]/20 pt-4">
+                <div className="flex items-center justify-between border-t border-[#be123c]/20 pt-4">
                     <span className="text-sm font-semibold text-slate-500">Valor</span>
-                    <span className="text-xl font-extrabold text-[#2708ab]">R$ {price},00</span>
+                    <span className="text-xl font-extrabold text-[#be123c]">R$ {price},00</span>
                 </div>
             </div>
 
@@ -135,7 +135,7 @@ function SuccessScreen({ orderNumber, price, packageLabel, pixKey, pixKeyType, p
 
             <button
                 onClick={onReset}
-                className="mt-8 inline-flex items-center gap-2 text-sm font-semibold text-[#2708ab] underline-offset-2 hover:underline"
+                className="mt-8 inline-flex items-center gap-2 text-sm font-semibold text-[#be123c] underline-offset-2 hover:underline"
             >
                 <ArrowLeft className="h-4 w-4" />
                 Fazer outro pedido
@@ -189,7 +189,7 @@ export function Display({ isEnabled, pixKey, pixKeyType, pixRecipientName }) {
 
     if (successData) {
         return (
-            <div className="min-h-screen bg-[#f9f8ff]">
+            <div className="min-h-screen bg-rose-50">
                 <SuccessScreen
                     orderNumber={successData.orderNumber}
                     price={successData.price}
@@ -204,9 +204,9 @@ export function Display({ isEnabled, pixKey, pixKeyType, pixRecipientName }) {
     }
 
     return (
-        <div className="min-h-screen bg-[#f9f8ff]">
+        <div className="min-h-screen bg-rose-50">
             {/* Hero */}
-            <div className="bg-[#2708ab] px-6 py-14 text-center text-white">
+            <div className="bg-gradient-to-br from-[#9f1239] to-[#e11d48] px-6 py-14 text-center text-white">
                 <div className="mx-auto max-w-2xl">
                     <div className="mb-4 flex justify-center gap-2 text-4xl">
                         <span>💌</span>
@@ -216,7 +216,7 @@ export function Display({ isEnabled, pixKey, pixKeyType, pixRecipientName }) {
                     <h1 className="mb-3 text-4xl font-extrabold tracking-tight md:text-5xl">
                         Correio Elegante
                     </h1>
-                    <p className="mb-6 text-blue-200 text-lg">
+                    <p className="mb-6 text-rose-200 text-lg">
                         Surpreenda alguém especial com uma mensagem e um presentinho carinhoso do DCE!
                     </p>
                     <div className="inline-flex flex-wrap items-center justify-center gap-4 rounded-2xl bg-white/10 px-6 py-3 text-sm font-semibold backdrop-blur-sm">
@@ -230,7 +230,7 @@ export function Display({ isEnabled, pixKey, pixKeyType, pixRecipientName }) {
             <div className="mx-auto max-w-3xl px-4 py-12">
                 {/* Packages */}
                 <div className="mb-10">
-                    <h2 className="mb-1 text-xl font-extrabold text-[#2708ab]">Escolha o pacote</h2>
+                    <h2 className="mb-1 text-xl font-extrabold text-[#be123c]">Escolha o pacote</h2>
                     <p className="mb-5 text-sm text-slate-500">Selecione o que você quer enviar</p>
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                         {PKG_DISPLAY.map((pkg) => (
@@ -241,12 +241,12 @@ export function Display({ isEnabled, pixKey, pixKeyType, pixRecipientName }) {
                                 className={[
                                     "relative flex flex-col rounded-2xl border-2 p-5 text-left transition-all duration-200",
                                     watchedPackage === pkg.key
-                                        ? "border-[#2708ab] bg-white shadow-[4px_4px_0_#2708ab]"
-                                        : "border-slate-200 bg-white hover:border-[#2708ab]/40 hover:shadow-md",
+                                        ? "border-[#be123c] bg-white shadow-[4px_4px_0_#be123c]"
+                                        : "border-slate-200 bg-white hover:border-[#be123c]/40 hover:shadow-md",
                                 ].join(" ")}
                             >
                                 {pkg.highlight && (
-                                    <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 rounded-full bg-[#fdf25a] px-3 py-0.5 text-xs font-bold text-[#2708ab] shadow-[2px_2px_0_#2708ab]">
+                                    <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 rounded-full bg-[#fdf25a] px-3 py-0.5 text-xs font-bold text-[#9f1239] shadow-[2px_2px_0_#9f1239]">
                                         Mais completo
                                     </span>
                                 )}
@@ -257,9 +257,9 @@ export function Display({ isEnabled, pixKey, pixKeyType, pixRecipientName }) {
                                         <li key={item}>• {item}</li>
                                     ))}
                                 </ul>
-                                <p className="mt-auto text-xl font-extrabold text-[#2708ab]">{pkg.price}</p>
+                                <p className="mt-auto text-xl font-extrabold text-[#be123c]">{pkg.price}</p>
                                 {watchedPackage === pkg.key && (
-                                    <div className="absolute right-3 top-3 flex h-5 w-5 items-center justify-center rounded-full bg-[#2708ab]">
+                                    <div className="absolute right-3 top-3 flex h-5 w-5 items-center justify-center rounded-full bg-[#be123c]">
                                         <Check className="h-3 w-3 text-white" />
                                     </div>
                                 )}
@@ -277,14 +277,14 @@ export function Display({ isEnabled, pixKey, pixKeyType, pixRecipientName }) {
                     <div className="rounded-2xl border border-slate-200 bg-white p-6">
                         <div className="mb-4 flex items-center justify-between gap-2">
                             <div className="flex items-center gap-2">
-                                <User className="h-4 w-4 text-[#2708ab]" />
+                                <User className="h-4 w-4 text-[#be123c]" />
                                 <h3 className="font-bold text-slate-800">Quem está enviando</h3>
                             </div>
                             <label className="flex cursor-pointer items-center gap-2 rounded-lg bg-slate-50 px-3 py-1.5 text-sm select-none hover:bg-slate-100">
                                 <input
                                     type="checkbox"
                                     {...register("isAnonymous")}
-                                    className="size-4 accent-[#2708ab]"
+                                    className="size-4 accent-[#be123c]"
                                 />
                                 <span className="flex items-center gap-1.5 font-medium text-slate-700">
                                     <EyeOff className="h-3.5 w-3.5 text-slate-400" />
@@ -336,7 +336,7 @@ export function Display({ isEnabled, pixKey, pixKeyType, pixRecipientName }) {
                     {/* Recipient */}
                     <div className="rounded-2xl border border-slate-200 bg-white p-6">
                         <div className="mb-4 flex items-center gap-2">
-                            <Heart className="h-4 w-4 text-[#2708ab]" />
+                            <Heart className="h-4 w-4 text-[#be123c]" />
                             <h3 className="font-bold text-slate-800">Quem vai receber</h3>
                         </div>
                         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -370,7 +370,7 @@ export function Display({ isEnabled, pixKey, pixKeyType, pixRecipientName }) {
                     {/* Card message */}
                     <div className="rounded-2xl border border-slate-200 bg-white p-6">
                         <div className="mb-4 flex items-center gap-2">
-                            <MessageSquare className="h-4 w-4 text-[#2708ab]" />
+                            <MessageSquare className="h-4 w-4 text-[#be123c]" />
                             <h3 className="font-bold text-slate-800">Mensagem do cartão</h3>
                         </div>
                         <div className="space-y-1.5">
@@ -398,8 +398,8 @@ export function Display({ isEnabled, pixKey, pixKeyType, pixRecipientName }) {
                     )}
 
                     {!isEnabled ? (
-                        <div className="rounded-2xl border-2 border-dashed border-[#2708ab]/30 bg-[#f3f1ff] p-6 text-center">
-                            <p className="font-semibold text-[#2708ab]">Os pedidos ainda não estão abertos.</p>
+                        <div className="rounded-2xl border-2 border-dashed border-[#be123c]/30 bg-rose-50 p-6 text-center">
+                            <p className="font-semibold text-[#be123c]">Os pedidos ainda não estão abertos.</p>
                             <p className="mt-1 text-sm text-slate-500">
                                 Volte entre os dias <strong>8 e 12 de junho</strong> para fazer seu pedido!
                             </p>
@@ -408,7 +408,7 @@ export function Display({ isEnabled, pixKey, pixKeyType, pixRecipientName }) {
                         <Button
                             type="submit"
                             disabled={isSubmitting}
-                            className="h-12 w-full rounded-xl bg-[#2708ab] text-base font-bold hover:bg-[#2708ab]/90"
+                            className="h-12 w-full rounded-xl bg-[#be123c] text-base font-bold hover:bg-[#9f1239]"
                         >
                             {isSubmitting ? "Enviando pedido..." : "Fazer pedido 💌"}
                         </Button>
@@ -418,7 +418,7 @@ export function Display({ isEnabled, pixKey, pixKeyType, pixRecipientName }) {
                 <div className="mt-8 text-center">
                     <Link
                         href="/home"
-                        className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-[#2708ab]"
+                        className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-[#be123c]"
                     >
                         <ArrowLeft className="h-3.5 w-3.5" />
                         Voltar para a home

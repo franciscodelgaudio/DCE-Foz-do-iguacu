@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git -C \"C:\\\\Users\\\\Admin\\\\OneDrive - UNIOESTE\\\\DCE\\\\SITE\" pull)",
+      "Bash(git -C \"C:\\\\Users\\\\Admin\\\\OneDrive - UNIOESTE\\\\DCE\\\\SITE\" pull --no-rebase)",
+      "Bash(git -C \"C:\\\\Users\\\\Admin\\\\OneDrive - UNIOESTE\\\\DCE\\\\SITE\" stash list)",
+      "Bash(git -C \"C:\\\\Users\\\\Admin\\\\OneDrive - UNIOESTE\\\\DCE\\\\SITE\" ls-files .claude/settings.json)",
+      "Bash(xargs -I {} basename {})",
+      "Bash(Copy-Item \"C:\\\\Users\\\\Admin\\\\OneDrive - UNIOESTE\\\\DCE\\\\SITE\\\\.claude\\\\settings.json\" \"C:\\\\Users\\\\Admin\\\\OneDrive - UNIOESTE\\\\DCE\\\\SITE\\\\.claude\\\\settings.json.bak\" -ErrorAction SilentlyContinue)",
+      "Bash(Remove-Item \"C:\\\\Users\\\\Admin\\\\OneDrive - UNIOESTE\\\\DCE\\\\SITE\\\\.claude\\\\settings.json\" -Force)",
+      "Bash(xargs grep -l \"namorado\\\\|valentin\\\\|especial\\\\|campanha\\\\|campaign\\\\|correio\")"
+    ],
+    "additionalDirectories": [
+      "C:\\Users\\Admin\\OneDrive - UNIOESTE\\DCE\\SITE\\.claude"
+    ]
+  }
+}

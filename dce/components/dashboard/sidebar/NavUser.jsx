@@ -2,6 +2,7 @@
 
 import {
     ChevronsUpDown,
+    Globe,
     LogOut,
 } from "lucide-react"
 
@@ -81,6 +82,12 @@ export function NavUser({ user }) {
                             </div>
                         </DropdownMenuLabel>
                         <DropdownMenuSeparator />
+                            <DropdownMenuItem asChild>
+                                <Link href="/home">
+                                    <Globe />
+                                    Ver Site
+                                </Link>
+                            </DropdownMenuItem>
                             <DropdownMenuItem onClick={async () => {await logout();}}>
                                 <LogOut />
                                 Log out
