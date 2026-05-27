@@ -15,7 +15,7 @@ const partners = [
 
 function LogoPlaceholder({ name }) {
     return (
-        <div className="flex h-20 w-40 items-center justify-center rounded-xl border-2 border-dashed border-[#2708ab]/30 bg-[#f3f1ff]">
+        <div className="flex h-28 w-56 items-center justify-center rounded-xl border-2 border-dashed border-[#2708ab]/30 bg-[#f3f1ff]">
             <span className="text-sm font-bold text-[#2708ab]/40">{name}</span>
         </div>
     )
@@ -42,7 +42,7 @@ export function PartnersSession() {
                     {partners.map((partner) => (
                         <div key={partner.name} className="flex flex-col items-center gap-2">
                             {partner.logo ? (
-                                <div className="relative h-16 w-32">
+                                <div className="relative h-28 w-56">
                                     <Image
                                         src={partner.logo}
                                         alt={`Logo ${partner.name}`}
