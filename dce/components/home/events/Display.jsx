@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useEffect, useState } from "react"
-import { Search, CalendarDays, MapPin } from "lucide-react"
+import { Search, CalendarDays, MapPin, UserPlus } from "lucide-react"
 import { Card, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
@@ -139,6 +139,8 @@ function EventGrid({ events, muted = false }) {
             {events.map((ev) => {
                 const img = getFirstImageSrc(ev.contentHtml)
                 const dateStr = formatEventDate(ev.eventDate, ev.eventEndDate)
+                const reg = ev.registration
+                const canRegister = !muted && reg?.enabled && (!reg.deadline || new Date(reg.deadline) > new Date())
 
                 return (
                     <Card
@@ -195,6 +197,18 @@ function EventGrid({ events, muted = false }) {
                                 ) : null}
                             </CardHeader>
                         </Link>
+
+                        {canRegister && (
+                            <div className="px-4 pb-4">
+                                <Link
+                                    href={`/home/events/${ev._id}/inscricao`}
+                                    className="flex w-full items-center justify-center gap-1.5 rounded-lg border-2 border-[#2708ab] bg-[#fdf25a] px-3 py-2 text-sm font-bold text-[#2708ab] shadow-[2px_2px_0_#2708ab] transition-transform hover:-translate-y-0.5"
+                                >
+                                    <UserPlus className="h-4 w-4" />
+                                    Inscrever-se
+                                </Link>
+                            </div>
+                        )}
                     </Card>
                 )
             })}

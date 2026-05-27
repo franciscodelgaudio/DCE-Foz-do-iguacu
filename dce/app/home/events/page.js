@@ -24,6 +24,7 @@ export default async function Page({ searchParams }) {
                 eventEndDate: 1,
                 contentHtml: 1,
                 publishedAt: 1,
+                registration: 1,
             },
         },
         { $sort: { eventDate: 1 } },

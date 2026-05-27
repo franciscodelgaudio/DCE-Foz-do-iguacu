@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { CalendarDays, MapPin, ArrowRight, Clock } from "lucide-react"
+import { CalendarDays, MapPin, ArrowRight, Clock, UserPlus } from "lucide-react"
 
 function formatDay(date) {
     return new Intl.DateTimeFormat("pt-BR", { day: "2-digit" }).format(date)
@@ -60,47 +60,72 @@ export function EventsSession({ events = [] }) {
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                         {events.map((event) => {
                             const date = event.eventDate ? new Date(event.eventDate) : null
+                            const reg = event.registration
+                            const canRegister = reg?.enabled && (!reg.deadline || new Date(reg.deadline) > new Date())
                             return (
-                                <Link
+                                <div
                                     key={String(event._id)}
-                                    href={`/home/events/${event._id}`}
                                     className="group flex flex-col rounded-xl border-2 border-transparent bg-[#f3f1ff] p-5 transition-all duration-200 hover:border-[#2708ab] hover:bg-white hover:shadow-[4px_4px_0_#2708ab]"
                                 >
-                                    {date && (
-                                        <div className="mb-4 flex items-center gap-3">
-                                            <div className="flex min-w-[44px] flex-col items-center justify-center rounded-lg bg-[#2708ab] px-2.5 py-1.5">
-                                                <span className="text-xl font-extrabold leading-none text-[#fdf25a]">
-                                                    {formatDay(date)}
-                                                </span>
-                                                <span className="text-[9px] font-bold uppercase tracking-widest text-blue-200">
-                                                    {formatMonth(date)}
-                                                </span>
+                                    <Link href={`/home/events/${event._id}`} className="flex flex-col">
+                                        {date && (
+                                            <div className="mb-4 flex items-center gap-3">
+                                                <div className="flex min-w-[44px] flex-col items-center justify-center rounded-lg bg-[#2708ab] px-2.5 py-1.5">
+                                                    <span className="text-xl font-extrabold leading-none text-[#fdf25a]">
+                                                        {formatDay(date)}
+                                                    </span>
+                                                    <span className="text-[9px] font-bold uppercase tracking-widest text-blue-200">
+                                                        {formatMonth(date)}
+                                                    </span>
+                                                </div>
+                                                <div className="flex items-center gap-1 text-xs text-slate-500">
+                                                    <Clock className="h-3 w-3" />
+                                                    {formatTime(date)}
+                                                </div>
                                             </div>
-                                            <div className="flex items-center gap-1 text-xs text-slate-500">
-                                                <Clock className="h-3 w-3" />
-                                                {formatTime(date)}
+                                        )}
+
+                                        <h3 className="line-clamp-2 font-bold leading-snug text-slate-800 transition-colors group-hover:text-[#2708ab]">
+                                            {event.title}
+                                        </h3>
+
+                                        {event.location && (
+                                            <div className="mt-2 flex items-center gap-1 text-xs text-slate-500">
+                                                <MapPin className="h-3 w-3 shrink-0" />
+                                                <span className="line-clamp-1">{event.location}</span>
                                             </div>
-                                        </div>
-                                    )}
+                                        )}
+                                    </Link>
 
-                                    <h3 className="line-clamp-2 font-bold leading-snug text-slate-800 transition-colors group-hover:text-[#2708ab]">
-                                        {event.title}
-                                    </h3>
-
-                                    {event.location && (
-                                        <div className="mt-2 flex items-center gap-1 text-xs text-slate-500">
-                                            <MapPin className="h-3 w-3 shrink-0" />
-                                            <span className="line-clamp-1">{event.location}</span>
-                                        </div>
-                                    )}
-
-                                    <div className="mt-auto pt-4">
-                                        <span className="inline-flex items-center gap-1 text-xs font-bold text-[#2708ab] underline-offset-2 group-hover:underline">
-                                            Ver evento
-                                            <ArrowRight className="h-3 w-3" />
-                                        </span>
+                                    <div className="mt-auto pt-4 flex items-center gap-2">
+                                        {canRegister ? (
+                                            <>
+                                                <Link
+                                                    href={`/home/events/${event._id}/inscricao`}
+                                                    className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg border-2 border-[#2708ab] bg-[#fdf25a] px-3 py-1.5 text-xs font-bold text-[#2708ab] shadow-[2px_2px_0_#2708ab] transition-transform hover:-translate-y-0.5"
+                                                >
+                                                    <UserPlus className="h-3.5 w-3.5" />
+                                                    Inscrever-se
+                                                </Link>
+                                                <Link
+                                                    href={`/home/events/${event._id}`}
+                                                    className="inline-flex items-center gap-1 text-xs font-bold text-[#2708ab] underline-offset-2 hover:underline"
+                                                >
+                                                    Ver
+                                                    <ArrowRight className="h-3 w-3" />
+                                                </Link>
+                                            </>
+                                        ) : (
+                                            <Link
+                                                href={`/home/events/${event._id}`}
+                                                className="inline-flex items-center gap-1 text-xs font-bold text-[#2708ab] underline-offset-2 group-hover:underline"
+                                            >
+                                                Ver evento
+                                                <ArrowRight className="h-3 w-3" />
+                                            </Link>
+                                        )}
                                     </div>
-                                </Link>
+                                </div>
                             )
                         })}
                     </div>

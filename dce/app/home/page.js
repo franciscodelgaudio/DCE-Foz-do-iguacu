@@ -40,6 +40,7 @@ export default async function Page() {
                     location: 1,
                     eventDate: 1,
                     eventEndDate: 1,
+                    registration: 1,
                 },
             },
         ]),
