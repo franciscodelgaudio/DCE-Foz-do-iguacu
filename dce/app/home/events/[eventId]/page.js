@@ -17,7 +17,7 @@ export default async function Page({ params }) {
     const { eventId } = await params
 
     const event = await Event.findOne({ _id: eventId, status: "published" })
-        .select("title excerpt location eventDate eventEndDate contentHtml author publishedAt")
+        .select("title excerpt location eventDate eventEndDate contentHtml author publishedAt registration")
         .lean()
 
     if (!event) notFound()
