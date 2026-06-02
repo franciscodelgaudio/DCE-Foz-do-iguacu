@@ -46,6 +46,39 @@ const formSchema = z.object({
     isAnonymous: z.boolean().optional(),
 })
 
+function crc16(str) {
+    let crc = 0xFFFF
+    for (let i = 0; i < str.length; i++) {
+        crc ^= str.charCodeAt(i) << 8
+        for (let j = 0; j < 8; j++) {
+            crc = (crc & 0x8000) ? ((crc << 1) ^ 0x1021) & 0xFFFF : (crc << 1) & 0xFFFF
+        }
+    }
+    return crc.toString(16).toUpperCase().padStart(4, '0')
+}
+
+function emv(id, value) {
+    const v = String(value)
+    return `${id}${String(v.length).padStart(2, '0')}${v}`
+}
+
+function buildPixPayload(pixKey, merchantName, amountNum, txid) {
+    const mai = emv('26', emv('00', 'BR.GOV.BCB.PIX') + emv('01', pixKey))
+    const name = merchantName.normalize('NFD').replace(/[̀-ͯ]/g, '').substring(0, 25).toUpperCase()
+    const txidClean = txid.replace(/[^a-zA-Z0-9]/g, '').substring(0, 25) || 'CORREIOELEGANTE'
+    const body = [
+        '000201', '010211', mai,
+        '52040000', '5303986',
+        emv('54', amountNum.toFixed(2)),
+        '5802BR',
+        emv('59', name),
+        emv('60', 'CASCAVEL'),
+        emv('62', emv('05', txidClean)),
+        '6304',
+    ].join('')
+    return body + crc16(body)
+}
+
 function CopyButton({ text }) {
     const [copied, setCopied] = useState(false)
     function handleCopy() {
@@ -65,6 +98,11 @@ function CopyButton({ text }) {
 }
 
 function SuccessScreen({ orderNumber, price, packageLabel, pixKey, pixKeyType, pixRecipientName, onReset }) {
+    const amountNum = parseFloat(price.replace(',', '.'))
+    const pixPayload = pixKey
+        ? buildPixPayload(pixKey, pixRecipientName || 'DCE UNIOESTE', amountNum, orderNumber)
+        : null
+
     return (
         <div className="mx-auto max-w-lg px-4 py-12 text-center">
             <div className="mb-6 flex justify-center">
@@ -95,10 +133,26 @@ function SuccessScreen({ orderNumber, price, packageLabel, pixKey, pixKeyType, p
             {pixKey ? (
                 <div className="mb-6 rounded-2xl border-2 border-emerald-200 bg-emerald-50 p-6 text-left">
                     <p className="mb-3 text-sm font-bold text-emerald-800">Pague via PIX</p>
-                    <div className="mb-2 flex items-center justify-between rounded-lg bg-white px-3 py-2 text-sm">
+                    {pixPayload && (
+                        <div className="mb-4">
+                            <div className="mb-1.5 flex items-center gap-2">
+                                <span className="text-xs font-semibold text-emerald-700">PIX Copia e Cola</span>
+                                <span className="rounded-full bg-emerald-200 px-2 py-0.5 text-[10px] font-bold text-emerald-900">
+                                    Valor travado · R$ {price}
+                                </span>
+                            </div>
+                            <div className="flex items-center justify-between rounded-lg border border-emerald-200 bg-white px-3 py-2">
+                                <span className="mr-2 truncate font-mono text-xs text-slate-500">
+                                    {pixPayload.substring(0, 32)}…
+                                </span>
+                                <CopyButton text={pixPayload} />
+                            </div>
+                        </div>
+                    )}
+                    <div className="mb-2 flex items-center justify-between rounded-lg bg-white/60 px-3 py-2 text-sm">
                         <div>
                             <span className="block text-xs text-slate-400">{PIX_TYPE_LABEL[pixKeyType] ?? "Chave PIX"}</span>
-                            <span className="font-mono font-semibold text-slate-800">{pixKey}</span>
+                            <span className="font-mono font-semibold text-slate-700">{pixKey}</span>
                         </div>
                         <CopyButton text={pixKey} />
                     </div>
@@ -108,7 +162,7 @@ function SuccessScreen({ orderNumber, price, packageLabel, pixKey, pixKeyType, p
                         </p>
                     )}
                     <p className="mt-3 text-xs text-emerald-700">
-                        Envie exatamente <strong>R$ {price}</strong> e informe o nº do pedido <strong>{orderNumber}</strong> no campo de descrição.
+                        Informe o nº do pedido <strong>{orderNumber}</strong> no campo de descrição do PIX.
                     </p>
                 </div>
             ) : (
