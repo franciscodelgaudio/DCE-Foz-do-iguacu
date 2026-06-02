@@ -35,7 +35,8 @@ const formSchema = z.object({
     senderName: z.string().min(2, "Mínimo 2 caracteres"),
     senderContact: z.string().min(1, "Campo obrigatório"),
     recipientName: z.string().min(2, "Mínimo 2 caracteres"),
-    recipientClass: z.string().min(1, "Campo obrigatório"),
+    recipientCourse: z.string().min(1, "Campo obrigatório"),
+    recipientYear: z.string().min(1, "Campo obrigatório"),
     package: z.enum(["cartinha", "bombom_cartinha"]),
     cardMessage: z.string().max(500).optional(),
     isAnonymous: z.boolean().optional(),
@@ -130,6 +131,10 @@ function SuccessScreen({ orderNumber, price, packageLabel, pixKey, pixKeyType, p
                     <p className="mb-4 text-sm font-bold text-emerald-800">Pague via PIX</p>
                     {pixPayload && (
                         <>
+                            <div className="mb-3 flex items-center justify-between rounded-lg bg-emerald-100 px-3 py-2 text-xs">
+                                <span className="font-semibold text-emerald-700">Nº do pedido no PIX</span>
+                                <span className="font-mono font-bold text-emerald-900">{orderNumber}</span>
+                            </div>
                             <div className="mb-4 flex justify-center">
                                 <div className="rounded-2xl border-2 border-emerald-200 bg-white p-3 shadow-sm">
                                     <QRCodeSVG value={pixPayload} size={180} />
@@ -150,7 +155,7 @@ function SuccessScreen({ orderNumber, price, packageLabel, pixKey, pixKeyType, p
                         </>
                     )}
                     <p className="mt-3 text-xs text-emerald-700 text-center">
-                        Escaneie o QR code ou use o Copia e Cola acima.
+                        Escaneie o QR code ou use o Copia e Cola acima. O nº do pedido está identificado no PIX.
                     </p>
                 </div>
             ) : (
@@ -381,15 +386,27 @@ export function Display({ isEnabled, pixKey, pixKeyType, pixRecipientName }) {
                                 )}
                             </div>
                             <div className="space-y-1.5">
-                                <Label htmlFor="recipientClass">Turma / Curso</Label>
+                                <Label htmlFor="recipientCourse">Curso</Label>
                                 <Input
-                                    id="recipientClass"
-                                    placeholder="Ex: Direito 3º ano, Info 2022"
-                                    {...register("recipientClass")}
-                                    className={errors.recipientClass ? "border-red-400" : ""}
+                                    id="recipientCourse"
+                                    placeholder="Ex: Direito, Informática, Medicina"
+                                    {...register("recipientCourse")}
+                                    className={errors.recipientCourse ? "border-red-400" : ""}
                                 />
-                                {errors.recipientClass && (
-                                    <p className="text-xs text-red-500">{errors.recipientClass.message}</p>
+                                {errors.recipientCourse && (
+                                    <p className="text-xs text-red-500">{errors.recipientCourse.message}</p>
+                                )}
+                            </div>
+                            <div className="space-y-1.5">
+                                <Label htmlFor="recipientYear">Ano na faculdade</Label>
+                                <Input
+                                    id="recipientYear"
+                                    placeholder="Ex: 1º ano, 3º ano, formando"
+                                    {...register("recipientYear")}
+                                    className={errors.recipientYear ? "border-red-400" : ""}
+                                />
+                                {errors.recipientYear && (
+                                    <p className="text-xs text-red-500">{errors.recipientYear.message}</p>
                                 )}
                             </div>
                         </div>

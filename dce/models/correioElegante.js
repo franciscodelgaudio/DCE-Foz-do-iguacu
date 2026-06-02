@@ -7,7 +7,8 @@ const CorreioEleganteSchema = new Schema(
         senderName: { type: String, required: true, trim: true },
         senderContact: { type: String, trim: true },
         recipientName: { type: String, required: true, trim: true },
-        recipientClass: { type: String, trim: true },
+        recipientCourse: { type: String, trim: true },
+        recipientYear: { type: String, trim: true },
         package: {
             type: String,
             enum: ["cartinha", "bombom_cartinha"],

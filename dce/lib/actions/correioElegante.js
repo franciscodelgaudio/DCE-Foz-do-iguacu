@@ -15,7 +15,8 @@ const orderSchema = z.object({
     senderName: z.string().min(2, "Nome do remetente é obrigatório"),
     senderContact: z.string().min(1, "Contato é obrigatório"),
     recipientName: z.string().min(2, "Nome do destinatário é obrigatório"),
-    recipientClass: z.string().min(1, "Turma/Curso é obrigatório"),
+    recipientCourse: z.string().min(1, "Curso é obrigatório"),
+    recipientYear: z.string().min(1, "Ano na faculdade é obrigatório"),
     package: z.enum(["cartinha", "bombom_cartinha"]),
     cardMessage: z.string().max(500).optional(),
     isAnonymous: z.boolean().optional(),
@@ -31,7 +32,7 @@ export async function createOrder(form) {
         }
     }
 
-    const { senderName, senderContact, recipientName, recipientClass, package: pkg, cardMessage, isAnonymous } =
+    const { senderName, senderContact, recipientName, recipientCourse, recipientYear, package: pkg, cardMessage, isAnonymous } =
         parsed.data
     const pkgInfo = PACKAGES[pkg]
 
@@ -44,7 +45,8 @@ export async function createOrder(form) {
             senderName,
             senderContact,
             recipientName,
-            recipientClass,
+            recipientCourse,
+            recipientYear,
             package: pkg,
             price: pkgInfo.price,
             cardMessage: cardMessage ?? "",

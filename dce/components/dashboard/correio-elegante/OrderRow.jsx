@@ -1,10 +1,12 @@
 'use client'
 
+import { useState } from "react"
 import { TableCell, TableRow } from "@/components/ui/table"
-import { CheckCircle, XCircle, Trash2 } from "lucide-react"
+import { CheckCircle, XCircle, Trash2, Eye } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog"
+import { OrderDetailSheet } from "./OrderDetailSheet"
 import { useRouter } from "next/navigation"
 import { formatDate } from "@/components/ui/formatDate"
 import { toast } from "sonner"
@@ -29,6 +31,7 @@ const STATUS_LABELS = {
 
 export function OrderRow({ order, selected, onSelectChange }) {
     const router = useRouter()
+    const [sheetOpen, setSheetOpen] = useState(false)
 
     async function handleConfirm() {
         const result = await confirmPayment(order._id)
@@ -61,93 +64,104 @@ export function OrderRow({ order, selected, onSelectChange }) {
     }
 
     return (
-        <TableRow>
-            <TableCell onClick={(e) => e.stopPropagation()} className="cursor-default">
-                <input
-                    type="checkbox"
-                    aria-label={`Selecionar pedido ${order.orderNumber}`}
-                    checked={selected}
-                    onChange={() => onSelectChange?.(order._id)}
-                    className="size-4 accent-[#2708ab]"
-                />
-            </TableCell>
-            <TableCell className="font-mono text-xs font-semibold text-[#2708ab]">
-                {order.orderNumber}
-            </TableCell>
-            <TableCell>
-                <span className="text-xs">{PACKAGE_LABELS[order.package] ?? order.package}</span>
-                <span className="ml-1.5 text-xs font-bold text-slate-500">R$ {Number(order.price).toFixed(2).replace('.', ',')}</span>
-            </TableCell>
-            <TableCell>
-                <div className="flex items-center gap-1.5">
-                    <p className="text-sm font-medium">{order.senderName}</p>
-                    {order.isAnonymous && (
-                        <span className="rounded-full bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold text-slate-500">
-                            anônimo
-                        </span>
+        <>
+            <OrderDetailSheet order={order} open={sheetOpen} onOpenChange={setSheetOpen} />
+            <TableRow>
+                <TableCell onClick={(e) => e.stopPropagation()} className="cursor-default">
+                    <input
+                        type="checkbox"
+                        aria-label={`Selecionar pedido ${order.orderNumber}`}
+                        checked={selected}
+                        onChange={() => onSelectChange?.(order._id)}
+                        className="size-4 accent-[#2708ab]"
+                    />
+                </TableCell>
+                <TableCell className="font-mono text-xs font-semibold text-[#2708ab]">
+                    {order.orderNumber}
+                </TableCell>
+                <TableCell>
+                    <span className="text-xs">{PACKAGE_LABELS[order.package] ?? order.package}</span>
+                    <span className="ml-1.5 text-xs font-bold text-slate-500">R$ {Number(order.price).toFixed(2).replace('.', ',')}</span>
+                </TableCell>
+                <TableCell>
+                    <div className="flex items-center gap-1.5">
+                        <p className="text-sm font-medium">{order.senderName}</p>
+                        {order.isAnonymous && (
+                            <span className="rounded-full bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold text-slate-500">
+                                anônimo
+                            </span>
+                        )}
+                    </div>
+                    {order.senderContact && (
+                        <p className="text-xs text-slate-400">{order.senderContact}</p>
                     )}
-                </div>
-                {order.senderContact && (
-                    <p className="text-xs text-slate-400">{order.senderContact}</p>
-                )}
-            </TableCell>
-            <TableCell>
-                <p className="text-sm font-medium">{order.recipientName}</p>
-                {order.recipientClass && (
-                    <p className="text-xs text-slate-400">{order.recipientClass}</p>
-                )}
-            </TableCell>
-            <TableCell className="max-w-[180px]">
-                <p className="line-clamp-2 text-xs text-slate-500">
-                    {order.cardMessage || <span className="italic text-slate-300">Sem mensagem</span>}
-                </p>
-            </TableCell>
-            <TableCell className="text-xs text-slate-500">
-                {formatDate(order.createdAt) ?? "—"}
-            </TableCell>
-            <TableCell>
-                <Badge
-                    variant="outline"
-                    className={STATUS_STYLES[order.paymentStatus] ?? ""}
-                >
-                    {STATUS_LABELS[order.paymentStatus] ?? order.paymentStatus}
-                </Badge>
-            </TableCell>
-            <TableCell onClick={(e) => e.stopPropagation()} className="cursor-default">
-                <div className="flex items-center gap-1">
-                    {order.paymentStatus === "pending" && (
-                        <ConfirmDialog
-                            title="Confirmar pagamento"
-                            subtitle={`Confirmar pagamento do pedido ${order.orderNumber} de ${order.senderName}?`}
-                            onClick={handleConfirm}
-                        >
-                            <Button variant="ghost" size="icon" className="text-emerald-600 hover:text-emerald-700">
-                                <CheckCircle className="size-4" />
-                            </Button>
-                        </ConfirmDialog>
+                </TableCell>
+                <TableCell>
+                    <p className="text-sm font-medium">{order.recipientName}</p>
+                    {order.recipientCourse && (
+                        <p className="text-xs text-slate-400">{order.recipientCourse}{order.recipientYear ? ` · ${order.recipientYear}` : ""}</p>
                     )}
-                    {order.paymentStatus === "pending" && (
-                        <ConfirmDialog
-                            title="Cancelar pedido"
-                            subtitle={`Cancelar o pedido ${order.orderNumber} de ${order.senderName}?`}
-                            onClick={handleCancel}
-                        >
-                            <Button variant="ghost" size="icon" className="text-amber-600 hover:text-amber-700">
-                                <XCircle className="size-4" />
-                            </Button>
-                        </ConfirmDialog>
-                    )}
-                    <ConfirmDialog
-                        title="Excluir pedido"
-                        subtitle={`Excluir permanentemente o pedido ${order.orderNumber}? Esta ação não pode ser desfeita.`}
-                        onClick={handleDelete}
+                </TableCell>
+                <TableCell className="max-w-[180px]">
+                    <p className="line-clamp-2 text-xs text-slate-500">
+                        {order.cardMessage || <span className="italic text-slate-300">Sem mensagem</span>}
+                    </p>
+                </TableCell>
+                <TableCell className="text-xs text-slate-500">
+                    {formatDate(order.createdAt) ?? "—"}
+                </TableCell>
+                <TableCell>
+                    <Badge
+                        variant="outline"
+                        className={STATUS_STYLES[order.paymentStatus] ?? ""}
                     >
-                        <Button variant="ghost" size="icon">
-                            <Trash2 className="size-4" />
+                        {STATUS_LABELS[order.paymentStatus] ?? order.paymentStatus}
+                    </Badge>
+                </TableCell>
+                <TableCell onClick={(e) => e.stopPropagation()} className="cursor-default">
+                    <div className="flex items-center gap-1">
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-[#2708ab]/60 hover:text-[#2708ab]"
+                            onClick={() => setSheetOpen(true)}
+                        >
+                            <Eye className="size-4" />
                         </Button>
-                    </ConfirmDialog>
-                </div>
-            </TableCell>
-        </TableRow>
+                        {order.paymentStatus === "pending" && (
+                            <ConfirmDialog
+                                title="Confirmar pagamento"
+                                subtitle={`Confirmar pagamento do pedido ${order.orderNumber} de ${order.senderName}?`}
+                                onClick={handleConfirm}
+                            >
+                                <Button variant="ghost" size="icon" className="text-emerald-600 hover:text-emerald-700">
+                                    <CheckCircle className="size-4" />
+                                </Button>
+                            </ConfirmDialog>
+                        )}
+                        {order.paymentStatus === "pending" && (
+                            <ConfirmDialog
+                                title="Cancelar pedido"
+                                subtitle={`Cancelar o pedido ${order.orderNumber} de ${order.senderName}?`}
+                                onClick={handleCancel}
+                            >
+                                <Button variant="ghost" size="icon" className="text-amber-600 hover:text-amber-700">
+                                    <XCircle className="size-4" />
+                                </Button>
+                            </ConfirmDialog>
+                        )}
+                        <ConfirmDialog
+                            title="Excluir pedido"
+                            subtitle={`Excluir permanentemente o pedido ${order.orderNumber}? Esta ação não pode ser desfeita.`}
+                            onClick={handleDelete}
+                        >
+                            <Button variant="ghost" size="icon">
+                                <Trash2 className="size-4" />
+                            </Button>
+                        </ConfirmDialog>
+                    </div>
+                </TableCell>
+            </TableRow>
+        </>
     )
 }
