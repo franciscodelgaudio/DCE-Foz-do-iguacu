@@ -11,7 +11,7 @@ const CorreioEleganteSchema = new Schema(
         recipientYear: { type: String, trim: true },
         package: {
             type: String,
-            enum: ["cartinha", "bombom_cartinha", "rosa", "bombom", "bombom_rosa", "bombom_cartinha_rosa"],
+            enum: ["cartinha", "bombom_cartinha", "rosa", "bombom_cartinha_rosa"],
             required: true,
         },
         price: { type: Number, required: true },

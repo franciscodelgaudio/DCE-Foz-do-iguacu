@@ -15,24 +15,10 @@ import { QRCodeSVG } from "qrcode.react"
 const PKG_DISPLAY = [
     {
         key: "rosa",
-        emoji: "🌹",
-        label: "Só a Rosa",
-        price: "R$ 3,50",
-        items: ["1 rosa"],
-    },
-    {
-        key: "bombom",
-        emoji: "🍬",
-        label: "Bombom",
-        price: "R$ 2,50",
-        items: ["1 bombom"],
-    },
-    {
-        key: "bombom_rosa",
-        emoji: "🍬🌹",
-        label: "Bombom + Rosa",
+        emoji: "🌹💌",
+        label: "Rosa + Cartinha",
         price: "R$ 6,00",
-        items: ["1 bombom", "1 rosa"],
+        items: ["1 rosa", "1 cartinha personalizada"],
     },
     {
         key: "bombom_cartinha",
@@ -58,7 +44,7 @@ const formSchema = z.object({
     recipientName: z.string().min(2, "Mínimo 2 caracteres"),
     recipientCourse: z.string().min(1, "Campo obrigatório"),
     recipientYear: z.string().min(1, "Campo obrigatório"),
-    package: z.enum(["cartinha", "rosa", "bombom", "bombom_rosa", "bombom_cartinha", "bombom_cartinha_rosa"]),
+    package: z.enum(["cartinha", "rosa", "bombom_cartinha", "bombom_cartinha_rosa"]),
     cardMessage: z.string().max(500).optional(),
     isAnonymous: z.boolean().optional(),
 })

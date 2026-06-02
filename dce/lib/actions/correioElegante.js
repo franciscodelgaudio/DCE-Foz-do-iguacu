@@ -8,9 +8,7 @@ import { CorreioElegante } from "@/models/correioElegante"
 
 const PACKAGES = {
     cartinha: { label: "Cartinha", price: 2.5 },
-    rosa: { label: "Só a Rosa", price: 3.5 },
-    bombom: { label: "Bombom", price: 2.5 },
-    bombom_rosa: { label: "Bombom + Rosa", price: 6.0 },
+    rosa: { label: "Rosa + Cartinha", price: 6.0 },
     bombom_cartinha: { label: "Bombom + Cartinha", price: 5.0 },
     bombom_cartinha_rosa: { label: "Bombom + Cartinha + Rosa", price: 8.5 },
 }
@@ -21,7 +19,7 @@ const orderSchema = z.object({
     recipientName: z.string().min(2, "Nome do destinatário é obrigatório"),
     recipientCourse: z.string().min(1, "Curso é obrigatório"),
     recipientYear: z.string().min(1, "Ano na faculdade é obrigatório"),
-    package: z.enum(["cartinha", "rosa", "bombom", "bombom_rosa", "bombom_cartinha", "bombom_cartinha_rosa"]),
+    package: z.enum(["cartinha", "rosa", "bombom_cartinha", "bombom_cartinha_rosa"]),
     cardMessage: z.string().max(500).optional(),
     isAnonymous: z.boolean().optional(),
 })
