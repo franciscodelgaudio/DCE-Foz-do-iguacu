@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Heart, Copy, Check, ArrowLeft, User, MessageSquare, Phone, EyeOff } from "lucide-react"
 import Link from "next/link"
+import { QRCodeSVG } from "qrcode.react"
 
 const PKG_DISPLAY = [
     {
@@ -29,12 +30,6 @@ const PKG_DISPLAY = [
     },
 ]
 
-const PIX_TYPE_LABEL = {
-    email: "E-mail",
-    phone: "Telefone",
-    cpf: "CPF/CNPJ",
-    random: "Chave Aleatória",
-}
 
 const formSchema = z.object({
     senderName: z.string().min(2, "Mínimo 2 caracteres"),
@@ -132,10 +127,15 @@ function SuccessScreen({ orderNumber, price, packageLabel, pixKey, pixKeyType, p
 
             {pixKey ? (
                 <div className="mb-6 rounded-2xl border-2 border-emerald-200 bg-emerald-50 p-6 text-left">
-                    <p className="mb-3 text-sm font-bold text-emerald-800">Pague via PIX</p>
+                    <p className="mb-4 text-sm font-bold text-emerald-800">Pague via PIX</p>
                     {pixPayload && (
-                        <div className="mb-4">
-                            <div className="mb-1.5 flex items-center gap-2">
+                        <>
+                            <div className="mb-4 flex justify-center">
+                                <div className="rounded-2xl border-2 border-emerald-200 bg-white p-3 shadow-sm">
+                                    <QRCodeSVG value={pixPayload} size={180} />
+                                </div>
+                            </div>
+                            <div className="mb-1.5 flex items-center justify-center gap-2">
                                 <span className="text-xs font-semibold text-emerald-700">PIX Copia e Cola</span>
                                 <span className="rounded-full bg-emerald-200 px-2 py-0.5 text-[10px] font-bold text-emerald-900">
                                     Valor travado · R$ {price}
@@ -147,22 +147,10 @@ function SuccessScreen({ orderNumber, price, packageLabel, pixKey, pixKeyType, p
                                 </span>
                                 <CopyButton text={pixPayload} />
                             </div>
-                        </div>
+                        </>
                     )}
-                    <div className="mb-2 flex items-center justify-between rounded-lg bg-white/60 px-3 py-2 text-sm">
-                        <div>
-                            <span className="block text-xs text-slate-400">{PIX_TYPE_LABEL[pixKeyType] ?? "Chave PIX"}</span>
-                            <span className="font-mono font-semibold text-slate-700">{pixKey}</span>
-                        </div>
-                        <CopyButton text={pixKey} />
-                    </div>
-                    {pixRecipientName && (
-                        <p className="text-xs text-emerald-700">
-                            Favorecido: <strong>{pixRecipientName}</strong>
-                        </p>
-                    )}
-                    <p className="mt-3 text-xs text-emerald-700">
-                        Informe o nº do pedido <strong>{orderNumber}</strong> no campo de descrição do PIX.
+                    <p className="mt-3 text-xs text-emerald-700 text-center">
+                        Escaneie o QR code ou use o Copia e Cola acima.
                     </p>
                 </div>
             ) : (
