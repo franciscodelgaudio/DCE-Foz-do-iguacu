@@ -7,9 +7,8 @@ import { redirect } from "next/navigation"
 import { CorreioElegante } from "@/models/correioElegante"
 
 const PACKAGES = {
-    bombom_cartao: { label: "Bombom e cartão", price: 3 },
-    rosa_cartao: { label: "Rosa e cartão", price: 8 },
-    rosa_bombom_cartao: { label: "Rosa, bombom e cartão", price: 10 },
+    cartinha: { label: "Cartinha", price: 2.5 },
+    bombom_cartinha: { label: "Bombom + Cartinha", price: 5 },
 }
 
 const orderSchema = z.object({
@@ -17,7 +16,7 @@ const orderSchema = z.object({
     senderContact: z.string().min(1, "Contato é obrigatório"),
     recipientName: z.string().min(2, "Nome do destinatário é obrigatório"),
     recipientClass: z.string().min(1, "Turma/Curso é obrigatório"),
-    package: z.enum(["bombom_cartao", "rosa_cartao", "rosa_bombom_cartao"]),
+    package: z.enum(["cartinha", "bombom_cartinha"]),
     cardMessage: z.string().max(500).optional(),
     isAnonymous: z.boolean().optional(),
 })
@@ -52,11 +51,12 @@ export async function createOrder(form) {
             isAnonymous: isAnonymous ?? false,
             paymentStatus: "pending",
         })
+        const priceFormatted = Number(pkgInfo.price).toFixed(2).replace('.', ',')
         return {
             success: true,
             message: "Pedido realizado com sucesso!",
             orderNumber,
-            price: pkgInfo.price,
+            price: priceFormatted,
             packageLabel: pkgInfo.label,
         }
     } catch (err) {

@@ -18,7 +18,7 @@ export function CorreioEleganteBanner() {
                                 </span>
                             </div>
                             <p className="text-sm text-rose-200">
-                                Entrega 12/jun · A partir de R$ 3,00
+                                Entrega 12/jun · A partir de R$ 2,50
                             </p>
                         </div>
                     </div>

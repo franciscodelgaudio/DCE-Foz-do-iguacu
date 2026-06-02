@@ -13,25 +13,18 @@ import Link from "next/link"
 
 const PKG_DISPLAY = [
     {
-        key: "bombom_cartao",
-        emoji: "🍬",
-        label: "Bombom e Cartão",
-        price: "R$ 3,00",
-        items: ["1 bombom", "1 cartão personalizado"],
+        key: "cartinha",
+        emoji: "💌",
+        label: "Cartinha",
+        price: "R$ 2,50",
+        items: ["1 cartinha personalizada"],
     },
     {
-        key: "rosa_cartao",
-        emoji: "🌹",
-        label: "Rosa e Cartão",
-        price: "R$ 8,00",
-        items: ["1 rosa vermelha", "1 cartão personalizado"],
-    },
-    {
-        key: "rosa_bombom_cartao",
-        emoji: "🌹🍬",
-        label: "Rosa, Bombom e Cartão",
-        price: "R$ 10,00",
-        items: ["1 rosa vermelha", "1 bombom", "1 cartão personalizado"],
+        key: "bombom_cartinha",
+        emoji: "🍬💌",
+        label: "Bombom + Cartinha",
+        price: "R$ 5,00",
+        items: ["1 bombom", "1 cartinha personalizada"],
         highlight: true,
     },
 ]
@@ -48,7 +41,7 @@ const formSchema = z.object({
     senderContact: z.string().min(1, "Campo obrigatório"),
     recipientName: z.string().min(2, "Mínimo 2 caracteres"),
     recipientClass: z.string().min(1, "Campo obrigatório"),
-    package: z.enum(["bombom_cartao", "rosa_cartao", "rosa_bombom_cartao"]),
+    package: z.enum(["cartinha", "bombom_cartinha"]),
     cardMessage: z.string().max(500).optional(),
     isAnonymous: z.boolean().optional(),
 })
@@ -95,7 +88,7 @@ function SuccessScreen({ orderNumber, price, packageLabel, pixKey, pixKeyType, p
                 </div>
                 <div className="flex items-center justify-between border-t border-[#be123c]/20 pt-4">
                     <span className="text-sm font-semibold text-slate-500">Valor</span>
-                    <span className="text-xl font-extrabold text-[#be123c]">R$ {price},00</span>
+                    <span className="text-xl font-extrabold text-[#be123c]">R$ {price}</span>
                 </div>
             </div>
 
@@ -115,7 +108,7 @@ function SuccessScreen({ orderNumber, price, packageLabel, pixKey, pixKeyType, p
                         </p>
                     )}
                     <p className="mt-3 text-xs text-emerald-700">
-                        Envie exatamente <strong>R$ {price},00</strong> e informe o nº do pedido <strong>{orderNumber}</strong> no campo de descrição.
+                        Envie exatamente <strong>R$ {price}</strong> e informe o nº do pedido <strong>{orderNumber}</strong> no campo de descrição.
                     </p>
                 </div>
             ) : (

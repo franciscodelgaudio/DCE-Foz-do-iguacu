@@ -11,9 +11,8 @@ import { toast } from "sonner"
 import { confirmPayment, cancelOrder, deleteOrder } from "@/lib/actions/correioElegante"
 
 const PACKAGE_LABELS = {
-    bombom_cartao: "Bombom + Cartão",
-    rosa_cartao: "Rosa + Cartão",
-    rosa_bombom_cartao: "Rosa + Bombom + Cartão",
+    cartinha: "Cartinha",
+    bombom_cartinha: "Bombom + Cartinha",
 }
 
 const STATUS_STYLES = {
@@ -77,7 +76,7 @@ export function OrderRow({ order, selected, onSelectChange }) {
             </TableCell>
             <TableCell>
                 <span className="text-xs">{PACKAGE_LABELS[order.package] ?? order.package}</span>
-                <span className="ml-1.5 text-xs font-bold text-slate-500">R$ {order.price},00</span>
+                <span className="ml-1.5 text-xs font-bold text-slate-500">R$ {Number(order.price).toFixed(2).replace('.', ',')}</span>
             </TableCell>
             <TableCell>
                 <div className="flex items-center gap-1.5">
