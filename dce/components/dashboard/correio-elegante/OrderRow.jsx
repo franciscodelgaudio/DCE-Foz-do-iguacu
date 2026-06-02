@@ -14,7 +14,11 @@ import { confirmPayment, cancelOrder, deleteOrder } from "@/lib/actions/correioE
 
 const PACKAGE_LABELS = {
     cartinha: "Cartinha",
+    rosa: "Só a Rosa",
+    bombom: "Bombom",
+    bombom_rosa: "Bombom + Rosa",
     bombom_cartinha: "Bombom + Cartinha",
+    bombom_cartinha_rosa: "Bombom + Cartinha + Rosa",
 }
 
 const STATUS_STYLES = {

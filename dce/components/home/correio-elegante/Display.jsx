@@ -14,11 +14,25 @@ import { QRCodeSVG } from "qrcode.react"
 
 const PKG_DISPLAY = [
     {
-        key: "cartinha",
-        emoji: "💌",
-        label: "Cartinha",
+        key: "rosa",
+        emoji: "🌹",
+        label: "Só a Rosa",
+        price: "R$ 3,50",
+        items: ["1 rosa"],
+    },
+    {
+        key: "bombom",
+        emoji: "🍬",
+        label: "Bombom",
         price: "R$ 2,50",
-        items: ["1 cartinha personalizada"],
+        items: ["1 bombom"],
+    },
+    {
+        key: "bombom_rosa",
+        emoji: "🍬🌹",
+        label: "Bombom + Rosa",
+        price: "R$ 6,00",
+        items: ["1 bombom", "1 rosa"],
     },
     {
         key: "bombom_cartinha",
@@ -26,6 +40,13 @@ const PKG_DISPLAY = [
         label: "Bombom + Cartinha",
         price: "R$ 5,00",
         items: ["1 bombom", "1 cartinha personalizada"],
+    },
+    {
+        key: "bombom_cartinha_rosa",
+        emoji: "🍬💌🌹",
+        label: "Bombom + Cartinha + Rosa",
+        price: "R$ 8,50",
+        items: ["1 bombom", "1 cartinha personalizada", "1 rosa"],
         highlight: true,
     },
 ]
@@ -37,7 +58,7 @@ const formSchema = z.object({
     recipientName: z.string().min(2, "Mínimo 2 caracteres"),
     recipientCourse: z.string().min(1, "Campo obrigatório"),
     recipientYear: z.string().min(1, "Campo obrigatório"),
-    package: z.enum(["cartinha", "bombom_cartinha"]),
+    package: z.enum(["cartinha", "rosa", "bombom", "bombom_rosa", "bombom_cartinha", "bombom_cartinha_rosa"]),
     cardMessage: z.string().max(500).optional(),
     isAnonymous: z.boolean().optional(),
 })
@@ -265,7 +286,7 @@ export function Display({ isEnabled, pixKey, pixKeyType, pixRecipientName }) {
                 <div className="mb-10">
                     <h2 className="mb-1 text-xl font-extrabold text-[#be123c]">Escolha o pacote</h2>
                     <p className="mb-5 text-sm text-slate-500">Selecione o que você quer enviar</p>
-                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                         {PKG_DISPLAY.map((pkg) => (
                             <button
                                 key={pkg.key}
