@@ -14,6 +14,13 @@ import { QRCodeSVG } from "qrcode.react"
 
 const PKG_DISPLAY = [
     {
+        key: "cartinha",
+        emoji: "💌",
+        label: "Cartinha",
+        price: "R$ 2,50",
+        items: ["1 cartinha personalizada"],
+    },
+    {
         key: "rosa",
         emoji: "🌹💌",
         label: "Rosa + Cartinha",
