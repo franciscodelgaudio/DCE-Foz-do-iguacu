@@ -5,6 +5,7 @@ import mongoose from "mongoose"
 import { auth } from "@/auth"
 import { redirect } from "next/navigation"
 import { CorreioElegante } from "@/models/correioElegante"
+import { formatBrazilWhatsapp, normalizeBrazilWhatsapp } from "@/lib/whatsapp"
 
 const PACKAGES = {
     cartinha: { label: "Cartinha", price: 2.5 },
@@ -15,7 +16,10 @@ const PACKAGES = {
 
 const orderSchema = z.object({
     senderName: z.string().min(2, "Nome do remetente é obrigatório"),
-    senderContact: z.string().min(1, "Contato é obrigatório"),
+    senderContact: z
+        .string()
+        .refine((value) => Boolean(normalizeBrazilWhatsapp(value)), "WhatsApp inválido")
+        .transform(formatBrazilWhatsapp),
     recipientName: z.string().min(2, "Nome do destinatário é obrigatório"),
     recipientCourse: z.string().min(1, "Curso é obrigatório"),
     recipientYear: z.string().min(1, "Ano na faculdade é obrigatório"),
@@ -55,7 +59,7 @@ export async function createOrder(form) {
             isAnonymous: isAnonymous ?? false,
             paymentStatus: "pending",
         })
-        const priceFormatted = Number(pkgInfo.price).toFixed(2).replace('.', ',')
+        const priceFormatted = Number(pkgInfo.price).toFixed(2).replace(".", ",")
         return {
             success: true,
             message: "Pedido realizado com sucesso!",

@@ -47,7 +47,9 @@ const PKG_DISPLAY = [
 
 const formSchema = z.object({
     senderName: z.string().min(2, "Mínimo 2 caracteres"),
-    senderContact: z.string().min(1, "Campo obrigatório"),
+    senderContact: z
+        .string()
+        .refine((value) => onlyDigits(value).length === 11, "Informe um WhatsApp válido com DDD"),
     recipientName: z.string().min(2, "Mínimo 2 caracteres"),
     recipientCourse: z.string().min(1, "Campo obrigatório"),
     recipientYear: z.string().min(1, "Campo obrigatório"),
@@ -55,6 +57,21 @@ const formSchema = z.object({
     cardMessage: z.string().max(500).optional(),
     isAnonymous: z.boolean().optional(),
 })
+
+function onlyDigits(value) {
+    return String(value ?? "").replace(/\D/g, "")
+}
+
+function formatBrazilWhatsapp(value) {
+    const digits = onlyDigits(value).slice(0, 11)
+    const ddd = digits.slice(0, 2)
+    const firstPart = digits.slice(2, 7)
+    const secondPart = digits.slice(7, 11)
+
+    if (digits.length <= 2) return ddd ? `(${ddd}` : ""
+    if (digits.length <= 7) return `(${ddd}) ${firstPart}`
+    return `(${ddd}) ${firstPart} - ${secondPart}`
+}
 
 function crc16(str) {
     let crc = 0xFFFF
@@ -216,6 +233,8 @@ export function Display({ isEnabled, pixKey, pixKeyType, pixRecipientName }) {
     })
 
     const watchedPackage = watch("package")
+    const senderContactValue = watch("senderContact") ?? ""
+    const senderContactField = register("senderContact")
 
     function handleSelectPackage(key) {
         setSelectedPackage(key)
@@ -364,13 +383,25 @@ export function Display({ isEnabled, pixKey, pixKeyType, pixRecipientName }) {
                                 <Label htmlFor="senderContact">
                                     <span className="flex items-center gap-1">
                                         <Phone className="h-3 w-3" />
-                                        WhatsApp ou e-mail
+                                        WhatsApp
                                     </span>
                                 </Label>
                                 <Input
                                     id="senderContact"
-                                    placeholder="Para confirmar o pagamento"
-                                    {...register("senderContact")}
+                                    name={senderContactField.name}
+                                    ref={senderContactField.ref}
+                                    onBlur={senderContactField.onBlur}
+                                    value={senderContactValue}
+                                    inputMode="numeric"
+                                    autoComplete="tel"
+                                    maxLength={18}
+                                    placeholder="(45) 99999 - 9999"
+                                    onChange={(event) =>
+                                        setValue("senderContact", formatBrazilWhatsapp(event.target.value), {
+                                            shouldDirty: true,
+                                            shouldValidate: true,
+                                        })
+                                    }
                                     className={errors.senderContact ? "border-red-400" : ""}
                                 />
                                 {errors.senderContact && (
