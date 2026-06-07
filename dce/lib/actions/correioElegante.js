@@ -20,6 +20,7 @@ const orderSchema = z.object({
         .string()
         .refine((value) => Boolean(normalizeBrazilWhatsapp(value)), "WhatsApp inválido")
         .transform(formatBrazilWhatsapp),
+    senderEmail: z.string().email("Email inválido").optional().or(z.literal("")),
     recipientName: z.string().min(2, "Nome do destinatário é obrigatório"),
     recipientCourse: z.string().min(1, "Curso é obrigatório"),
     recipientYear: z.string().min(1, "Ano na faculdade é obrigatório"),
@@ -38,18 +39,24 @@ export async function createOrder(form) {
         }
     }
 
-    const { senderName, senderContact, recipientName, recipientCourse, recipientYear, package: pkg, cardMessage, isAnonymous } =
+    const { senderName, senderContact, senderEmail, recipientName, recipientCourse, recipientYear, package: pkg, cardMessage, isAnonymous } =
         parsed.data
     const pkgInfo = PACKAGES[pkg]
 
-    const count = await CorreioElegante.countDocuments()
-    const orderNumber = `CE-${String(count + 1).padStart(3, "0")}`
+    const lastOrder = await CorreioElegante.findOne({ orderNumber: /^CE-\d+$/ }).sort({ orderNumber: -1 }).lean()
+    let nextNum = 1
+    if (lastOrder?.orderNumber) {
+        const m = lastOrder.orderNumber.match(/CE-(\d+)/)
+        if (m) nextNum = parseInt(m[1], 10) + 1
+    }
+    const orderNumber = `CE-${String(nextNum).padStart(3, "0")}`
 
     try {
         await CorreioElegante.create({
             orderNumber,
             senderName,
             senderContact,
+            senderEmail: senderEmail || undefined,
             recipientName,
             recipientCourse,
             recipientYear,
@@ -82,10 +89,68 @@ export async function confirmPayment(orderId) {
     }
 
     try {
-        await CorreioElegante.findByIdAndUpdate(orderId, {
-            paymentStatus: "confirmed",
-            confirmedAt: new Date(),
-        })
+        const order = await CorreioElegante.findByIdAndUpdate(
+            orderId,
+            { paymentStatus: "confirmed", confirmedAt: new Date() },
+            { new: true }
+        )
+
+        if (order?.senderEmail && process.env.RESEND_API_KEY) {
+            try {
+                const { Resend } = await import("resend")
+                const resend = new Resend(process.env.RESEND_API_KEY)
+                const pkgLabels = {
+                    cartinha: "Cartinha",
+                    rosa: "Rosa + Cartinha",
+                    bombom_cartinha: "Bombom + Cartinha",
+                    bombom_cartinha_rosa: "Bombom + Cartinha + Rosa",
+                }
+                const pkgLabel = pkgLabels[order.package] ?? order.package
+                const priceFormatted = Number(order.price).toFixed(2).replace(".", ",")
+                await resend.emails.send({
+                    from: "DCE UNIOESTE <no-reply@dceunioestefoz.com.br>",
+                    to: order.senderEmail,
+                    subject: `Pagamento confirmado! Pedido ${order.orderNumber} — Correio Elegante DCE`,
+                    html: `
+                        <div style="font-family:sans-serif;max-width:520px;margin:0 auto;padding:32px 16px;background:#fff;">
+                            <div style="text-align:center;margin-bottom:24px;">
+                                <div style="display:inline-flex;align-items:center;justify-content:center;width:64px;height:64px;background:#fdf25a;border-radius:50%;border:3px solid #be123c;">
+                                    <span style="font-size:32px;">&#10084;</span>
+                                </div>
+                            </div>
+                            <h1 style="color:#be123c;text-align:center;font-size:22px;margin-bottom:4px;">Pagamento confirmado!</h1>
+                            <p style="text-align:center;color:#64748b;margin-bottom:24px;">Seu Correio Elegante está garantido. 💌</p>
+                            <div style="background:#fff1f2;border:1px solid #fecdd3;border-radius:12px;padding:20px;margin-bottom:20px;">
+                                <div style="display:flex;justify-content:space-between;margin-bottom:10px;">
+                                    <span style="color:#64748b;font-size:14px;">Nº do pedido</span>
+                                    <strong style="color:#be123c;">${order.orderNumber}</strong>
+                                </div>
+                                <div style="display:flex;justify-content:space-between;margin-bottom:10px;">
+                                    <span style="color:#64748b;font-size:14px;">Pacote</span>
+                                    <strong style="color:#1e293b;">${pkgLabel}</strong>
+                                </div>
+                                <div style="display:flex;justify-content:space-between;border-top:1px solid #fecdd3;padding-top:12px;margin-top:4px;">
+                                    <span style="color:#64748b;font-size:14px;">Valor pago</span>
+                                    <strong style="color:#be123c;font-size:18px;">R$ ${priceFormatted}</strong>
+                                </div>
+                            </div>
+                            <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:16px;margin-bottom:24px;text-align:center;">
+                                <p style="color:#166534;font-size:14px;margin:0;">
+                                    🎁 Entrega: <strong>12 de junho</strong> — o DCE levará seu presente até o destinatário!
+                                </p>
+                            </div>
+                            <p style="color:#94a3b8;font-size:12px;text-align:center;">
+                                DCE UNIOESTE — Campus Foz do Iguaçu<br>
+                                Este é um email automático, não responda.
+                            </p>
+                        </div>
+                    `,
+                })
+            } catch (emailErr) {
+                console.error("Erro ao enviar email de confirmação:", emailErr)
+            }
+        }
+
         return { success: true, message: "Pagamento confirmado!" }
     } catch {
         return { success: false, message: "Erro ao confirmar pagamento." }
@@ -124,6 +189,44 @@ export async function deleteOrder(orderId) {
     }
 }
 
+export async function markOrderReady(orderId) {
+    const session = await auth()
+    if (!session) redirect("/login")
+
+    if (!mongoose.Types.ObjectId.isValid(orderId)) {
+        return { success: false, message: "ID inválido." }
+    }
+
+    try {
+        await CorreioElegante.findByIdAndUpdate(orderId, {
+            deliveryStatus: "ready",
+            readyAt: new Date(),
+        })
+        return { success: true, message: "Pedido marcado como pronto!" }
+    } catch {
+        return { success: false, message: "Erro ao atualizar o pedido." }
+    }
+}
+
+export async function markOrderDelivered(orderId) {
+    const session = await auth()
+    if (!session) redirect("/login")
+
+    if (!mongoose.Types.ObjectId.isValid(orderId)) {
+        return { success: false, message: "ID inválido." }
+    }
+
+    try {
+        await CorreioElegante.findByIdAndUpdate(orderId, {
+            deliveryStatus: "delivered",
+            deliveredAt: new Date(),
+        })
+        return { success: true, message: "Pedido marcado como entregue!" }
+    } catch {
+        return { success: false, message: "Erro ao marcar como entregue." }
+    }
+}
+
 export async function deleteManyOrders(orderIds) {
     const session = await auth()
     if (!session) redirect("/login")
@@ -147,5 +250,49 @@ export async function deleteManyOrders(orderIds) {
         }
     } catch {
         return { success: false, message: "Erro ao deletar os pedidos." }
+    }
+}
+
+export async function fixDuplicateOrderNumbers() {
+    const session = await auth()
+    if (!session) redirect("/login")
+
+    // Load all orders oldest-first so the earliest occurrence keeps its number
+    const orders = await CorreioElegante.find().sort({ createdAt: 1 }).lean()
+
+    // Find current max numeric value across all orders
+    let maxNum = 0
+    for (const order of orders) {
+        const m = order.orderNumber?.match(/^CE-(\d+)$/)
+        if (m) {
+            const n = parseInt(m[1], 10)
+            if (n > maxNum) maxNum = n
+        }
+    }
+
+    // Collect IDs of duplicate order numbers (keep first occurrence)
+    const seen = new Set()
+    const toFix = []
+    for (const order of orders) {
+        if (seen.has(order.orderNumber)) {
+            toFix.push(order._id)
+        } else {
+            seen.add(order.orderNumber)
+        }
+    }
+
+    // Renumber duplicates sequentially above the current max — no deletes
+    for (const id of toFix) {
+        maxNum++
+        const newOrderNumber = `CE-${String(maxNum).padStart(3, "0")}`
+        await CorreioElegante.findByIdAndUpdate(id, { orderNumber: newOrderNumber })
+    }
+
+    return {
+        success: true,
+        fixed: toFix.length,
+        message: toFix.length > 0
+            ? `${toFix.length} pedido(s) renumerado(s) com sucesso.`
+            : "Nenhum número duplicado encontrado.",
     }
 }

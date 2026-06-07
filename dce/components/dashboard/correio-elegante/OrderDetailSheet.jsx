@@ -1,12 +1,13 @@
 'use client'
 
+import { useState } from "react"
 import {
     Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription,
 } from "@/components/ui/sheet"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { formatDate } from "@/components/ui/formatDate"
-import { MessageSquare, User, Heart, Package, CreditCard, Phone } from "lucide-react"
+import { MessageSquare, User, Heart, Package, CreditCard, Phone, Eye, EyeOff } from "lucide-react"
 
 const STATUS_STYLES = {
     pending: "bg-amber-100 text-amber-700 border-amber-200",
@@ -22,7 +23,9 @@ const STATUS_LABELS = {
 
 const PACKAGE_LABELS = {
     cartinha: "Cartinha",
+    rosa: "Rosa + Cartinha",
     bombom_cartinha: "Bombom + Cartinha",
+    bombom_cartinha_rosa: "Bombom + Cartinha + Rosa",
 }
 
 function DetailSection({ icon: Icon, title, children }) {
@@ -37,11 +40,13 @@ function DetailSection({ icon: Icon, title, children }) {
     )
 }
 
-export function OrderDetailSheet({ order, open, onOpenChange }) {
+export function OrderDetailSheet({ order, open, onOpenChange, isAdmin }) {
+    const [senderRevealed, setSenderRevealed] = useState(false)
+
     if (!order) return null
 
     return (
-        <Sheet open={open} onOpenChange={onOpenChange}>
+        <Sheet open={open} onOpenChange={(v) => { if (!v) setSenderRevealed(false); onOpenChange(v) }}>
             <SheetContent className="flex w-full flex-col overflow-y-auto sm:max-w-md">
                 <SheetHeader className="pb-0">
                     <div className="flex items-center gap-2">
@@ -73,17 +78,32 @@ export function OrderDetailSheet({ order, open, onOpenChange }) {
                     <DetailSection icon={User} title="Remetente">
                         <div className="space-y-1.5 rounded-lg border bg-slate-50 px-3 py-2.5">
                             <div className="flex items-center gap-1.5">
-                                <p className="text-sm font-medium">{order.senderName}</p>
-                                {order.isAnonymous && (
-                                    <span className="rounded-full bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold text-slate-500">
-                                        anônimo
-                                    </span>
+                                {order.isAnonymous ? (
+                                    <>
+                                        <p className={`text-sm font-medium ${senderRevealed ? "" : "tracking-widest text-slate-400"}`}>
+                                            {senderRevealed ? order.senderName : "••••••••"}
+                                        </p>
+                                        <span className="rounded-full bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold text-slate-500">
+                                            anônimo
+                                        </span>
+                                        {isAdmin && (
+                                            <button
+                                                onClick={() => setSenderRevealed((v) => !v)}
+                                                className="text-slate-400 hover:text-slate-600"
+                                                title={senderRevealed ? "Ocultar nome" : "Revelar nome"}
+                                            >
+                                                {senderRevealed ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
+                                            </button>
+                                        )}
+                                    </>
+                                ) : (
+                                    <p className="text-sm font-medium">{order.senderName}</p>
                                 )}
                             </div>
                             {order.senderContact && (
                                 <p className="flex items-center gap-1.5 text-xs text-slate-500">
                                     <Phone className="size-3 shrink-0" />
-                                    {order.senderContact}
+                                    {order.isAnonymous && !senderRevealed ? "•••••••••••" : order.senderContact}
                                 </p>
                             )}
                         </div>
@@ -94,8 +114,10 @@ export function OrderDetailSheet({ order, open, onOpenChange }) {
                     <DetailSection icon={Heart} title="Destinatário">
                         <div className="space-y-1 rounded-lg border bg-slate-50 px-3 py-2.5">
                             <p className="text-sm font-medium">{order.recipientName}</p>
-                            {order.recipientClass && (
-                                <p className="text-xs text-slate-500">{order.recipientClass}</p>
+                            {(order.recipientCourse || order.recipientYear) && (
+                                <p className="text-xs text-slate-500">
+                                    {order.recipientCourse}{order.recipientYear ? ` · ${order.recipientYear}` : ""}
+                                </p>
                             )}
                         </div>
                     </DetailSection>

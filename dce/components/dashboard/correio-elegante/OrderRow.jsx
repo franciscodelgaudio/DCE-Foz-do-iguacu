@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { TableCell, TableRow } from "@/components/ui/table"
-import { CheckCircle, XCircle, Trash2, Eye } from "lucide-react"
+import { CheckCircle, XCircle, Trash2, Eye, EyeOff } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog"
@@ -31,9 +31,10 @@ const STATUS_LABELS = {
     cancelled: "Cancelado",
 }
 
-export function OrderRow({ order, selected, onSelectChange }) {
+export function OrderRow({ order, selected, onSelectChange, isAdmin }) {
     const router = useRouter()
     const [sheetOpen, setSheetOpen] = useState(false)
+    const [senderRevealed, setSenderRevealed] = useState(false)
 
     async function handleConfirm() {
         const result = await confirmPayment(order._id)
@@ -67,7 +68,7 @@ export function OrderRow({ order, selected, onSelectChange }) {
 
     return (
         <>
-            <OrderDetailSheet order={order} open={sheetOpen} onOpenChange={setSheetOpen} />
+            <OrderDetailSheet order={order} open={sheetOpen} onOpenChange={setSheetOpen} isAdmin={isAdmin} />
             <TableRow>
                 <TableCell onClick={(e) => e.stopPropagation()} className="cursor-default">
                     <input
@@ -87,15 +88,32 @@ export function OrderRow({ order, selected, onSelectChange }) {
                 </TableCell>
                 <TableCell>
                     <div className="flex items-center gap-1.5">
-                        <p className="text-sm font-medium">{order.senderName}</p>
-                        {order.isAnonymous && (
-                            <span className="rounded-full bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold text-slate-500">
-                                anônimo
-                            </span>
+                        {order.isAnonymous ? (
+                            <>
+                                <p className={`text-sm font-medium ${senderRevealed ? "" : "tracking-widest text-slate-400"}`}>
+                                    {senderRevealed ? order.senderName : "••••••••"}
+                                </p>
+                                <span className="rounded-full bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold text-slate-500">
+                                    anônimo
+                                </span>
+                                {isAdmin && (
+                                    <button
+                                        onClick={(e) => { e.stopPropagation(); setSenderRevealed((v) => !v) }}
+                                        className="text-slate-400 hover:text-slate-600"
+                                        title={senderRevealed ? "Ocultar nome" : "Revelar nome"}
+                                    >
+                                        {senderRevealed ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
+                                    </button>
+                                )}
+                            </>
+                        ) : (
+                            <p className="text-sm font-medium">{order.senderName}</p>
                         )}
                     </div>
                     {order.senderContact && (
-                        <p className="text-xs text-slate-400">{order.senderContact}</p>
+                        <p className="text-xs text-slate-400">
+                            {order.isAnonymous && !senderRevealed ? "•••••••••••" : order.senderContact}
+                        </p>
                     )}
                 </TableCell>
                 <TableCell>

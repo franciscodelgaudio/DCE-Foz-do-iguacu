@@ -8,9 +8,15 @@ export const metadata = {
     title: "Correio Elegante — Dashboard",
 }
 
+const DEFAULT_ADMIN_EMAIL = "foz.dce@gmail.com"
+
 export default async function Page() {
     const session = await auth()
     if (!session) redirect("/login")
+
+    const isAdmin =
+        session.user?.email?.toLowerCase() === DEFAULT_ADMIN_EMAIL ||
+        session.user?.role === "admin"
 
     const [orders, settings] = await Promise.all([
         CorreioElegante.find().sort({ createdAt: -1 }).lean(),
@@ -29,6 +35,7 @@ export default async function Page() {
             orders={JSON.parse(JSON.stringify(orders))}
             stats={stats}
             settings={settings}
+            isAdmin={isAdmin}
         />
     )
 }

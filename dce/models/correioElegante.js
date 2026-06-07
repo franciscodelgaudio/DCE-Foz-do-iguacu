@@ -6,6 +6,7 @@ const CorreioEleganteSchema = new Schema(
         orderNumber: { type: String },
         senderName: { type: String, required: true, trim: true },
         senderContact: { type: String, trim: true },
+        senderEmail: { type: String, trim: true },
         recipientName: { type: String, required: true, trim: true },
         recipientCourse: { type: String, trim: true },
         recipientYear: { type: String, trim: true },
@@ -23,6 +24,13 @@ const CorreioEleganteSchema = new Schema(
             default: "pending",
         },
         confirmedAt: { type: Date },
+        deliveryStatus: {
+            type: String,
+            enum: ["not_ready", "ready", "delivered"],
+            default: "not_ready",
+        },
+        readyAt: { type: Date },
+        deliveredAt: { type: Date },
         adminNotes: { type: String },
     },
     { timestamps: true }

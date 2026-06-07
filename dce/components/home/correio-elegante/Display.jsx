@@ -8,7 +8,7 @@ import { createOrder } from "@/lib/actions/correioElegante"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Heart, Copy, Check, ArrowLeft, User, MessageSquare, Phone, EyeOff } from "lucide-react"
+import { Heart, Copy, Check, ArrowLeft, User, MessageSquare, Phone, EyeOff, Mail } from "lucide-react"
 import Link from "next/link"
 import { QRCodeSVG } from "qrcode.react"
 
@@ -56,6 +56,7 @@ const formSchema = z.object({
     package: z.enum(["cartinha", "rosa", "bombom_cartinha", "bombom_cartinha_rosa"]),
     cardMessage: z.string().max(500).optional(),
     isAnonymous: z.boolean().optional(),
+    senderEmail: z.string().email("Email inválido").optional().or(z.literal("")),
 })
 
 function onlyDigits(value) {
@@ -407,6 +408,28 @@ export function Display({ isEnabled, pixKey, pixKeyType, pixRecipientName }) {
                                 {errors.senderContact && (
                                     <p className="text-xs text-red-500">{errors.senderContact.message}</p>
                                 )}
+                            </div>
+                            <div className="space-y-1.5 sm:col-span-2">
+                                <Label htmlFor="senderEmail">
+                                    <span className="flex items-center gap-1">
+                                        <Mail className="h-3 w-3" />
+                                        Email para confirmação do pagamento{" "}
+                                        <span className="text-xs font-normal text-slate-400">(opcional)</span>
+                                    </span>
+                                </Label>
+                                <Input
+                                    id="senderEmail"
+                                    type="email"
+                                    placeholder="seu@email.com"
+                                    {...register("senderEmail")}
+                                    className={errors.senderEmail ? "border-red-400" : ""}
+                                />
+                                {errors.senderEmail && (
+                                    <p className="text-xs text-red-500">{errors.senderEmail.message}</p>
+                                )}
+                                <p className="text-xs text-slate-400">
+                                    Se informado, você receberá um email quando o pagamento for confirmado.
+                                </p>
                             </div>
                         </div>
                     </div>

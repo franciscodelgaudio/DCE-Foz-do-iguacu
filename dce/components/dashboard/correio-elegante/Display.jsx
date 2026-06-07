@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react"
 import { useRouter } from "next/navigation"
+import Link from "next/link"
 import {
     Table, TableBody, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table"
@@ -12,7 +13,7 @@ import { Badge } from "@/components/ui/badge"
 import { OrderRow } from "./OrderRow"
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog"
 import { toast } from "sonner"
-import { deleteManyOrders } from "@/lib/actions/correioElegante"
+import { deleteManyOrders, fixDuplicateOrderNumbers } from "@/lib/actions/correioElegante"
 import { updateSettings } from "@/lib/actions/settings"
 import {
     Heart, Search, Trash2, Settings, Package, CheckCircle2, Clock, XCircle,
@@ -49,7 +50,7 @@ function StatCard({ icon: Icon, label, value, color }) {
     )
 }
 
-export function Display({ orders, stats, settings: initialSettings }) {
+export function Display({ orders, stats, settings: initialSettings, isAdmin }) {
     const router = useRouter()
     const [search, setSearch] = useState("")
     const [statusFilter, setStatusFilter] = useState("")
@@ -61,6 +62,7 @@ export function Display({ orders, stats, settings: initialSettings }) {
         correioEleganteEnabled: initialSettings?.correioEleganteEnabled ?? false,
     })
     const [savingSettings, setSavingSettings] = useState(false)
+    const [fixingNumbers, setFixingNumbers] = useState(false)
 
     const filtered = useMemo(() => {
         return orders.filter((o) => {
@@ -95,6 +97,18 @@ export function Display({ orders, stats, settings: initialSettings }) {
         setSelectedIds([])
         router.refresh()
         toast.success(result.message)
+    }
+
+    async function handleFixNumbers() {
+        setFixingNumbers(true)
+        const result = await fixDuplicateOrderNumbers()
+        setFixingNumbers(false)
+        if (result.success) {
+            toast.success(result.message)
+            router.refresh()
+        } else {
+            toast.error(result.message)
+        }
     }
 
     async function handleSaveSettings() {
@@ -209,6 +223,21 @@ export function Display({ orders, stats, settings: initialSettings }) {
                                         />
                                     </div>
                                 </div>
+                                <div className="mt-6 rounded-lg border border-amber-200 bg-amber-50 p-4">
+                                    <p className="mb-2 text-sm font-medium text-amber-800">Manutenção</p>
+                                    <p className="mb-3 text-xs text-amber-700">
+                                        Renumera pedidos com número duplicado. Nenhum pedido é apagado.
+                                    </p>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={handleFixNumbers}
+                                        disabled={fixingNumbers}
+                                        className="border-amber-300 text-amber-800 hover:bg-amber-100"
+                                    >
+                                        {fixingNumbers ? "Corrigindo..." : "Corrigir números duplicados"}
+                                    </Button>
+                                </div>
                                 <SheetFooter className="mt-6">
                                     <SheetClose asChild>
                                         <Button variant="outline">Cancelar</Button>
@@ -224,6 +253,24 @@ export function Display({ orders, stats, settings: initialSettings }) {
                             </SheetContent>
                         </Sheet>
                     </div>
+                </div>
+            </div>
+
+            {/* Tab Navigation */}
+            <div className="border-b bg-white px-6">
+                <div className="flex gap-0">
+                    <Link
+                        href="/dashboard/correio-elegante"
+                        className="border-b-2 border-[#2708ab] px-4 py-3 text-sm font-medium text-[#2708ab]"
+                    >
+                        Pedidos
+                    </Link>
+                    <Link
+                        href="/dashboard/correio-elegante/entrega"
+                        className="border-b-2 border-transparent px-4 py-3 text-sm font-medium text-slate-500 transition-colors hover:text-slate-800"
+                    >
+                        Entregas
+                    </Link>
                 </div>
             </div>
 
@@ -310,6 +357,7 @@ export function Display({ orders, stats, settings: initialSettings }) {
                                 order={order}
                                 selected={selectedIds.includes(String(order._id))}
                                 onSelectChange={toggleSelected}
+                                isAdmin={isAdmin}
                             />
                         ))
                     )}
