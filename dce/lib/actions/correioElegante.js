@@ -95,7 +95,11 @@ export async function confirmPayment(orderId) {
             { new: true }
         )
 
-        if (order?.senderEmail && process.env.RESEND_API_KEY) {
+        if (!order?.senderEmail) {
+            console.log("[confirmPayment] Pedido sem senderEmail, email não enviado.")
+        } else if (!process.env.RESEND_API_KEY) {
+            console.warn("[confirmPayment] RESEND_API_KEY não configurada, email não enviado.")
+        } else {
             try {
                 const { Resend } = await import("resend")
                 const resend = new Resend(process.env.RESEND_API_KEY)
@@ -107,7 +111,8 @@ export async function confirmPayment(orderId) {
                 }
                 const pkgLabel = pkgLabels[order.package] ?? order.package
                 const priceFormatted = Number(order.price).toFixed(2).replace(".", ",")
-                await resend.emails.send({
+                console.log(`[confirmPayment] Enviando email para ${order.senderEmail}...`)
+                const emailResult = await resend.emails.send({
                     from: "DCE UNIOESTE <no-reply@dceunioestefoz.com.br>",
                     to: order.senderEmail,
                     subject: `Pagamento confirmado! Pedido ${order.orderNumber} — Correio Elegante DCE`,
@@ -146,8 +151,13 @@ export async function confirmPayment(orderId) {
                         </div>
                     `,
                 })
+                if (emailResult.error) {
+                    console.error("[confirmPayment] Resend retornou erro:", emailResult.error)
+                } else {
+                    console.log("[confirmPayment] Email enviado com sucesso:", emailResult.data?.id)
+                }
             } catch (emailErr) {
-                console.error("Erro ao enviar email de confirmação:", emailErr)
+                console.error("[confirmPayment] Exceção ao enviar email:", emailErr)
             }
         }
 
