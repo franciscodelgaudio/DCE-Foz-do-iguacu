@@ -115,6 +115,11 @@ export function OrderRow({ order, selected, onSelectChange, isAdmin }) {
                             {order.isAnonymous && !senderRevealed ? "•••••••••••" : order.senderContact}
                         </p>
                     )}
+                    {order.senderEmail && (
+                        <p className="text-xs text-slate-400">
+                            {order.isAnonymous && !senderRevealed ? "•••••••••••" : order.senderEmail}
+                        </p>
+                    )}
                 </TableCell>
                 <TableCell>
                     <p className="text-sm font-medium">{order.recipientName}</p>
