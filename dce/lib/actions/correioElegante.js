@@ -113,7 +113,7 @@ export async function confirmPayment(orderId) {
                 const priceFormatted = Number(order.price).toFixed(2).replace(".", ",")
                 console.log(`[confirmPayment] Enviando email para ${order.senderEmail}...`)
                 const emailResult = await resend.emails.send({
-                    from: "DCE UNIOESTE <no-reply@dceunioestefoz.com.br>",
+                    from: "DCE UNIOESTE <no-reply@dceunioestefoz.org>",
                     to: order.senderEmail,
                     subject: `Pagamento confirmado! Pedido ${order.orderNumber} — Correio Elegante DCE`,
                     html: `
