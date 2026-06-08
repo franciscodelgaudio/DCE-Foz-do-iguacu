@@ -13,7 +13,10 @@ export default async function Page({ searchParams }) {
 
     const match = { status: "published" }
     if (type) match.type = type
-    if (year) match.year = Number(year)
+    if (year) {
+        const y = Number(year)
+        match.date = { $gte: new Date(`${y}-01-01`), $lt: new Date(`${y + 1}-01-01`) }
+    }
 
     const documents = await Document.aggregate([
         { $match: match },
@@ -24,7 +27,7 @@ export default async function Page({ searchParams }) {
                 description: 1,
                 fileUrl: 1,
                 fileName: 1,
-                year: 1,
+                date: 1,
                 publishedAt: 1,
                 createdAt: 1,
             },
@@ -32,8 +35,12 @@ export default async function Page({ searchParams }) {
         { $sort: { createdAt: -1 } },
     ])
 
-    const years = await Document.distinct("year", { status: "published" })
-    years.sort((a, b) => b - a)
+    const yearsAgg = await Document.aggregate([
+        { $match: { status: "published", date: { $exists: true, $ne: null } } },
+        { $group: { _id: { $year: "$date" } } },
+        { $sort: { _id: -1 } },
+    ])
+    const years = yearsAgg.map((y) => y._id)
 
     return (
         <DocumentsDisplay

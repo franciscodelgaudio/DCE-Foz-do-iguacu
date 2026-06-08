@@ -24,6 +24,7 @@ const TYPE_OPTIONS = [
     { value: "", label: "Todos os tipos" },
     { value: "edital", label: "Edital" },
     { value: "ata", label: "Ata de Reunião" },
+    { value: "posse", label: "Documento de Posse" },
 ]
 
 const STATUS_OPTIONS = [
@@ -35,7 +36,7 @@ const STATUS_OPTIONS = [
 const COLUMNS = [
     { key: "title", label: "Título", icon: FileText },
     { key: "type", label: "Tipo", icon: CircleDot },
-    { key: "year", label: "Ano", icon: Calendar },
+    { key: "date", label: "Data", icon: Calendar },
     { key: "author.name", label: "Autor", icon: User },
     { key: "status", label: "Status", icon: CircleDot },
 ]

@@ -85,6 +85,10 @@ export async function confirmPayment(orderId) {
     const session = await auth()
     if (!session) redirect("/login")
 
+    if (session.user?.role !== "admin") {
+        return { success: false, message: "Apenas administradores podem confirmar pagamentos." }
+    }
+
     if (!mongoose.Types.ObjectId.isValid(orderId)) {
         return { success: false, message: "ID inválido." }
     }
@@ -198,6 +202,10 @@ export async function cancelOrder(orderId) {
     const session = await auth()
     if (!session) redirect("/login")
 
+    if (session.user?.role !== "admin") {
+        return { success: false, message: "Apenas administradores podem cancelar pedidos." }
+    }
+
     if (!mongoose.Types.ObjectId.isValid(orderId)) {
         return { success: false, message: "ID inválido." }
     }
@@ -214,6 +222,10 @@ export async function deleteOrder(orderId) {
     const session = await auth()
     if (!session) redirect("/login")
 
+    if (session.user?.role !== "admin") {
+        return { success: false, message: "Apenas administradores podem excluir pedidos." }
+    }
+
     if (!mongoose.Types.ObjectId.isValid(orderId)) {
         return { success: false, message: "ID inválido." }
     }
@@ -229,6 +241,10 @@ export async function deleteOrder(orderId) {
 export async function markOrderReady(orderId) {
     const session = await auth()
     if (!session) redirect("/login")
+
+    if (session.user?.role !== "admin") {
+        return { success: false, message: "Apenas administradores podem atualizar o status de entrega." }
+    }
 
     if (!mongoose.Types.ObjectId.isValid(orderId)) {
         return { success: false, message: "ID inválido." }
@@ -249,6 +265,10 @@ export async function markOrderDelivered(orderId) {
     const session = await auth()
     if (!session) redirect("/login")
 
+    if (session.user?.role !== "admin") {
+        return { success: false, message: "Apenas administradores podem atualizar o status de entrega." }
+    }
+
     if (!mongoose.Types.ObjectId.isValid(orderId)) {
         return { success: false, message: "ID inválido." }
     }
@@ -267,6 +287,10 @@ export async function markOrderDelivered(orderId) {
 export async function deleteManyOrders(orderIds) {
     const session = await auth()
     if (!session) redirect("/login")
+
+    if (session.user?.role !== "admin") {
+        return { success: false, message: "Apenas administradores podem excluir pedidos." }
+    }
 
     if (!Array.isArray(orderIds) || orderIds.length === 0) {
         return { success: false, message: "Nenhum pedido selecionado." }
@@ -293,6 +317,10 @@ export async function deleteManyOrders(orderIds) {
 export async function fixDuplicateOrderNumbers() {
     const session = await auth()
     if (!session) redirect("/login")
+
+    if (session.user?.role !== "admin") {
+        return { success: false, message: "Apenas administradores podem executar esta ação." }
+    }
 
     // Load all orders oldest-first so the earliest occurrence keeps its number
     const orders = await CorreioElegante.find().sort({ createdAt: 1 }).lean()

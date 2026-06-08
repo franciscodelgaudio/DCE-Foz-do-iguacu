@@ -135,7 +135,7 @@ export function Display({ orders, stats, settings: initialSettings, isAdmin }) {
                         >
                             {initialSettings?.correioEleganteEnabled ? "Pedidos abertos" : "Pedidos fechados"}
                         </Badge>
-                        <Sheet>
+                        {isAdmin && <Sheet>
                             <SheetTrigger asChild>
                                 <Button variant="outline" size="sm">
                                     <Settings className="size-4" />
@@ -223,7 +223,7 @@ export function Display({ orders, stats, settings: initialSettings, isAdmin }) {
                                     </Button>
                                 </SheetFooter>
                             </SheetContent>
-                        </Sheet>
+                        </Sheet>}
                     </div>
                 </div>
             </div>
@@ -289,16 +289,18 @@ export function Display({ orders, stats, settings: initialSettings, isAdmin }) {
                 <p className="text-sm text-muted-foreground">
                     {hasSelection ? `${selectedIds.length} selecionado(s)` : `${filtered.length} pedido(s) exibido(s)`}
                 </p>
-                <ConfirmDialog
-                    title="Excluir pedidos selecionados"
-                    subtitle={`Excluir permanentemente ${selectedIds.length} pedido(s)? Esta ação não pode ser desfeita.`}
-                    onClick={handleDeleteSelected}
-                >
-                    <Button variant="destructive" disabled={!hasSelection} size="sm">
-                        <Trash2 className="size-4" />
-                        Excluir selecionados
-                    </Button>
-                </ConfirmDialog>
+                {isAdmin && (
+                    <ConfirmDialog
+                        title="Excluir pedidos selecionados"
+                        subtitle={`Excluir permanentemente ${selectedIds.length} pedido(s)? Esta ação não pode ser desfeita.`}
+                        onClick={handleDeleteSelected}
+                    >
+                        <Button variant="destructive" disabled={!hasSelection} size="sm">
+                            <Trash2 className="size-4" />
+                            Excluir selecionados
+                        </Button>
+                    </ConfirmDialog>
+                )}
             </div>
 
             <Table>

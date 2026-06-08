@@ -9,11 +9,11 @@ import mongoose from "mongoose"
 const documentSchema = z.object({
     _id: z.string().optional(),
     title: z.string().min(1),
-    type: z.enum(["edital", "ata"]),
+    type: z.enum(["edital", "ata", "posse"]),
     description: z.string().optional(),
     fileUrl: z.string().optional(),
     fileName: z.string().optional(),
-    year: z.coerce.number().optional(),
+    date: z.string().optional(),
     status: z.enum(["draft", "published"]).optional(),
 })
 
@@ -24,7 +24,7 @@ export async function upsertDocument(form) {
     const parsed = documentSchema.safeParse(form)
     if (!parsed.success) return { success: false, message: "Dados inválidos." }
 
-    const { _id, title, type, description, fileUrl, fileName, year, status } = parsed.data
+    const { _id, title, type, description, fileUrl, fileName, date, status } = parsed.data
 
     const isAdmin = session.user?.role === "admin"
     if (status === "published" && !isAdmin) {
@@ -47,7 +47,7 @@ export async function upsertDocument(form) {
         description,
         fileUrl,
         fileName,
-        year: year ?? new Date().getFullYear(),
+        date: date ? new Date(date) : undefined,
         status: status ?? "draft",
         author: {
             name: session.user.name,

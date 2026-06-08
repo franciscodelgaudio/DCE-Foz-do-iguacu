@@ -9,7 +9,10 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { FileText, Upload, X, ExternalLink, ArrowLeft } from 'lucide-react'
 
-const CURRENT_YEAR = new Date().getFullYear()
+function toInputDate(d) {
+    if (!d) return new Date().toISOString().split('T')[0]
+    return new Date(d).toISOString().split('T')[0]
+}
 
 export function DocumentForm({ document, isAdmin = false }) {
     const isEditing = Boolean(document)
@@ -21,7 +24,7 @@ export function DocumentForm({ document, isAdmin = false }) {
             title: document?.title ?? '',
             type: document?.type ?? 'edital',
             description: document?.description ?? '',
-            year: document?.year ?? CURRENT_YEAR,
+            date: toInputDate(document?.date),
             fileUrl: document?.fileUrl ?? '',
             fileName: document?.fileName ?? '',
         }
@@ -121,7 +124,7 @@ export function DocumentForm({ document, isAdmin = false }) {
                     />
                 </div>
 
-                {/* Tipo e Ano */}
+                {/* Tipo e Data */}
                 <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1.5">
                         <label className="text-sm font-medium">Tipo *</label>
@@ -131,15 +134,14 @@ export function DocumentForm({ document, isAdmin = false }) {
                         >
                             <option value="edital">Edital</option>
                             <option value="ata">Ata de Reunião</option>
+                            <option value="posse">Documento de Posse</option>
                         </select>
                     </div>
                     <div className="space-y-1.5">
-                        <label className="text-sm font-medium">Ano</label>
+                        <label className="text-sm font-medium">Data do documento</label>
                         <Input
-                            type="number"
-                            min={2000}
-                            max={2099}
-                            {...register('year', { valueAsNumber: true })}
+                            type="date"
+                            {...register('date')}
                         />
                     </div>
                 </div>
@@ -165,7 +167,7 @@ export function DocumentForm({ document, isAdmin = false }) {
                             <div className="min-w-0 flex-1">
                                 <p className="truncate text-sm font-medium text-emerald-800">{fileName || 'Arquivo carregado'}</p>
                                 <a
-                                    href={fileUrl}
+                                    href={`/api/open-doc?url=${encodeURIComponent(fileUrl)}&name=${encodeURIComponent(fileName || 'documento')}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="flex items-center gap-1 text-xs text-emerald-600 hover:underline"

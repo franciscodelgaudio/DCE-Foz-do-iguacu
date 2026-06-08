@@ -153,7 +153,7 @@ export function OrderRow({ order, selected, onSelectChange, isAdmin }) {
                         >
                             <Eye className="size-4" />
                         </Button>
-                        {order.paymentStatus === "pending" && (
+                        {isAdmin && order.paymentStatus === "pending" && (
                             <ConfirmDialog
                                 title="Confirmar pagamento"
                                 subtitle={`Confirmar pagamento do pedido ${order.orderNumber} de ${order.senderName}?`}
@@ -164,7 +164,7 @@ export function OrderRow({ order, selected, onSelectChange, isAdmin }) {
                                 </Button>
                             </ConfirmDialog>
                         )}
-                        {order.paymentStatus === "pending" && (
+                        {isAdmin && order.paymentStatus === "pending" && (
                             <ConfirmDialog
                                 title="Cancelar pedido"
                                 subtitle={`Cancelar o pedido ${order.orderNumber} de ${order.senderName}?`}
@@ -175,15 +175,17 @@ export function OrderRow({ order, selected, onSelectChange, isAdmin }) {
                                 </Button>
                             </ConfirmDialog>
                         )}
-                        <ConfirmDialog
-                            title="Excluir pedido"
-                            subtitle={`Excluir permanentemente o pedido ${order.orderNumber}? Esta ação não pode ser desfeita.`}
-                            onClick={handleDelete}
-                        >
-                            <Button variant="ghost" size="icon">
-                                <Trash2 className="size-4" />
-                            </Button>
-                        </ConfirmDialog>
+                        {isAdmin && (
+                            <ConfirmDialog
+                                title="Excluir pedido"
+                                subtitle={`Excluir permanentemente o pedido ${order.orderNumber}? Esta ação não pode ser desfeita.`}
+                                onClick={handleDelete}
+                            >
+                                <Button variant="ghost" size="icon">
+                                    <Trash2 className="size-4" />
+                                </Button>
+                            </ConfirmDialog>
+                        )}
                     </div>
                 </TableCell>
             </TableRow>

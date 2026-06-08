@@ -12,11 +12,13 @@ import { deleteDocument, publishDocument } from "@/lib/actions/documents"
 const TYPE_LABELS = {
     edital: "Edital",
     ata: "Ata de Reunião",
+    posse: "Doc. de Posse",
 }
 
 const TYPE_STYLES = {
     edital: "bg-blue-100 text-blue-700 border-blue-200",
     ata: "bg-purple-100 text-purple-700 border-purple-200",
+    posse: "bg-amber-100 text-amber-700 border-amber-200",
 }
 
 const STATUS_STYLES = {
@@ -73,14 +75,18 @@ export function Row({ document, selected = false, onSelectChange }) {
             </TableCell>
             <TableCell className="font-medium">{document.title}</TableCell>
             <TableCell><TypeBadge value={document.type} /></TableCell>
-            <TableCell>{document.year ?? "-"}</TableCell>
+            <TableCell>{document.date ? new Date(document.date).toLocaleDateString("pt-BR") : "-"}</TableCell>
             <TableCell>{document.author?.name ?? "-"}</TableCell>
             <TableCell><StatusBadge value={document.status} /></TableCell>
             <TableCell onClick={(e) => e.stopPropagation()} className="cursor-default">
                 <div className="flex flex-row items-center gap-2">
                     {document.fileUrl && (
                         <Button variant="ghost" size="icon" asChild title="Abrir arquivo">
-                            <a href={document.fileUrl} target="_blank" rel="noopener noreferrer">
+                            <a
+                                href={`/api/open-doc?url=${encodeURIComponent(document.fileUrl)}&name=${encodeURIComponent(document.fileName || 'documento')}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
                                 <ExternalLink className="size-4" />
                             </a>
                         </Button>

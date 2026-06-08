@@ -23,7 +23,7 @@ export default async function Page({ searchParams }) {
     if (type) match.type = type
     if (status) match.status = status
 
-    const SORT_FIELDS = ["title", "type", "year", "status", "createdAt", "publishedAt"]
+    const SORT_FIELDS = ["title", "type", "date", "status", "createdAt", "publishedAt"]
     const sortField = SORT_FIELDS.includes(sortBy) ? sortBy : "createdAt"
     const sortOrder = sortDir === "asc" ? 1 : -1
 
@@ -36,7 +36,7 @@ export default async function Page({ searchParams }) {
                 description: 1,
                 fileUrl: 1,
                 fileName: 1,
-                year: 1,
+                date: 1,
                 status: 1,
                 publishedAt: 1,
                 author: 1,

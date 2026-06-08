@@ -2,7 +2,7 @@
 
 import { useRouter, useSearchParams } from "next/navigation"
 import { useState } from "react"
-import { FileText, Download, ExternalLink, ScrollText, Calendar, Search } from "lucide-react"
+import { FileText, Download, ExternalLink, ScrollText, Calendar, Search, Award } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
@@ -10,11 +10,13 @@ import { Input } from "@/components/ui/input"
 const TYPE_LABELS = {
     edital: "Edital",
     ata: "Ata de Reunião",
+    posse: "Doc. de Posse",
 }
 
 const TYPE_STYLES = {
     edital: "bg-blue-100 text-blue-700 border-blue-200",
     ata: "bg-purple-100 text-purple-700 border-purple-200",
+    posse: "bg-amber-100 text-amber-700 border-amber-200",
 }
 
 function formatDate(dateStr) {
@@ -27,7 +29,7 @@ function formatDate(dateStr) {
 }
 
 function DocumentCard({ doc }) {
-    const date = formatDate(doc.publishedAt ?? doc.createdAt)
+    const date = formatDate(doc.date ?? doc.publishedAt ?? doc.createdAt)
 
     return (
         <div className="group flex flex-col gap-3 rounded-xl border bg-white p-5 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-md">
@@ -62,7 +64,7 @@ function DocumentCard({ doc }) {
             {doc.fileUrl && (
                 <div className="flex items-center gap-2 pt-1">
                     <a
-                        href={doc.fileUrl}
+                        href={`/api/open-doc?url=${encodeURIComponent(doc.fileUrl)}&name=${encodeURIComponent(doc.fileName || 'documento')}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="flex items-center gap-1.5 rounded-lg border-2 border-[#2708ab] bg-[#fdf25a] px-3 py-1.5 text-sm font-bold text-[#2708ab] shadow-[2px_2px_0_#2708ab] transition-transform hover:-translate-y-0.5"
@@ -71,8 +73,7 @@ function DocumentCard({ doc }) {
                         Visualizar
                     </a>
                     <a
-                        href={doc.fileUrl}
-                        download
+                        href={`/api/open-doc?url=${encodeURIComponent(doc.fileUrl)}&name=${encodeURIComponent(doc.fileName || 'documento')}&download=1`}
                         className="flex items-center gap-1.5 rounded-lg border border-input bg-white px-3 py-1.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
                     >
                         <Download className="size-4" />
@@ -88,6 +89,7 @@ const TABS = [
     { value: "", label: "Todos" },
     { value: "edital", label: "Editais" },
     { value: "ata", label: "Atas de Reunião" },
+    { value: "posse", label: "Documentos de Posse" },
 ]
 
 export function DocumentsDisplay({ documents = [], years = [] }) {
@@ -114,7 +116,8 @@ export function DocumentsDisplay({ documents = [], years = [] }) {
 
     const editais = filtered.filter((d) => d.type === "edital")
     const atas = filtered.filter((d) => d.type === "ata")
-    const displayDocs = activeType === "edital" ? editais : activeType === "ata" ? atas : filtered
+    const posses = filtered.filter((d) => d.type === "posse")
+    const displayDocs = activeType === "edital" ? editais : activeType === "ata" ? atas : activeType === "posse" ? posses : filtered
 
     return (
         <section className="w-full bg-[#f3f1ff] min-h-screen">
@@ -206,6 +209,20 @@ export function DocumentsDisplay({ documents = [], years = [] }) {
                     </div>
                 ) : (
                     <div className="space-y-10">
+                        {posses.length > 0 && (
+                            <div>
+                                <h3 className="mb-4 flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-[#2708ab]">
+                                    <Award className="size-4" />
+                                    Documentos de Posse
+                                    <span className="ml-1 rounded-full bg-[#2708ab]/10 px-2 py-0.5 text-xs font-semibold">{posses.length}</span>
+                                </h3>
+                                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                                    {posses.map((doc) => (
+                                        <DocumentCard key={String(doc._id)} doc={doc} />
+                                    ))}
+                                </div>
+                            </div>
+                        )}
                         {editais.length > 0 && (
                             <div>
                                 <h3 className="mb-4 flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-[#2708ab]">

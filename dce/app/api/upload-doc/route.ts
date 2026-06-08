@@ -17,20 +17,25 @@ export async function POST(req: NextRequest) {
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
 
-    const result = await new Promise<{ secure_url: string; original_filename: string }>((resolve, reject) => {
+    const originalName = file.name
+    const sanitized = originalName.replace(/[^a-zA-Z0-9._-]/g, '_').replace(/_{2,}/g, '_')
+    const ext = sanitized.match(/\.[^.]+$/)?.[0] ?? ''
+    const baseName = sanitized.replace(/\.[^.]+$/, '').slice(0, 60)
+    const uniqueSuffix = Date.now().toString(36)
+    const publicId = `dce/documentos/${baseName}_${uniqueSuffix}${ext}`
+
+    const result = await new Promise<{ secure_url: string }>((resolve, reject) => {
         cloudinary.uploader.upload_stream(
             {
-                folder: 'dce/documentos',
                 resource_type: 'raw',
-                use_filename: true,
-                unique_filename: true,
+                public_id: publicId,
             },
             (error, result) => {
                 if (error || !result) reject(error ?? new Error('Upload falhou'))
-                else resolve(result as { secure_url: string; original_filename: string })
+                else resolve(result as { secure_url: string })
             }
         ).end(buffer)
     })
 
-    return NextResponse.json({ url: result.secure_url, fileName: file.name })
+    return NextResponse.json({ url: result.secure_url, fileName: originalName })
 }

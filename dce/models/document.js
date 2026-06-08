@@ -10,7 +10,7 @@ const DocumentSchema = new Schema(
         },
         type: {
             type: String,
-            enum: ["edital", "ata"],
+            enum: ["edital", "ata", "posse"],
             required: true,
         },
         description: {
@@ -25,8 +25,8 @@ const DocumentSchema = new Schema(
             type: String,
             trim: true,
         },
-        year: {
-            type: Number,
+        date: {
+            type: Date,
         },
         status: {
             type: String,

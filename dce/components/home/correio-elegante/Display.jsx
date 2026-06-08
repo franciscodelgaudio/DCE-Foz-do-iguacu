@@ -217,7 +217,7 @@ function SuccessScreen({ orderNumber, price, packageLabel, pixKey, pixKeyType, p
 }
 
 export function Display({ isEnabled, pixKey, pixKeyType, pixRecipientName }) {
-    const [selectedPackage, setSelectedPackage] = useState(null)
+    const [selectedPackage, setSelectedPackage] = useState("bombom_cartinha_rosa")
     const [successData, setSuccessData] = useState(null)
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [serverError, setServerError] = useState(null)
@@ -231,6 +231,7 @@ export function Display({ isEnabled, pixKey, pixKeyType, pixRecipientName }) {
         formState: { errors },
     } = useForm({
         resolver: zodResolver(formSchema),
+        defaultValues: { package: "bombom_cartinha_rosa" },
     })
 
     const watchedPackage = watch("package")
@@ -538,6 +539,8 @@ export function Display({ isEnabled, pixKey, pixKeyType, pixRecipientName }) {
                     </Link>
                 </div>
             </div>
+
+            <p className="pb-3 text-center text-[9px] text-slate-300">* a rosa é de plástico</p>
         </div>
     )
 }
