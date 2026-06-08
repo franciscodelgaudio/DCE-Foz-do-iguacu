@@ -11,7 +11,7 @@ import { FileText, Upload, X, ExternalLink, ArrowLeft } from 'lucide-react'
 
 const CURRENT_YEAR = new Date().getFullYear()
 
-export function DocumentForm({ document }) {
+export function DocumentForm({ document, isAdmin = false }) {
     const isEditing = Boolean(document)
     const router = useRouter()
 
@@ -204,13 +204,19 @@ export function DocumentForm({ document }) {
 
                 {/* Ações */}
                 <div className="flex flex-wrap items-center gap-3 border-t pt-5">
-                    <Button
-                        type="button"
-                        disabled={isSubmitting || uploading}
-                        onClick={handleSubmit((values) => onSubmit(values, 'published'))}
-                    >
-                        {isSubmitting ? 'Salvando...' : 'Publicar'}
-                    </Button>
+                    {isAdmin ? (
+                        <Button
+                            type="button"
+                            disabled={isSubmitting || uploading}
+                            onClick={handleSubmit((values) => onSubmit(values, 'published'))}
+                        >
+                            {isSubmitting ? 'Salvando...' : 'Publicar'}
+                        </Button>
+                    ) : (
+                        <p className="text-sm text-muted-foreground self-center">
+                            Apenas administradores podem publicar.
+                        </p>
+                    )}
                     <Button
                         type="button"
                         variant="outline"

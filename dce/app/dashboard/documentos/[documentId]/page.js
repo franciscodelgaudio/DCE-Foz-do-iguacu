@@ -16,5 +16,7 @@ export default async function Page({ params }) {
     const doc = await Document.findById(documentId).lean()
     if (!doc) notFound()
 
-    return <DocumentForm document={JSON.parse(JSON.stringify(doc))} />
+    const isAdmin = session.user?.role === "admin"
+
+    return <DocumentForm document={JSON.parse(JSON.stringify(doc))} isAdmin={isAdmin} />
 }

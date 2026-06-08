@@ -26,6 +26,11 @@ export async function upsertDocument(form) {
 
     const { _id, title, type, description, fileUrl, fileName, year, status } = parsed.data
 
+    const isAdmin = session.user?.role === "admin"
+    if (status === "published" && !isAdmin) {
+        return { success: false, message: "Apenas administradores podem publicar conteúdo." }
+    }
+
     const id = _id === undefined
         ? new mongoose.Types.ObjectId()
         : new mongoose.Types.ObjectId(_id)
@@ -68,6 +73,10 @@ export async function upsertDocument(form) {
 export async function publishDocument(documentId) {
     const session = await auth()
     if (!session) redirect("/login")
+
+    if (session.user?.role !== "admin") {
+        return { success: false, message: "Apenas administradores podem publicar conteúdo." }
+    }
 
     if (!mongoose.Types.ObjectId.isValid(documentId)) {
         return { success: false, message: "ID inválido." }

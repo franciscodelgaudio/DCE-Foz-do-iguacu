@@ -57,6 +57,11 @@ export async function upsertEvent(form) {
 
     const { _id, title, excerpt, location, eventDate, eventEndDate, content, status, registration } = parsed.data
 
+    const isAdmin = session.user?.role === "admin"
+    if (status === "published" && !isAdmin) {
+        return { success: false, message: "Apenas administradores podem publicar conteúdo." }
+    }
+
     const id = _id ? new mongoose.Types.ObjectId(_id) : new mongoose.Types.ObjectId()
 
     const processedRegistration = registration
@@ -123,6 +128,10 @@ export async function upsertEvent(form) {
 export async function publishEvent(eventId) {
     const session = await auth()
     if (!session) redirect("/login")
+
+    if (session.user?.role !== "admin") {
+        return { success: false, message: "Apenas administradores podem publicar conteúdo." }
+    }
 
     if (!mongoose.Types.ObjectId.isValid(eventId)) {
         return { success: false, message: "ID inválido." }

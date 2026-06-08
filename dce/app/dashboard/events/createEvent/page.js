@@ -10,5 +10,7 @@ export default async function Page() {
     const session = await auth()
     if (!session) redirect("/login")
 
-    return <Display />
+    const isAdmin = session.user?.role === "admin"
+
+    return <Display isAdmin={isAdmin} />
 }

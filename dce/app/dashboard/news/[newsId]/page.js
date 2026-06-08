@@ -19,10 +19,12 @@ export default async function Page({ params }) {
     if (!session) { redirect("/login") }
 
     const newItem = await News.findById(newsId).lean();
+    const isAdmin = session.user?.role === "admin"
 
     return (
         <Display
             newItem={JSON.parse(JSON.stringify(newItem))}
+            isAdmin={isAdmin}
         />
     )
 }

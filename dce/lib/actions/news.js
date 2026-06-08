@@ -30,6 +30,11 @@ export async function upsertNews(form) {
 
     const { _id, title, excerpt, content, status, scheduledAt } = parsed.data
 
+    const isAdmin = session.user?.role === "admin"
+    if ((status === "published" || status === "scheduled") && !isAdmin) {
+        return { success: false, message: "Apenas administradores podem publicar conteúdo." }
+    }
+
     const id = _id === undefined ? new mongoose.Types.ObjectId() : new mongoose.Types.ObjectId(_id)
 
     const dateFields = {}
@@ -80,6 +85,10 @@ export async function upsertNews(form) {
 export async function publishNews(newsId) {
     const session = await auth()
     if (!session) redirect("/login")
+
+    if (session.user?.role !== "admin") {
+        return { success: false, message: "Apenas administradores podem publicar conteúdo." }
+    }
 
     if (!mongoose.Types.ObjectId.isValid(newsId)) {
         return { success: false, message: "ID inválido." }

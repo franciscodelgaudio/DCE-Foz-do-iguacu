@@ -21,10 +21,13 @@ export default async function Page({ params }) {
 
     const registrationCount = await EventRegistration.countDocuments({ eventId })
 
+    const isAdmin = session.user?.role === "admin"
+
     return (
         <Display
             eventItem={JSON.parse(JSON.stringify(event))}
             registrationCount={registrationCount}
+            isAdmin={isAdmin}
         />
     )
 }

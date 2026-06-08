@@ -10,5 +10,7 @@ export default async function Page() {
     const session = await auth()
     if (!session) redirect("/login")
 
-    return <DocumentForm />
+    const isAdmin = session.user?.role === "admin"
+
+    return <DocumentForm isAdmin={isAdmin} />
 }

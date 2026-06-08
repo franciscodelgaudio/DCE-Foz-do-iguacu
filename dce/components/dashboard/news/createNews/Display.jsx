@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useRouter } from 'next/navigation'
 
-export function Display() {
+export function Display({ isAdmin = false }) {
     const { register, control, handleSubmit, watch, formState: { isSubmitting }, } = useForm({})
     const router = useRouter();
     const scheduledAt = watch('scheduledAt')
@@ -50,13 +50,19 @@ export function Display() {
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                 <div className="-mx-4 px-4 py-3 bg-background border-b flex flex-wrap items-center justify-between gap-3">
                     <div className="flex items-center gap-2">
-                        <Button
-                            type="button"
-                            disabled={isSubmitting}
-                            onClick={handleSubmit((values) => onSubmit(values, 'published'))}
-                        >
-                            {isSubmitting ? 'Salvando…' : 'Publicar'}
-                        </Button>
+                        {isAdmin ? (
+                            <Button
+                                type="button"
+                                disabled={isSubmitting}
+                                onClick={handleSubmit((values) => onSubmit(values, 'published'))}
+                            >
+                                {isSubmitting ? 'Salvando…' : 'Publicar'}
+                            </Button>
+                        ) : (
+                            <p className="text-sm text-muted-foreground">
+                                Apenas administradores podem publicar.
+                            </p>
+                        )}
                         <Button
                             type="button"
                             variant="outline"
@@ -66,22 +72,24 @@ export function Display() {
                             {isSubmitting ? 'Salvando…' : 'Salvar rascunho'}
                         </Button>
                     </div>
-                    <div className="flex flex-wrap items-center gap-2">
-                        <span className="text-sm text-muted-foreground whitespace-nowrap">Agendar publicação:</span>
-                        <Input
-                            type="datetime-local"
-                            className="w-auto"
-                            {...register('scheduledAt')}
-                        />
-                        <Button
-                            type="button"
-                            variant="outline"
-                            disabled={isSubmitting || !scheduledAt}
-                            onClick={handleSubmit((values) => onSubmit(values, 'scheduled'))}
-                        >
-                            {isSubmitting ? 'Salvando…' : 'Agendar'}
-                        </Button>
-                    </div>
+                    {isAdmin && (
+                        <div className="flex flex-wrap items-center gap-2">
+                            <span className="text-sm text-muted-foreground whitespace-nowrap">Agendar publicação:</span>
+                            <Input
+                                type="datetime-local"
+                                className="w-auto"
+                                {...register('scheduledAt')}
+                            />
+                            <Button
+                                type="button"
+                                variant="outline"
+                                disabled={isSubmitting || !scheduledAt}
+                                onClick={handleSubmit((values) => onSubmit(values, 'scheduled'))}
+                            >
+                                {isSubmitting ? 'Salvando…' : 'Agendar'}
+                            </Button>
+                        </div>
+                    )}
                 </div>
 
                 <Input

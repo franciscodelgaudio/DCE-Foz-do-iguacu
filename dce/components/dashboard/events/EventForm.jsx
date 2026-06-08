@@ -26,7 +26,7 @@ function toDatetimeLocalFromISO(date) {
     return toDatetimeLocalValue(new Date(date))
 }
 
-export function EventForm({ eventItem, registrationCount = 0 }) {
+export function EventForm({ eventItem, registrationCount = 0, isAdmin = false }) {
     const router = useRouter()
     const isEditing = !!eventItem
 
@@ -188,13 +188,19 @@ export function EventForm({ eventItem, registrationCount = 0 }) {
                 />
 
                 <div className="flex flex-wrap gap-2 pt-2 border-t">
-                    <Button
-                        type="button"
-                        disabled={isSubmitting}
-                        onClick={handleSubmit((values) => onSubmit(values, 'published'))}
-                    >
-                        {isSubmitting ? 'Salvando…' : isEditing ? 'Salvar e publicar' : 'Publicar'}
-                    </Button>
+                    {isAdmin ? (
+                        <Button
+                            type="button"
+                            disabled={isSubmitting}
+                            onClick={handleSubmit((values) => onSubmit(values, 'published'))}
+                        >
+                            {isSubmitting ? 'Salvando…' : isEditing ? 'Salvar e publicar' : 'Publicar'}
+                        </Button>
+                    ) : (
+                        <p className="text-sm text-muted-foreground self-center">
+                            Apenas administradores podem publicar.
+                        </p>
+                    )}
 
                     <Button
                         type="button"
