@@ -13,21 +13,19 @@ import {
     CarouselPrevious,
 } from "@/components/ui/carousel"
 
-const BRAND = {
-    indigo: "#2708ab",
-    indigoDark: "#16045f",
-    yellow: "#fdf25a",
-}
-
 const slides = [
     {
-        text: "Sua voz no campus",
-        image: "/images/home/slide-1.jpg"
+        text: "DCE em movimento",
+        type: "video",
+        src: "/images/home/WhatsApp Video 2026-06-08 at 01.14.06.mp4",
+        poster: "/images/home/692556983_18588561442061232_7390780632962570418_n.jpg",
     },
     {
-        text: "Sua vida acadêmica começa aqui",
-        image: "/images/home/slide-2.jpg"
-    }
+        text: "Representacao estudantil presente",
+        type: "image",
+        src: "/images/home/692556983_18588561442061232_7390780632962570418_n.jpg",
+        alt: "Reuniao do DCE com estudantes e representantes",
+    },
 ]
 
 export function SlideSession() {
@@ -63,14 +61,28 @@ export function SlideSession() {
                             <CarouselItem key={index} className="h-full pl-0">
                                 <Card className="h-full overflow-hidden rounded-none border-0 shadow-none p-0 m-0">
                                     <CardContent className="relative h-full p-0">
-                                        <Image
-                                            src={s.image}
-                                            alt={`Slide ${index + 1}`}
-                                            fill
-                                            sizes="100vw"
-                                            className="object-cover"
-                                            priority={index === 0}
-                                        />
+                                        {s.type === "video" ? (
+                                            <video
+                                                className="h-full w-full object-cover"
+                                                src={s.src}
+                                                poster={s.poster}
+                                                autoPlay
+                                                muted
+                                                loop
+                                                playsInline
+                                                preload="metadata"
+                                                aria-label={`Slide ${index + 1}: ${s.text}`}
+                                            />
+                                        ) : (
+                                            <Image
+                                                src={s.src}
+                                                alt={s.alt || `Slide ${index + 1}`}
+                                                fill
+                                                sizes="100vw"
+                                                className="object-cover"
+                                                priority={index === 0}
+                                            />
+                                        )}
                                         <div
                                             className="absolute inset-0"
                                             style={{
@@ -102,7 +114,7 @@ export function SlideSession() {
                             className="pointer-events-auto"
                         >
                             <p className="mb-1.5 text-xs font-bold uppercase tracking-[0.18em] text-[#fdf25a]">
-                                DCE · UNIOESTE Foz
+                                DCE - UNIOESTE Foz
                             </p>
                             <div
                                 className="border-l-4 border-[#fdf25a] pl-4 text-3xl md:text-5xl font-extrabold leading-tight text-white drop-shadow-lg"
