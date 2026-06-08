@@ -21,10 +21,10 @@ const slides = [
         poster: "/images/home/692556983_18588561442061232_7390780632962570418_n.jpg",
     },
     {
-        text: "Representacao estudantil presente",
+        text: "Representação estudantil presente",
         type: "image",
         src: "/images/home/692556983_18588561442061232_7390780632962570418_n.jpg",
-        alt: "Reuniao do DCE com estudantes e representantes",
+        alt: "Reunião do DCE com estudantes e representantes",
     },
 ]
 
