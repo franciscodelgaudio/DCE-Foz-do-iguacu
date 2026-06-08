@@ -23,11 +23,13 @@ export default async function Page() {
         getSettings(),
     ])
 
+    const confirmedOrders = orders.filter((o) => o.paymentStatus === "confirmed")
     const stats = {
         total: orders.length,
         pending: orders.filter((o) => o.paymentStatus === "pending").length,
-        confirmed: orders.filter((o) => o.paymentStatus === "confirmed").length,
+        confirmed: confirmedOrders.length,
         cancelled: orders.filter((o) => o.paymentStatus === "cancelled").length,
+        totalPaid: confirmedOrders.reduce((sum, o) => sum + Number(o.price), 0),
     }
 
     return (

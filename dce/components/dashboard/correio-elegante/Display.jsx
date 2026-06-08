@@ -16,7 +16,7 @@ import { toast } from "sonner"
 import { deleteManyOrders } from "@/lib/actions/correioElegante"
 import { updateSettings } from "@/lib/actions/settings"
 import {
-    Heart, Search, Trash2, Settings, Package, CheckCircle2, Clock, XCircle,
+    Heart, Search, Trash2, Settings, Package, CheckCircle2, Clock, XCircle, Banknote,
 } from "lucide-react"
 import {
     Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetFooter, SheetClose,
@@ -247,11 +247,19 @@ export function Display({ orders, stats, settings: initialSettings, isAdmin }) {
             </div>
 
             {/* Stats */}
-            <div className="grid grid-cols-2 gap-3 border-b bg-gray-50/60 px-6 py-4 sm:grid-cols-4">
+            <div className="grid grid-cols-2 gap-3 border-b bg-gray-50/60 px-6 py-4 sm:grid-cols-5">
                 <StatCard icon={Package} label="Total" value={stats.total} color="bg-[#2708ab]/10 text-[#2708ab]" />
                 <StatCard icon={Clock} label="Aguardando" value={stats.pending} color="bg-amber-100 text-amber-600" />
                 <StatCard icon={CheckCircle2} label="Confirmados" value={stats.confirmed} color="bg-emerald-100 text-emerald-600" />
                 <StatCard icon={XCircle} label="Cancelados" value={stats.cancelled} color="bg-slate-100 text-slate-500" />
+                <div className="col-span-2 sm:col-span-1">
+                    <StatCard
+                        icon={Banknote}
+                        label="Total arrecadado"
+                        value={`R$ ${stats.totalPaid.toFixed(2).replace(".", ",")}`}
+                        color="bg-emerald-100 text-emerald-600"
+                    />
+                </div>
             </div>
 
             {/* Filters */}
