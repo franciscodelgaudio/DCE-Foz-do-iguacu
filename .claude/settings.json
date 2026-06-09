@@ -83,7 +83,8 @@
       "PowerShell(Get-ChildItem -Path \"c:\\\\Users\\\\Admin\\\\OneDrive - UNIOESTE\\\\DCE\\\\SITE\" -Recurse -Directory | Where-Object { $_.Name -eq \"home\" } | Select-Object FullName)",
       "Bash(grep -E \"\\\\.jsx?$\")",
       "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\Admin\\\\OneDrive - UNIOESTE\\\\DCE\\\\SITE\" -Recurse -Include \"*event*\" -Directory)",
-      "Bash(xargs ls -lh)"
+      "Bash(xargs ls -lh)",
+      "Bash(grep -E \"\\\\.\\(tsx|ts\\)$\")"
     ],
     "additionalDirectories": [
       "C:\\Users\\Admin\\OneDrive - UNIOESTE\\DCE"

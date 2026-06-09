@@ -2,7 +2,7 @@
 
 import { NavUser } from "./NavUser"
 import { NavMain } from "./NavMain"
-import { House, FolderKanban, CalendarDays, Users, Heart, FileText } from "lucide-react"
+import { House, FolderKanban, CalendarDays, Users, Heart, FileText, LayoutList } from "lucide-react"
 
 import {
     Sidebar,
@@ -16,7 +16,14 @@ import { NavHeader } from "./NavHeader"
 export default function AppSidebar({ user, isAdmin = false }) {
     const navMain = [
         { title: "Home", url: `/dashboard`, icon: House, exact: true },
-        { title: "Jornal", url: `/dashboard/news`, icon: FolderKanban },
+        {
+            title: "Jornal",
+            url: `/dashboard/news`,
+            icon: FolderKanban,
+            items: [
+                { title: "Controle Editorial", url: `/dashboard/news/editorial`, icon: LayoutList },
+            ],
+        },
         { title: "Eventos", url: `/dashboard/events`, icon: CalendarDays },
         { title: "Correio Elegante", url: `/dashboard/correio-elegante`, icon: Heart },
         { title: "Editais e Atas", url: `/dashboard/documentos`, icon: FileText },

@@ -8,6 +8,7 @@ import { upsertNews } from '@/lib/actions/news'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useRouter } from 'next/navigation'
+import { COORDINATIONS } from '@/lib/editorial'
 
 export function Display({ isAdmin = false }) {
     const { register, control, handleSubmit, watch, formState: { isSubmitting }, } = useForm({})
@@ -97,6 +98,19 @@ export function Display({ isAdmin = false }) {
                     className="border p-2 w-full rounded-md"
                     {...register('title', { required: true })}
                 />
+
+                <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">Coordenação responsável</p>
+                    <select
+                        className="h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                        {...register('coordination')}
+                    >
+                        <option value="">— Selecione —</option>
+                        {COORDINATIONS.map((c) => (
+                            <option key={c.key} value={c.key}>{c.label}</option>
+                        ))}
+                    </select>
+                </div>
 
                 <div className="space-y-1">
                     <p className="text-sm text-muted-foreground">Resumo</p>

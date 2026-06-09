@@ -6,6 +6,8 @@ import { z } from "zod"
 import { News } from "../../models/news"
 import mongoose from "mongoose"
 
+const COORDINATION_KEYS = ["comunicacao", "cultura", "integracao", "ensino", "movimento", "assistencia", "diversidade", "presidencia"]
+
 const newsSchema = z.object({
     _id: z.string().optional(),
     title: z.string().min(1),
@@ -16,6 +18,7 @@ const newsSchema = z.object({
     }),
     status: z.enum(["draft", "published", "scheduled", "archived"]).optional(),
     scheduledAt: z.string().optional(),
+    coordination: z.enum(COORDINATION_KEYS).nullable().optional(),
 })
 
 export async function upsertNews(form) {
@@ -28,7 +31,7 @@ export async function upsertNews(form) {
     const parsed = newsSchema.safeParse(form)
     if (!parsed.success) { return { success: false, message: "Zod falhou!" } }
 
-    const { _id, title, excerpt, content, status, scheduledAt } = parsed.data
+    const { _id, title, excerpt, content, status, scheduledAt, coordination } = parsed.data
 
     const isAdmin = session.user?.role === "admin"
     if ((status === "published" || status === "scheduled") && !isAdmin) {
@@ -57,6 +60,7 @@ export async function upsertNews(form) {
             email: session.user.email,
             avatarUrl: session.user.image
         },
+        coordination: coordination ?? null,
         status,
         ...dateFields,
     }
