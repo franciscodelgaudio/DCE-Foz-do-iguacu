@@ -102,98 +102,6 @@ export async function createOrder(form) {
             paymentStatus: "pending",
         })
         const priceFormatted = Number(pkgInfo.price).toFixed(2).replace(".", ",")
-
-        if (senderEmail && process.env.RESEND_API_KEY) {
-            try {
-                const settings = await Settings.findOne().lean()
-                const pixKey = settings?.pixKey
-                const pixRecipientName = settings?.pixRecipientName || "DCE UNIOESTE"
-
-                let pixSection = ""
-                if (pixKey) {
-                    const pixPayload = buildPixPayload(pixKey, pixRecipientName, pkgInfo.price, orderNumber)
-                    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(pixPayload)}`
-                    pixSection = `
-                        <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:20px;margin-bottom:20px;text-align:center;">
-                            <p style="color:#166534;font-size:14px;font-weight:700;margin:0 0 4px;">Pague via PIX</p>
-                            <p style="color:#166534;font-size:13px;margin:0 0 16px;">Escaneie o QR Code ou use o código Copia e Cola abaixo</p>
-                            <div style="margin-bottom:12px;">
-                                <div style="display:inline-block;background:#fff;border:2px solid #bbf7d0;border-radius:12px;padding:10px;">
-                                    <img src="${qrUrl}" alt="QR Code PIX" width="200" height="200" style="display:block;" />
-                                </div>
-                            </div>
-                            <div style="background:#fff;border:1px solid #bbf7d0;border-radius:8px;padding:10px 12px;margin-bottom:8px;text-align:left;">
-                                <p style="color:#166534;font-size:11px;font-weight:700;margin:0 0 4px;">PIX Copia e Cola — Valor travado · R$ ${priceFormatted}</p>
-                                <p style="color:#374151;font-size:10px;font-family:monospace;word-break:break-all;margin:0;">${buildPixPayload(pixKey, pixRecipientName, pkgInfo.price, orderNumber)}</p>
-                            </div>
-                            <p style="color:#4ade80;font-size:11px;margin:0;">O nº do pedido <strong>${orderNumber}</strong> está identificado no PIX.</p>
-                        </div>
-                    `
-                }
-
-                const { Resend } = await import("resend")
-                const resend = new Resend(process.env.RESEND_API_KEY)
-                await resend.emails.send({
-                    from: "DCE UNIOESTE <no-reply@dceunioestefoz.org>",
-                    to: senderEmail,
-                    subject: `Pedido recebido! Aguardando pagamento — ${orderNumber} · Correio Elegante DCE`,
-                    html: `
-                        <div style="font-family:sans-serif;max-width:560px;margin:0 auto;padding:32px 16px;background:#fff;">
-                            <div style="text-align:center;margin-bottom:28px;">
-                                <img src="https://dceunioestefoz.org/images/home/logo.png" alt="DCE UNIOESTE" style="height:72px;width:auto;" />
-                            </div>
-                            <div style="text-align:center;margin-bottom:12px;">
-                                <div style="display:inline-flex;align-items:center;justify-content:center;width:64px;height:64px;background:#fdf25a;border-radius:50%;border:3px solid #be123c;">
-                                    <span style="font-size:32px;">&#128140;</span>
-                                </div>
-                            </div>
-                            <h1 style="color:#be123c;text-align:center;font-size:24px;margin-bottom:4px;">Pedido recebido!</h1>
-                            <p style="text-align:center;color:#64748b;margin-bottom:8px;">Seu pedido foi registrado com sucesso.</p>
-                            <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:12px;padding:14px 16px;margin-bottom:20px;text-align:center;">
-                                <p style="color:#92400e;font-size:13px;font-weight:600;margin:0;">&#9888;&#65039; Pagamento ainda não realizado</p>
-                                <p style="color:#92400e;font-size:13px;margin:4px 0 0;">Efetue o pagamento via PIX abaixo para confirmar seu Correio Elegante.</p>
-                            </div>
-                            <div style="background:#fff1f2;border:1px solid #fecdd3;border-radius:12px;padding:20px;margin-bottom:20px;">
-                                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-                                    <span style="color:#64748b;font-size:14px;">Nº do pedido</span>
-                                    <strong style="color:#be123c;font-size:15px;">${orderNumber}</strong>
-                                </div>
-                                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-                                    <span style="color:#64748b;font-size:14px;">Pacote</span>
-                                    <strong style="color:#1e293b;">${pkgInfo.label}</strong>
-                                </div>
-                                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-                                    <span style="color:#64748b;font-size:14px;">Para</span>
-                                    <strong style="color:#1e293b;">${recipientName}</strong>
-                                </div>
-                                ${recipientCourse ? `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-                                    <span style="color:#64748b;font-size:14px;">Curso / Período</span>
-                                    <strong style="color:#1e293b;">${recipientCourse}${recipientYear ? ` — ${recipientYear}` : ""}</strong>
-                                </div>` : ""}
-                                <div style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid #fecdd3;padding-top:14px;margin-top:4px;">
-                                    <span style="color:#64748b;font-size:14px;">Valor a pagar</span>
-                                    <strong style="color:#be123c;font-size:18px;">R$ ${priceFormatted}</strong>
-                                </div>
-                            </div>
-                            ${pixSection}
-                            <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:16px;margin-bottom:28px;text-align:center;">
-                                <p style="color:#166534;font-size:14px;margin:0;">
-                                    &#127881; Entrega: <strong>12 de junho</strong> — o DCE levará seu presente até o destinatário!
-                                </p>
-                            </div>
-                            <hr style="border:none;border-top:1px solid #f1f5f9;margin-bottom:16px;" />
-                            <p style="color:#94a3b8;font-size:12px;text-align:center;margin:0;">
-                                DCE UNIOESTE — Campus Foz do Iguaçu<br>
-                                Este é um email automático, não responda.
-                            </p>
-                        </div>
-                    `,
-                })
-            } catch (emailErr) {
-                console.error("[createOrder] Erro ao enviar email de pedido pendente:", emailErr)
-            }
-        }
-
         return {
             success: true,
             message: "Pedido realizado com sucesso!",
@@ -675,6 +583,136 @@ export async function resendConfirmationEmail(orderId) {
     } catch (err) {
         console.error("[resendConfirmationEmail] Exceção:", err)
         return { success: false, message: "Erro ao enviar o email." }
+    }
+}
+
+export async function sendPaymentReminderEmail(orderId) {
+    const session = await auth()
+    if (!session) redirect("/login")
+
+    if (session.user?.role !== "admin") {
+        return { success: false, message: "Apenas administradores podem enviar lembretes." }
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(orderId)) {
+        return { success: false, message: "ID inválido." }
+    }
+
+    const order = await CorreioElegante.findById(orderId).lean()
+    if (!order) return { success: false, message: "Pedido não encontrado." }
+    if (order.paymentStatus !== "pending") return { success: false, message: "Este pedido não está com pagamento pendente." }
+    if (!order.senderEmail) return { success: false, message: "Este pedido não tem email cadastrado." }
+
+    if (!process.env.RESEND_API_KEY) {
+        return { success: false, message: "Serviço de email não configurado." }
+    }
+
+    try {
+        const { Resend } = await import("resend")
+        const resend = new Resend(process.env.RESEND_API_KEY)
+
+        const pkgLabels = {
+            cartinha: "Cartinha",
+            rosa: "Rosa + Cartinha",
+            bombom_cartinha: "Bombom + Cartinha",
+            bombom_cartinha_rosa: "Bombom + Cartinha + Rosa",
+        }
+        const pkgLabel = pkgLabels[order.package] ?? order.package
+        const priceFormatted = Number(order.price).toFixed(2).replace(".", ",")
+
+        const settings = await Settings.findOne().lean()
+        const pixKey = settings?.pixKey
+        const pixRecipientName = settings?.pixRecipientName || "DCE UNIOESTE"
+
+        let pixSection = ""
+        if (pixKey) {
+            const pixPayload = buildPixPayload(pixKey, pixRecipientName, Number(order.price), order.orderNumber)
+            const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(pixPayload)}`
+            pixSection = `
+                <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:20px;margin-bottom:20px;text-align:center;">
+                    <p style="color:#166534;font-size:14px;font-weight:700;margin:0 0 4px;">Pague via PIX</p>
+                    <p style="color:#166534;font-size:13px;margin:0 0 16px;">Escaneie o QR Code ou use o código Copia e Cola abaixo</p>
+                    <div style="margin-bottom:12px;">
+                        <div style="display:inline-block;background:#fff;border:2px solid #bbf7d0;border-radius:12px;padding:10px;">
+                            <img src="${qrUrl}" alt="QR Code PIX" width="200" height="200" style="display:block;" />
+                        </div>
+                    </div>
+                    <div style="background:#fff;border:1px solid #bbf7d0;border-radius:8px;padding:10px 12px;margin-bottom:8px;text-align:left;">
+                        <p style="color:#166534;font-size:11px;font-weight:700;margin:0 0 4px;">PIX Copia e Cola — Valor travado · R$ ${priceFormatted}</p>
+                        <p style="color:#374151;font-size:10px;font-family:monospace;word-break:break-all;margin:0;">${pixPayload}</p>
+                    </div>
+                    <p style="color:#166534;font-size:11px;margin:0;">O nº do pedido <strong>${order.orderNumber}</strong> está identificado no PIX.</p>
+                </div>
+            `
+        }
+
+        const emailResult = await resend.emails.send({
+            from: "DCE UNIOESTE <no-reply@dceunioestefoz.org>",
+            to: order.senderEmail,
+            subject: `Lembrete de pagamento — Pedido ${order.orderNumber} · Correio Elegante DCE`,
+            html: `
+                <div style="font-family:sans-serif;max-width:560px;margin:0 auto;padding:32px 16px;background:#fff;">
+                    <div style="text-align:center;margin-bottom:28px;">
+                        <img src="https://dceunioestefoz.org/images/home/logo.png" alt="DCE UNIOESTE" style="height:72px;width:auto;" />
+                    </div>
+                    <div style="text-align:center;margin-bottom:12px;">
+                        <div style="display:inline-flex;align-items:center;justify-content:center;width:64px;height:64px;background:#fdf25a;border-radius:50%;border:3px solid #be123c;">
+                            <span style="font-size:32px;">&#128140;</span>
+                        </div>
+                    </div>
+                    <h1 style="color:#be123c;text-align:center;font-size:24px;margin-bottom:4px;">Lembrete de pagamento</h1>
+                    <p style="text-align:center;color:#64748b;margin-bottom:8px;">Seu pedido foi registrado, mas o pagamento ainda não foi identificado.</p>
+                    <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:12px;padding:14px 16px;margin-bottom:20px;text-align:center;">
+                        <p style="color:#92400e;font-size:13px;font-weight:600;margin:0;">&#9888;&#65039; Pagamento pendente</p>
+                        <p style="color:#92400e;font-size:13px;margin:4px 0 0;">Realize o pagamento via PIX abaixo para garantir o seu Correio Elegante!</p>
+                    </div>
+                    <div style="background:#fff1f2;border:1px solid #fecdd3;border-radius:12px;padding:20px;margin-bottom:20px;">
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                            <span style="color:#64748b;font-size:14px;">Nº do pedido</span>
+                            <strong style="color:#be123c;font-size:15px;">${order.orderNumber}</strong>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                            <span style="color:#64748b;font-size:14px;">Pacote</span>
+                            <strong style="color:#1e293b;">${pkgLabel}</strong>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                            <span style="color:#64748b;font-size:14px;">Para</span>
+                            <strong style="color:#1e293b;">${order.recipientName}</strong>
+                        </div>
+                        ${order.recipientCourse ? `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                            <span style="color:#64748b;font-size:14px;">Curso / Período</span>
+                            <strong style="color:#1e293b;">${order.recipientCourse}${order.recipientYear ? ` — ${order.recipientYear}` : ""}</strong>
+                        </div>` : ""}
+                        <div style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid #fecdd3;padding-top:14px;margin-top:4px;">
+                            <span style="color:#64748b;font-size:14px;">Valor a pagar</span>
+                            <strong style="color:#be123c;font-size:18px;">R$ ${priceFormatted}</strong>
+                        </div>
+                    </div>
+                    ${pixSection}
+                    <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:16px;margin-bottom:28px;text-align:center;">
+                        <p style="color:#166534;font-size:14px;margin:0;">
+                            &#127881; Entrega: <strong>${order.earlyDelivery ? "11 de junho" : "12 de junho"}</strong> — o DCE levará seu presente até o destinatário!
+                        </p>
+                    </div>
+                    <hr style="border:none;border-top:1px solid #f1f5f9;margin-bottom:16px;" />
+                    <p style="color:#94a3b8;font-size:12px;text-align:center;margin:0;">
+                        DCE UNIOESTE — Campus Foz do Iguaçu<br>
+                        Este é um email automático, não responda.
+                    </p>
+                </div>
+            `,
+        })
+
+        if (emailResult.error) {
+            console.error("[sendPaymentReminderEmail] Resend retornou erro:", emailResult.error)
+            return { success: false, message: "Erro ao enviar o lembrete." }
+        }
+
+        console.log("[sendPaymentReminderEmail] Lembrete enviado:", emailResult.data?.id)
+        return { success: true, message: `Lembrete de pagamento enviado para ${order.senderEmail}!` }
+    } catch (err) {
+        console.error("[sendPaymentReminderEmail] Exceção:", err)
+        return { success: false, message: "Erro ao enviar o lembrete." }
     }
 }
 

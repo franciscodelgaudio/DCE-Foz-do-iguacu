@@ -17,7 +17,7 @@ import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import {
     toggleAnonymous, toggleEarlyDelivery, updateCardMessage,
-    updateOrderDetails, resendConfirmationEmail,
+    updateOrderDetails, resendConfirmationEmail, sendPaymentReminderEmail,
 } from "@/lib/actions/correioElegante"
 
 const STATUS_STYLES = {
@@ -68,6 +68,7 @@ export function OrderDetailSheet({ order, open, onOpenChange, isAdmin }) {
     const [orderForm, setOrderForm] = useState({})
     const [savingOrder, setSavingOrder] = useState(false)
     const [sendingEmail, setSendingEmail] = useState(false)
+    const [sendingReminder, setSendingReminder] = useState(false)
 
     async function handleToggleAnonymous() {
         const result = await toggleAnonymous(order._id)
@@ -134,6 +135,17 @@ export function OrderDetailSheet({ order, open, onOpenChange, isAdmin }) {
         setSendingEmail(true)
         const result = await resendConfirmationEmail(order._id)
         setSendingEmail(false)
+        if (result.success) {
+            toast.success(result.message)
+        } else {
+            toast.error(result.message)
+        }
+    }
+
+    async function handleSendReminder() {
+        setSendingReminder(true)
+        const result = await sendPaymentReminderEmail(order._id)
+        setSendingReminder(false)
         if (result.success) {
             toast.success(result.message)
         } else {
@@ -436,25 +448,44 @@ export function OrderDetailSheet({ order, open, onOpenChange, isAdmin }) {
                     {isAdmin && order.senderEmail && (
                         <>
                             <Separator />
-                            <DetailSection icon={Mail} title="Email de confirmação">
-                                <p className="mb-2 text-xs text-slate-500">
+                            <DetailSection icon={Mail} title="Emails">
+                                <p className="mb-3 text-xs text-slate-500">
                                     Destinatário: <span className="font-medium text-slate-700">{order.senderEmail}</span>
                                 </p>
-                                <ConfirmDialog
-                                    title="Reenviar email de confirmação"
-                                    subtitle={`Será enviado o email de pagamento confirmado para ${order.senderEmail}.`}
-                                    onClick={handleResendEmail}
-                                >
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        className="w-full gap-1.5 text-xs"
-                                        disabled={sendingEmail}
+                                {order.paymentStatus === "pending" && (
+                                    <ConfirmDialog
+                                        title="Enviar lembrete de pagamento"
+                                        subtitle={`Será enviado um lembrete com o QR Code PIX para ${order.senderEmail}.`}
+                                        onClick={handleSendReminder}
                                     >
-                                        <Send className="size-3.5" />
-                                        {sendingEmail ? "Enviando..." : "Reenviar email de confirmação"}
-                                    </Button>
-                                </ConfirmDialog>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="mb-2 w-full gap-1.5 text-xs border-amber-200 text-amber-700 hover:bg-amber-50"
+                                            disabled={sendingReminder}
+                                        >
+                                            <Send className="size-3.5" />
+                                            {sendingReminder ? "Enviando..." : "Enviar lembrete com QR Code PIX"}
+                                        </Button>
+                                    </ConfirmDialog>
+                                )}
+                                {order.paymentStatus === "confirmed" && (
+                                    <ConfirmDialog
+                                        title="Reenviar email de confirmação"
+                                        subtitle={`Será enviado o email de pagamento confirmado para ${order.senderEmail}.`}
+                                        onClick={handleResendEmail}
+                                    >
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="w-full gap-1.5 text-xs"
+                                            disabled={sendingEmail}
+                                        >
+                                            <Send className="size-3.5" />
+                                            {sendingEmail ? "Enviando..." : "Reenviar email de confirmação"}
+                                        </Button>
+                                    </ConfirmDialog>
+                                )}
                             </DetailSection>
                         </>
                     )}
