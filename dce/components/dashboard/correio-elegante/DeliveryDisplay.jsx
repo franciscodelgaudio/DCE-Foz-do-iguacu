@@ -33,7 +33,7 @@ function StatCard({ icon: Icon, label, value, color }) {
     )
 }
 
-export function DeliveryDisplay({ orders, stats, isAdmin = false }) {
+export function DeliveryDisplay({ orders, stats, isAdmin = false, canMarkReady = false }) {
     const [search, setSearch] = useState("")
     const [deliveryFilter, setDeliveryFilter] = useState("")
 
@@ -148,7 +148,7 @@ export function DeliveryDisplay({ orders, stats, isAdmin = false }) {
                         </tr>
                     ) : (
                         filtered.map((order) => (
-                            <DeliveryOrderRow key={order._id} order={order} isAdmin={isAdmin} />
+                            <DeliveryOrderRow key={order._id} order={order} isAdmin={isAdmin} canMarkReady={canMarkReady} />
                         ))
                     )}
                 </TableBody>

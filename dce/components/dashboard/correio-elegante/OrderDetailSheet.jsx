@@ -7,7 +7,12 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { formatDate } from "@/components/ui/formatDate"
-import { MessageSquare, User, Heart, Package, CreditCard, Phone, Eye, EyeOff } from "lucide-react"
+import { MessageSquare, User, Heart, Package, CreditCard, Phone, Eye, EyeOff, UserX, UserCheck } from "lucide-react"
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog"
+import { Button } from "@/components/ui/button"
+import { useRouter } from "next/navigation"
+import { toast } from "sonner"
+import { toggleAnonymous } from "@/lib/actions/correioElegante"
 
 const STATUS_STYLES = {
     pending: "bg-amber-100 text-amber-700 border-amber-200",
@@ -41,7 +46,18 @@ function DetailSection({ icon: Icon, title, children }) {
 }
 
 export function OrderDetailSheet({ order, open, onOpenChange, isAdmin }) {
+    const router = useRouter()
     const [senderRevealed, setSenderRevealed] = useState(false)
+
+    async function handleToggleAnonymous() {
+        const result = await toggleAnonymous(order._id)
+        if (result.success) {
+            router.refresh()
+            toast.success(result.message)
+        } else {
+            toast.error(result.message)
+        }
+    }
 
     if (!order) return null
 
@@ -107,6 +123,28 @@ export function OrderDetailSheet({ order, open, onOpenChange, isAdmin }) {
                                 </p>
                             )}
                         </div>
+                        {isAdmin && (
+                            <ConfirmDialog
+                                title={order.isAnonymous ? "Remover anonimato" : "Marcar como anônimo"}
+                                subtitle={
+                                    order.isAnonymous
+                                        ? `O nome do remetente voltará a aparecer no pedido ${order.orderNumber}.`
+                                        : `O remetente do pedido ${order.orderNumber} será marcado como anônimo.`
+                                }
+                                onClick={handleToggleAnonymous}
+                            >
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="mt-2 w-full gap-1.5 text-xs"
+                                >
+                                    {order.isAnonymous
+                                        ? <><UserCheck className="size-3.5" /> Remover anonimato</>
+                                        : <><UserX className="size-3.5" /> Tornar anônimo</>
+                                    }
+                                </Button>
+                            </ConfirmDialog>
+                        )}
                     </DetailSection>
 
                     <Separator />

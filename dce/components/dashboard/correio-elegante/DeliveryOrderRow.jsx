@@ -31,7 +31,7 @@ const DELIVERY_LABELS = {
     delivered: "Entregue",
 }
 
-export function DeliveryOrderRow({ order, isAdmin = false }) {
+export function DeliveryOrderRow({ order, isAdmin = false, canMarkReady = false }) {
     const router = useRouter()
     const [sheetOpen, setSheetOpen] = useState(false)
     const deliveryStatus = order.deliveryStatus || "not_ready"
@@ -113,7 +113,7 @@ export function DeliveryOrderRow({ order, isAdmin = false }) {
                         >
                             <Eye className="size-4" />
                         </Button>
-                        {isAdmin && deliveryStatus === "not_ready" && (
+                        {canMarkReady && deliveryStatus === "not_ready" && (
                             <ConfirmDialog
                                 title="Marcar como pronto"
                                 subtitle={`Confirmar que o pedido ${order.orderNumber} de ${order.recipientName} está preparado e pronto para entrega?`}

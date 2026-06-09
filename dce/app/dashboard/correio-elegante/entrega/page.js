@@ -12,6 +12,7 @@ export default async function Page() {
     if (!session) redirect("/login")
 
     const isAdmin = session.user?.role === "admin"
+    const canMarkReady = isAdmin || session.user?.role === "membro"
 
     const orders = await CorreioElegante.find({ paymentStatus: "confirmed" })
         .sort({ createdAt: -1 })
@@ -29,6 +30,7 @@ export default async function Page() {
             orders={JSON.parse(JSON.stringify(orders))}
             stats={stats}
             isAdmin={isAdmin}
+            canMarkReady={canMarkReady}
         />
     )
 }

@@ -242,8 +242,9 @@ export async function markOrderReady(orderId) {
     const session = await auth()
     if (!session) redirect("/login")
 
-    if (session.user?.role !== "admin") {
-        return { success: false, message: "Apenas administradores podem atualizar o status de entrega." }
+    const role = session.user?.role
+    if (role !== "admin" && role !== "membro") {
+        return { success: false, message: "Sem permissão para atualizar o status de entrega." }
     }
 
     if (!mongoose.Types.ObjectId.isValid(orderId)) {
@@ -311,6 +312,34 @@ export async function deleteManyOrders(orderIds) {
         }
     } catch {
         return { success: false, message: "Erro ao deletar os pedidos." }
+    }
+}
+
+export async function toggleAnonymous(orderId) {
+    const session = await auth()
+    if (!session) redirect("/login")
+
+    if (session.user?.role !== "admin") {
+        return { success: false, message: "Apenas administradores podem alterar esta configuração." }
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(orderId)) {
+        return { success: false, message: "ID inválido." }
+    }
+
+    try {
+        const order = await CorreioElegante.findById(orderId).select("isAnonymous")
+        if (!order) return { success: false, message: "Pedido não encontrado." }
+
+        const newValue = !order.isAnonymous
+        await CorreioElegante.findByIdAndUpdate(orderId, { isAnonymous: newValue })
+        return {
+            success: true,
+            isAnonymous: newValue,
+            message: newValue ? "Remetente marcado como anônimo." : "Anonimato removido do remetente.",
+        }
+    } catch {
+        return { success: false, message: "Erro ao atualizar o pedido." }
     }
 }
 
