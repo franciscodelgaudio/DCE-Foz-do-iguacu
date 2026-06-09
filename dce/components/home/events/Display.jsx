@@ -194,7 +194,7 @@ function EventGrid({ events, muted = false }) {
                                 ) : null}
 
                                 {ev.excerpt ? (
-                                    <p className="text-sm text-muted-foreground line-clamp-2">{ev.excerpt}</p>
+                                    <p className="text-sm text-muted-foreground line-clamp-2">{ev.excerpt.replace(/<[^>]*>/g, '').trim()}</p>
                                 ) : null}
                             </CardHeader>
                         </Link>

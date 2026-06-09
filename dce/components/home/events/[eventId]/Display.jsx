@@ -46,9 +46,10 @@ export function Display({ eventItem }) {
                 </h1>
 
                 {eventItem.excerpt ? (
-                    <p className="max-w-3xl text-base leading-relaxed text-slate-600 sm:text-lg">
-                        {eventItem.excerpt}
-                    </p>
+                    <div
+                        className="max-w-3xl text-base leading-relaxed text-slate-600 sm:text-lg"
+                        dangerouslySetInnerHTML={{ __html: eventItem.excerpt }}
+                    />
                 ) : null}
 
                 <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-slate-500">
