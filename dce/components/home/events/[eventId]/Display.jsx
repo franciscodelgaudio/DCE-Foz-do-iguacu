@@ -4,12 +4,13 @@ import Link from "next/link"
 function formatEventDate(start, end) {
     if (!start) return null
     const s = new Date(start)
-    const opts = { day: "2-digit", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" }
+    const opts = { day: "2-digit", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit", timeZone: "UTC" }
     const startStr = s.toLocaleDateString("pt-BR", opts)
     if (!end) return startStr
     const e = new Date(end)
-    if (s.toDateString() === e.toDateString()) {
-        return `${startStr} – ${e.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}`
+    const sameDay = s.getUTCFullYear() === e.getUTCFullYear() && s.getUTCMonth() === e.getUTCMonth() && s.getUTCDate() === e.getUTCDate()
+    if (sameDay) {
+        return `${startStr} – ${e.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", timeZone: "UTC" })}`
     }
     return `${startStr} – ${e.toLocaleDateString("pt-BR", opts)}`
 }
