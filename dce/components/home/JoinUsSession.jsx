@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { Briefcase, ArrowRight, Clock, Building2, ChevronRight } from "lucide-react"
+import { Briefcase, ArrowRight, Clock, Building2, ChevronRight, ExternalLink } from "lucide-react"
 
 const STATUS_LABELS = {
     open: "Aberta",
@@ -24,6 +24,13 @@ export function JoinUsSession({ jobs = [] }) {
                             <p className="text-xs text-slate-500">Faça parte do DCE e construa o futuro do centro acadêmico</p>
                         </div>
                     </div>
+                    <Link
+                        href="/home/vagas"
+                        className="hidden items-center gap-1.5 text-sm font-bold text-[#2708ab] underline-offset-2 hover:underline sm:inline-flex"
+                    >
+                        Ver todas as vagas
+                        <ArrowRight className="h-3.5 w-3.5" />
+                    </Link>
                 </div>
 
                 <div className="mb-8 rounded-2xl border-2 border-[#2708ab]/20 bg-white p-6 md:p-8">
@@ -89,6 +96,16 @@ export function JoinUsSession({ jobs = [] }) {
                         ))}
                     </div>
                 )}
+
+                <div className="mt-5 text-center sm:hidden">
+                    <Link
+                        href="/home/vagas"
+                        className="inline-flex items-center gap-1.5 text-sm font-bold text-[#2708ab] underline-offset-2 hover:underline"
+                    >
+                        Ver todas as vagas
+                        <ArrowRight className="h-3.5 w-3.5" />
+                    </Link>
+                </div>
 
                 {hasJobs && (
                     <div className="mt-8 rounded-2xl border-2 border-[#2708ab] bg-[#2708ab] p-6 text-center text-white">
