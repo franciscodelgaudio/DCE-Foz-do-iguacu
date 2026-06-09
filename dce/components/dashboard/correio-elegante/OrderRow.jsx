@@ -69,7 +69,7 @@ export function OrderRow({ order, selected, onSelectChange, isAdmin }) {
     return (
         <>
             <OrderDetailSheet order={order} open={sheetOpen} onOpenChange={setSheetOpen} isAdmin={isAdmin} />
-            <TableRow>
+            <TableRow className={order.paymentStatus === "confirmed" ? "bg-emerald-50 hover:bg-emerald-100/60" : order.paymentStatus === "cancelled" ? "bg-slate-50 opacity-60" : ""}>
                 <TableCell onClick={(e) => e.stopPropagation()} className="cursor-default">
                     <input
                         type="checkbox"
