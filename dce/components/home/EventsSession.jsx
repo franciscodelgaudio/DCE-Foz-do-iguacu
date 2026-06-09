@@ -2,13 +2,13 @@ import Link from "next/link"
 import { CalendarDays, MapPin, ArrowRight, Clock, UserPlus } from "lucide-react"
 
 function formatDay(date) {
-    return new Intl.DateTimeFormat("pt-BR", { day: "2-digit" }).format(date)
+    return new Intl.DateTimeFormat("pt-BR", { day: "2-digit", timeZone: "UTC" }).format(date)
 }
 function formatMonth(date) {
-    return new Intl.DateTimeFormat("pt-BR", { month: "short" }).format(date).replace(".", "").toUpperCase()
+    return new Intl.DateTimeFormat("pt-BR", { month: "short", timeZone: "UTC" }).format(date).replace(".", "").toUpperCase()
 }
 function formatTime(date) {
-    return new Intl.DateTimeFormat("pt-BR", { hour: "2-digit", minute: "2-digit" }).format(date)
+    return new Intl.DateTimeFormat("pt-BR", { hour: "2-digit", minute: "2-digit", timeZone: "UTC" }).format(date)
 }
 
 export function EventsSession({ events = [] }) {
