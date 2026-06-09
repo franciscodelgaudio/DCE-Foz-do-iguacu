@@ -159,9 +159,10 @@ export function Display({ news = [] }) {
                                                 </CardTitle>
 
                                                 {n.excerpt ? (
-                                                    <p className="text-sm text-muted-foreground line-clamp-3">
-                                                        {n.excerpt}
-                                                    </p>
+                                                    <p
+                                                        className="text-sm text-muted-foreground line-clamp-3"
+                                                        dangerouslySetInnerHTML={{ __html: n.excerpt }}
+                                                    />
                                                 ) : null}
                                             </CardHeader>
                                         </Link>

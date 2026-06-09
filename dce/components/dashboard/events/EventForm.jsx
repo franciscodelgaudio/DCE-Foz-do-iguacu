@@ -36,7 +36,7 @@ export function EventForm({ eventItem, registrationCount = 0, isAdmin = false })
             location: '',
             eventDate: '',
             eventEndDate: '',
-            excerpt: '',
+            excerpt: { html: '', json: null },
             content: { html: DEFAULT_HTML, json: null },
             registration: {
                 enabled: false,
@@ -60,7 +60,7 @@ export function EventForm({ eventItem, registrationCount = 0, isAdmin = false })
             location: eventItem.location ?? '',
             eventDate: toDatetimeLocalValue(eventItem.eventDate),
             eventEndDate: toDatetimeLocalValue(eventItem.eventEndDate),
-            excerpt: eventItem.excerpt ?? '',
+            excerpt: { html: eventItem.excerpt ?? '', json: null },
             content: {
                 html: eventItem.contentHtml ?? DEFAULT_HTML,
                 json: eventItem.contentJson ?? null,
@@ -89,6 +89,7 @@ export function EventForm({ eventItem, registrationCount = 0, isAdmin = false })
         try {
             const data = {
                 ...values,
+                excerpt: values.excerpt?.html ?? '',
                 status,
                 ...(isEditing ? { _id: eventItem._id } : {}),
             }
@@ -154,10 +155,20 @@ export function EventForm({ eventItem, registrationCount = 0, isAdmin = false })
                     {...register('location')}
                 />
 
-                <Input
-                    placeholder="Resumo curto do evento"
-                    {...register('excerpt')}
-                />
+                <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">Resumo</p>
+                    <Controller
+                        control={control}
+                        name="excerpt"
+                        render={({ field }) => (
+                            <Tiptap
+                                minimal
+                                initialHtml={field.value?.html ?? ''}
+                                onChange={({ html, json }) => field.onChange({ html, json })}
+                            />
+                        )}
+                    />
+                </div>
 
                 <div className="space-y-1">
                     <p className="text-sm text-muted-foreground">Descrição completa</p>
