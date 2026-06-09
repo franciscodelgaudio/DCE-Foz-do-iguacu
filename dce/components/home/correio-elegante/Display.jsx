@@ -218,8 +218,9 @@ function SuccessScreen({ orderNumber, price, packageLabel, pixKey, pixKeyType, p
 
 export function Display({ isEnabled, pixKey, pixKeyType, pixRecipientName, inventory }) {
     const packageInventory = inventory?.packages ?? {}
+    const featuredPackage = PKG_DISPLAY.find((pkg) => pkg.highlight && packageInventory[pkg.key]?.available)?.key
     const firstAvailablePackage = PKG_DISPLAY.find((pkg) => packageInventory[pkg.key]?.available)?.key
-    const defaultPackage = firstAvailablePackage ?? "bombom_cartinha_rosa"
+    const defaultPackage = featuredPackage ?? firstAvailablePackage ?? "bombom_cartinha_rosa"
     const [selectedPackage, setSelectedPackage] = useState(defaultPackage)
     const [successData, setSuccessData] = useState(null)
     const [isSubmitting, setIsSubmitting] = useState(false)
@@ -262,9 +263,9 @@ export function Display({ isEnabled, pixKey, pixKeyType, pixRecipientName, inven
 
     function handleReset() {
         setSuccessData(null)
-        setSelectedPackage(null)
+        setSelectedPackage(defaultPackage)
         setServerError(null)
-        reset()
+        reset({ package: defaultPackage })
     }
 
     if (successData) {
@@ -331,16 +332,27 @@ export function Display({ isEnabled, pixKey, pixKeyType, pixRecipientName, inven
                                         Mais completo
                                     </span>
                                 )}
-                                <span className="mb-2 text-3xl">{pkg.emoji}</span>
-                                <div className="mb-1 flex items-start justify-between gap-2">
-                                    <p className="font-bold text-slate-800">{pkg.label}</p>
+                                <div className="mb-3 flex min-h-9 items-start justify-between gap-3">
+                                    <span className="text-3xl leading-none">{pkg.emoji}</span>
                                     <span className={[
-                                        "rounded-full px-2 py-0.5 text-[10px] font-bold",
-                                        isAvailable ? "bg-emerald-100 text-emerald-700" : "bg-slate-200 text-slate-500",
+                                        "shrink-0 rounded-full border px-2.5 py-1 text-center text-[10px] font-extrabold leading-none",
+                                        isAvailable
+                                            ? remaining <= 10
+                                                ? "border-amber-300 bg-[#fdf25a] text-[#9f1239]"
+                                                : "border-emerald-200 bg-emerald-100 text-emerald-700"
+                                            : "border-slate-200 bg-slate-200 text-slate-500",
                                     ].join(" ")}>
-                                        {isAvailable ? `${remaining} disp.` : "Esgotado"}
+                                        {isAvailable ? (
+                                            <>
+                                                <span className="block text-[11px]">{remaining}</span>
+                                                <span className="block">restam</span>
+                                            </>
+                                        ) : (
+                                            "Esgotado"
+                                        )}
                                     </span>
                                 </div>
+                                <p className="mb-1 font-bold leading-snug text-slate-800">{pkg.label}</p>
                                 <ul className="mb-3 space-y-0.5 text-xs text-slate-500">
                                     {pkg.items.map((item) => (
                                         <li key={item}>• {item}</li>
@@ -348,7 +360,7 @@ export function Display({ isEnabled, pixKey, pixKeyType, pixRecipientName, inven
                                 </ul>
                                 <p className="mt-auto text-xl font-extrabold text-[#be123c]">{pkg.price}</p>
                                 {watchedPackage === pkg.key && (
-                                    <div className="absolute right-3 top-3 flex h-5 w-5 items-center justify-center rounded-full bg-[#be123c]">
+                                    <div className="absolute bottom-4 right-4 flex h-5 w-5 items-center justify-center rounded-full bg-[#be123c]">
                                         <Check className="h-3 w-3 text-white" />
                                     </div>
                                 )}

@@ -91,7 +91,7 @@ function buildInventory(settings, orders = []) {
 export async function getCorreioEleganteInventory() {
     const [settings, activeOrders] = await Promise.all([
         Settings.findOne().lean(),
-        CorreioElegante.find({ paymentStatus: { $ne: "cancelled" } }).select("package").lean(),
+        CorreioElegante.find({ paymentStatus: "confirmed" }).select("package").lean(),
     ])
 
     return buildInventory(settings, activeOrders)

@@ -217,7 +217,7 @@ export function Display({ orders, stats, settings: initialSettings, inventory, i
                                     <div className="rounded-lg border p-4">
                                         <p className="mb-1 font-medium text-slate-800">Estoque total</p>
                                         <p className="mb-3 text-xs text-slate-500">
-                                            Pedidos não cancelados descontam do saldo disponível.
+                                            Pedidos com pagamento confirmado descontam do saldo disponível.
                                         </p>
                                         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                                             {[
