@@ -31,6 +31,7 @@ const CorreioEleganteSchema = new Schema(
         },
         readyAt: { type: Date },
         deliveredAt: { type: Date },
+        earlyDelivery: { type: Boolean, default: false },
         adminNotes: { type: String },
     },
     { timestamps: true }

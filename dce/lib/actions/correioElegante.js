@@ -343,6 +343,59 @@ export async function toggleAnonymous(orderId) {
     }
 }
 
+export async function toggleEarlyDelivery(orderId) {
+    const session = await auth()
+    if (!session) redirect("/login")
+
+    if (session.user?.role !== "admin") {
+        return { success: false, message: "Apenas administradores podem alterar esta configuração." }
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(orderId)) {
+        return { success: false, message: "ID inválido." }
+    }
+
+    try {
+        const order = await CorreioElegante.findById(orderId).select("earlyDelivery")
+        if (!order) return { success: false, message: "Pedido não encontrado." }
+
+        const newValue = !order.earlyDelivery
+        await CorreioElegante.findByIdAndUpdate(orderId, { earlyDelivery: newValue })
+        return {
+            success: true,
+            earlyDelivery: newValue,
+            message: newValue ? "Entrega antecipada (11/06) ativada." : "Entrega antecipada removida.",
+        }
+    } catch {
+        return { success: false, message: "Erro ao atualizar o pedido." }
+    }
+}
+
+export async function updateCardMessage(orderId, message) {
+    const session = await auth()
+    if (!session) redirect("/login")
+
+    if (session.user?.role !== "admin") {
+        return { success: false, message: "Apenas administradores podem editar mensagens." }
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(orderId)) {
+        return { success: false, message: "ID inválido." }
+    }
+
+    const trimmed = (message ?? "").trim()
+    if (trimmed.length > 500) {
+        return { success: false, message: "Mensagem não pode ultrapassar 500 caracteres." }
+    }
+
+    try {
+        await CorreioElegante.findByIdAndUpdate(orderId, { cardMessage: trimmed })
+        return { success: true, message: "Mensagem atualizada!" }
+    } catch {
+        return { success: false, message: "Erro ao atualizar a mensagem." }
+    }
+}
+
 export async function fixDuplicateOrderNumbers() {
     const session = await auth()
     if (!session) redirect("/login")

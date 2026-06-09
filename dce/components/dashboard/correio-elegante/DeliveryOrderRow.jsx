@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { TableCell, TableRow } from "@/components/ui/table"
-import { CheckCircle, PackageCheck, Truck, Eye } from "lucide-react"
+import { CheckCircle, PackageCheck, Truck, Eye, CalendarClock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog"
@@ -58,10 +58,16 @@ export function DeliveryOrderRow({ order, isAdmin = false, canMarkReady = false 
 
     return (
         <>
-            <OrderDetailSheet order={order} open={sheetOpen} onOpenChange={setSheetOpen} />
-            <TableRow>
-                <TableCell className="font-mono text-xs font-semibold text-[#2708ab]">
-                    {order.orderNumber}
+            <OrderDetailSheet order={order} open={sheetOpen} onOpenChange={setSheetOpen} isAdmin={isAdmin} />
+            <TableRow className={order.earlyDelivery ? "bg-orange-50 hover:bg-orange-100/60" : ""}>
+                <TableCell>
+                    <p className="font-mono text-xs font-semibold text-[#2708ab]">{order.orderNumber}</p>
+                    {order.earlyDelivery && (
+                        <span className="mt-0.5 inline-flex items-center gap-1 rounded-full bg-orange-100 px-1.5 py-0.5 text-[10px] font-semibold text-orange-700">
+                            <CalendarClock className="size-2.5" />
+                            11/06
+                        </span>
+                    )}
                 </TableCell>
                 <TableCell>
                     <span className="text-xs">{PACKAGE_LABELS[order.package] ?? order.package}</span>

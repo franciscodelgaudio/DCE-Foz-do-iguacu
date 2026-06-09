@@ -19,6 +19,14 @@ const DELIVERY_FILTER_OPTIONS = [
     { value: "delivered", label: "Entregues" },
 ]
 
+const PACKAGE_FILTER_OPTIONS = [
+    { value: "", label: "Todos os pacotes" },
+    { value: "cartinha", label: "Cartinha" },
+    { value: "rosa", label: "Rosa + Cartinha" },
+    { value: "bombom_cartinha", label: "Bombom + Cartinha" },
+    { value: "bombom_cartinha_rosa", label: "Bombom + Cartinha + Rosa" },
+]
+
 function StatCard({ icon: Icon, label, value, color }) {
     return (
         <div className="flex items-center gap-3 rounded-xl border bg-white p-4">
@@ -36,11 +44,13 @@ function StatCard({ icon: Icon, label, value, color }) {
 export function DeliveryDisplay({ orders, stats, isAdmin = false, canMarkReady = false }) {
     const [search, setSearch] = useState("")
     const [deliveryFilter, setDeliveryFilter] = useState("")
+    const [packageFilter, setPackageFilter] = useState("")
 
     const filtered = useMemo(() => {
         return orders.filter((o) => {
             const status = o.deliveryStatus || "not_ready"
-            const matchesFilter = !deliveryFilter || status === deliveryFilter
+            const matchesDelivery = !deliveryFilter || status === deliveryFilter
+            const matchesPackage = !packageFilter || o.package === packageFilter
             const term = search.toLowerCase()
             const matchesSearch =
                 !term ||
@@ -48,9 +58,9 @@ export function DeliveryDisplay({ orders, stats, isAdmin = false, canMarkReady =
                 o.recipientName?.toLowerCase().includes(term) ||
                 o.senderName?.toLowerCase().includes(term) ||
                 o.recipientCourse?.toLowerCase().includes(term)
-            return matchesFilter && matchesSearch
+            return matchesDelivery && matchesPackage && matchesSearch
         })
-    }, [orders, search, deliveryFilter])
+    }, [orders, search, deliveryFilter, packageFilter])
 
     return (
         <div>
@@ -114,6 +124,15 @@ export function DeliveryDisplay({ orders, stats, isAdmin = false, canMarkReady =
                     className="h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
                 >
                     {DELIVERY_FILTER_OPTIONS.map((o) => (
+                        <option key={o.value} value={o.value}>{o.label}</option>
+                    ))}
+                </select>
+                <select
+                    value={packageFilter}
+                    onChange={(e) => setPackageFilter(e.target.value)}
+                    className="h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                >
+                    {PACKAGE_FILTER_OPTIONS.map((o) => (
                         <option key={o.value} value={o.value}>{o.label}</option>
                     ))}
                 </select>

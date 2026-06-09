@@ -7,12 +7,12 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { formatDate } from "@/components/ui/formatDate"
-import { MessageSquare, User, Heart, Package, CreditCard, Phone, Eye, EyeOff, UserX, UserCheck } from "lucide-react"
+import { MessageSquare, User, Heart, Package, CreditCard, Phone, Eye, EyeOff, UserX, UserCheck, Pencil, X, Check, CalendarClock } from "lucide-react"
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog"
 import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
-import { toggleAnonymous } from "@/lib/actions/correioElegante"
+import { toggleAnonymous, toggleEarlyDelivery, updateCardMessage } from "@/lib/actions/correioElegante"
 
 const STATUS_STYLES = {
     pending: "bg-amber-100 text-amber-700 border-amber-200",
@@ -48,11 +48,42 @@ function DetailSection({ icon: Icon, title, children }) {
 export function OrderDetailSheet({ order, open, onOpenChange, isAdmin }) {
     const router = useRouter()
     const [senderRevealed, setSenderRevealed] = useState(false)
+    const [editingMessage, setEditingMessage] = useState(false)
+    const [messageValue, setMessageValue] = useState("")
+    const [savingMessage, setSavingMessage] = useState(false)
 
     async function handleToggleAnonymous() {
         const result = await toggleAnonymous(order._id)
         if (result.success) {
             router.refresh()
+            toast.success(result.message)
+        } else {
+            toast.error(result.message)
+        }
+    }
+
+    async function handleToggleEarlyDelivery() {
+        const result = await toggleEarlyDelivery(order._id)
+        if (result.success) {
+            router.refresh()
+            toast.success(result.message)
+        } else {
+            toast.error(result.message)
+        }
+    }
+
+    function startEditingMessage() {
+        setMessageValue(order.cardMessage ?? "")
+        setEditingMessage(true)
+    }
+
+    async function handleSaveMessage() {
+        setSavingMessage(true)
+        const result = await updateCardMessage(order._id, messageValue)
+        setSavingMessage(false)
+        if (result.success) {
+            router.refresh()
+            setEditingMessage(false)
             toast.success(result.message)
         } else {
             toast.error(result.message)
@@ -65,11 +96,17 @@ export function OrderDetailSheet({ order, open, onOpenChange, isAdmin }) {
         <Sheet open={open} onOpenChange={(v) => { if (!v) setSenderRevealed(false); onOpenChange(v) }}>
             <SheetContent className="flex w-full flex-col overflow-y-auto sm:max-w-md">
                 <SheetHeader className="pb-0">
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                         <SheetTitle className="font-mono text-[#2708ab]">{order.orderNumber}</SheetTitle>
                         <Badge variant="outline" className={STATUS_STYLES[order.paymentStatus]}>
                             {STATUS_LABELS[order.paymentStatus] ?? order.paymentStatus}
                         </Badge>
+                        {order.earlyDelivery && (
+                            <Badge variant="outline" className="border-orange-200 bg-orange-100 text-orange-700">
+                                <CalendarClock className="mr-1 size-3" />
+                                Entrega 11/06
+                            </Badge>
+                        )}
                     </div>
                     <SheetDescription>
                         Criado em {formatDate(order.createdAt) ?? "—"}
@@ -147,6 +184,27 @@ export function OrderDetailSheet({ order, open, onOpenChange, isAdmin }) {
                         )}
                     </DetailSection>
 
+                    {isAdmin && (
+                        <ConfirmDialog
+                            title={order.earlyDelivery ? "Remover entrega antecipada" : "Marcar entrega antecipada (11/06)"}
+                            subtitle={
+                                order.earlyDelivery
+                                    ? `O pedido ${order.orderNumber} voltará à data padrão de entrega (12/06).`
+                                    : `O pedido ${order.orderNumber} será marcado para entrega no dia 11/06 (exceção).`
+                            }
+                            onClick={handleToggleEarlyDelivery}
+                        >
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className={`mt-2 w-full gap-1.5 text-xs ${order.earlyDelivery ? "border-orange-200 text-orange-700 hover:bg-orange-50" : ""}`}
+                            >
+                                <CalendarClock className="size-3.5" />
+                                {order.earlyDelivery ? "Remover entrega 11/06" : "Marcar entrega 11/06"}
+                            </Button>
+                        </ConfirmDialog>
+                    )}
+
                     <Separator />
 
                     <DetailSection icon={Heart} title="Destinatário">
@@ -163,13 +221,62 @@ export function OrderDetailSheet({ order, open, onOpenChange, isAdmin }) {
                     <Separator />
 
                     <DetailSection icon={MessageSquare} title="Mensagem do cartão">
-                        <div className="min-h-[80px] rounded-lg border bg-white px-3 py-3">
-                            {order.cardMessage ? (
-                                <p className="whitespace-pre-wrap text-sm text-slate-700">{order.cardMessage}</p>
-                            ) : (
-                                <p className="italic text-sm text-slate-300">Sem mensagem</p>
-                            )}
-                        </div>
+                        {editingMessage ? (
+                            <div className="space-y-2">
+                                <textarea
+                                    value={messageValue}
+                                    onChange={(e) => setMessageValue(e.target.value)}
+                                    maxLength={500}
+                                    rows={4}
+                                    className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring resize-none"
+                                    placeholder="Mensagem da cartinha..."
+                                    autoFocus
+                                />
+                                <p className="text-right text-xs text-slate-400">{messageValue.length}/500</p>
+                                <div className="flex gap-2">
+                                    <Button
+                                        size="sm"
+                                        className="flex-1 gap-1.5 text-xs"
+                                        onClick={handleSaveMessage}
+                                        disabled={savingMessage}
+                                    >
+                                        <Check className="size-3.5" />
+                                        Salvar
+                                    </Button>
+                                    <Button
+                                        size="sm"
+                                        variant="outline"
+                                        className="gap-1.5 text-xs"
+                                        onClick={() => setEditingMessage(false)}
+                                        disabled={savingMessage}
+                                    >
+                                        <X className="size-3.5" />
+                                        Cancelar
+                                    </Button>
+                                </div>
+                            </div>
+                        ) : (
+                            <>
+                                <div className="min-h-[80px] rounded-lg border bg-white px-3 py-3">
+                                    {order.cardMessage ? (
+                                        <p className="whitespace-pre-wrap text-sm text-slate-700">{order.cardMessage}</p>
+                                    ) : (
+                                        <p className="italic text-sm text-slate-300">Sem mensagem</p>
+                                    )}
+                                </div>
+                                {isAdmin && (
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="mt-2 w-full gap-1.5 text-xs"
+                                        onClick={startEditingMessage}
+                                    >
+                                        <Pencil className="size-3.5" />
+                                        Editar mensagem
+                                    </Button>
+                                )}
+                            </>
+                        )}
                     </DetailSection>
 
                     {order.adminNotes && (
