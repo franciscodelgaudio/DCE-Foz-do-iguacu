@@ -8,8 +8,9 @@ import { EventsSession } from "./EventsSession"
 import { CorreioEleganteBanner } from "./CorreioEleganteBanner"
 import { PartnersSession } from "./PartnersSession"
 import { ContactSession } from "./ContactSession"
+import { JoinUsSession } from "./JoinUsSession"
 
-export function Display({ news, events, showBanner = false }) {
+export function Display({ news, events, jobs = [], showBanner = false }) {
 
     return (
         <>
@@ -18,6 +19,7 @@ export function Display({ news, events, showBanner = false }) {
             <EventsSession events={events} />
             <NewsSession news={news} />
             <AboutCalloutSession />
+            <JoinUsSession jobs={jobs} />
             <MemberSession />
             <PartnersSession />
             <ContactSession />
