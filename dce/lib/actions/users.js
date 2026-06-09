@@ -2,6 +2,7 @@
 
 import { auth } from "@/auth"
 import { redirect } from "next/navigation"
+import { headers } from "next/headers"
 import { z } from "zod"
 import { dbConnect } from "@/lib/mongoose"
 import { User } from "@/models/user"
@@ -87,7 +88,64 @@ export async function inviteUser(form) {
         invitedAt: new Date(),
     })
 
-    return { success: true, message: `Convite criado para ${email}. A pessoa pode fazer login com essa conta Google.` }
+    if (process.env.RESEND_API_KEY) {
+        try {
+            const headersList = await headers()
+            const host = headersList.get("host") ?? "dceunioestefoz.org"
+            const protocol = host.startsWith("localhost") ? "http" : "https"
+            const baseUrl = `${protocol}://${host}`
+            const loginUrl = `${baseUrl}/login`
+            const invitedByName = session.user?.name ?? session.user?.email ?? "Um administrador"
+
+            const { Resend } = await import("resend")
+            const resend = new Resend(process.env.RESEND_API_KEY)
+
+            await resend.emails.send({
+                from: "DCE UNIOESTE <no-reply@dceunioestefoz.org>",
+                to: email.toLowerCase(),
+                subject: "Você foi convidado para o painel do DCE UNIOESTE",
+                html: `
+                    <div style="font-family:sans-serif;max-width:560px;margin:0 auto;padding:32px 16px;background:#fff;">
+                        <div style="text-align:center;margin-bottom:28px;">
+                            <img src="https://dceunioestefoz.org/images/home/logo.png" alt="DCE UNIOESTE" style="height:72px;width:auto;" />
+                        </div>
+                        <h1 style="color:#2708ab;text-align:center;font-size:24px;margin-bottom:8px;">Você foi convidado!</h1>
+                        <p style="text-align:center;color:#64748b;margin-bottom:28px;">
+                            <strong>${invitedByName}</strong> convidou você para acessar o painel de gerenciamento do DCE UNIOESTE.
+                        </p>
+                        <div style="background:#f1f5ff;border:1px solid #c7d2fe;border-radius:12px;padding:20px;margin-bottom:24px;">
+                            <p style="color:#1e293b;font-size:14px;margin:0 0 8px;">
+                                <strong>Email de acesso:</strong> ${email.toLowerCase()}
+                            </p>
+                            <p style="color:#64748b;font-size:13px;margin:0;">
+                                Use exatamente esta conta Google para fazer login.
+                            </p>
+                        </div>
+                        <div style="text-align:center;margin-bottom:28px;">
+                            <a href="${loginUrl}" style="display:inline-block;background:#2708ab;color:#fff;text-decoration:none;font-size:16px;font-weight:600;padding:14px 36px;border-radius:8px;">
+                                Acessar o painel
+                            </a>
+                        </div>
+                        <p style="text-align:center;color:#94a3b8;font-size:12px;margin-bottom:4px;">
+                            Ou copie e cole este link no navegador:
+                        </p>
+                        <p style="text-align:center;margin-bottom:24px;">
+                            <a href="${loginUrl}" style="color:#2708ab;font-size:12px;word-break:break-all;">${loginUrl}</a>
+                        </p>
+                        <hr style="border:none;border-top:1px solid #f1f5f9;margin-bottom:16px;" />
+                        <p style="color:#94a3b8;font-size:12px;text-align:center;margin:0;">
+                            DCE UNIOESTE — Campus Foz do Iguaçu<br>
+                            Este é um email automático, não responda.
+                        </p>
+                    </div>
+                `,
+            })
+        } catch (emailErr) {
+            console.error("[inviteUser] Erro ao enviar email de convite:", emailErr)
+        }
+    }
+
+    return { success: true, message: `Convite criado para ${email}. Um email de convite foi enviado com o link de acesso.` }
 }
 
 const updateSchema = z.object({
