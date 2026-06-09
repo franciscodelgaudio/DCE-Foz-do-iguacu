@@ -429,7 +429,7 @@ export function Display({ isEnabled, pixKey, pixKeyType, pixRecipientName }) {
                                     <p className="text-xs text-red-500">{errors.senderEmail.message}</p>
                                 )}
                                 <p className="text-xs text-slate-400">
-                                    Se informado, você receberá um email quando o pagamento for confirmado.
+                                    Se informado, você receberá um email com o QR Code PIX para pagamento e outro quando o pagamento for confirmado.
                                 </p>
                             </div>
                         </div>

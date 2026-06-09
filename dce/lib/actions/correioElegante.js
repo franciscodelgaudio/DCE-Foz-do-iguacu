@@ -6,7 +6,41 @@ import { auth } from "@/auth"
 import { redirect } from "next/navigation"
 import { CorreioElegante } from "@/models/correioElegante"
 import { User } from "@/models/user"
+import { Settings } from "@/models/settings"
 import { formatBrazilWhatsapp, normalizeBrazilWhatsapp } from "@/lib/whatsapp"
+
+function crc16(str) {
+    let crc = 0xFFFF
+    for (let i = 0; i < str.length; i++) {
+        crc ^= str.charCodeAt(i) << 8
+        for (let j = 0; j < 8; j++) {
+            crc = (crc & 0x8000) ? ((crc << 1) ^ 0x1021) & 0xFFFF : (crc << 1) & 0xFFFF
+        }
+    }
+    return crc.toString(16).toUpperCase().padStart(4, '0')
+}
+
+function emv(id, value) {
+    const v = String(value)
+    return `${id}${String(v.length).padStart(2, '0')}${v}`
+}
+
+function buildPixPayload(pixKey, merchantName, amountNum, txid) {
+    const mai = emv('26', emv('00', 'BR.GOV.BCB.PIX') + emv('01', pixKey))
+    const name = merchantName.normalize('NFD').replace(/[̀-ͯ]/g, '').substring(0, 25).toUpperCase()
+    const txidClean = txid.replace(/[^a-zA-Z0-9]/g, '').substring(0, 25) || 'CORREIOELEGANTE'
+    const body = [
+        '000201', '010211', mai,
+        '52040000', '5303986',
+        emv('54', amountNum.toFixed(2)),
+        '5802BR',
+        emv('59', name),
+        emv('60', 'CASCAVEL'),
+        emv('62', emv('05', txidClean)),
+        '6304',
+    ].join('')
+    return body + crc16(body)
+}
 
 const PACKAGES = {
     cartinha: { label: "Cartinha", price: 2.5 },
@@ -68,6 +102,98 @@ export async function createOrder(form) {
             paymentStatus: "pending",
         })
         const priceFormatted = Number(pkgInfo.price).toFixed(2).replace(".", ",")
+
+        if (senderEmail && process.env.RESEND_API_KEY) {
+            try {
+                const settings = await Settings.findOne().lean()
+                const pixKey = settings?.pixKey
+                const pixRecipientName = settings?.pixRecipientName || "DCE UNIOESTE"
+
+                let pixSection = ""
+                if (pixKey) {
+                    const pixPayload = buildPixPayload(pixKey, pixRecipientName, pkgInfo.price, orderNumber)
+                    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(pixPayload)}`
+                    pixSection = `
+                        <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:20px;margin-bottom:20px;text-align:center;">
+                            <p style="color:#166534;font-size:14px;font-weight:700;margin:0 0 4px;">Pague via PIX</p>
+                            <p style="color:#166534;font-size:13px;margin:0 0 16px;">Escaneie o QR Code ou use o código Copia e Cola abaixo</p>
+                            <div style="margin-bottom:12px;">
+                                <div style="display:inline-block;background:#fff;border:2px solid #bbf7d0;border-radius:12px;padding:10px;">
+                                    <img src="${qrUrl}" alt="QR Code PIX" width="200" height="200" style="display:block;" />
+                                </div>
+                            </div>
+                            <div style="background:#fff;border:1px solid #bbf7d0;border-radius:8px;padding:10px 12px;margin-bottom:8px;text-align:left;">
+                                <p style="color:#166534;font-size:11px;font-weight:700;margin:0 0 4px;">PIX Copia e Cola — Valor travado · R$ ${priceFormatted}</p>
+                                <p style="color:#374151;font-size:10px;font-family:monospace;word-break:break-all;margin:0;">${buildPixPayload(pixKey, pixRecipientName, pkgInfo.price, orderNumber)}</p>
+                            </div>
+                            <p style="color:#4ade80;font-size:11px;margin:0;">O nº do pedido <strong>${orderNumber}</strong> está identificado no PIX.</p>
+                        </div>
+                    `
+                }
+
+                const { Resend } = await import("resend")
+                const resend = new Resend(process.env.RESEND_API_KEY)
+                await resend.emails.send({
+                    from: "DCE UNIOESTE <no-reply@dceunioestefoz.org>",
+                    to: senderEmail,
+                    subject: `Pedido recebido! Aguardando pagamento — ${orderNumber} · Correio Elegante DCE`,
+                    html: `
+                        <div style="font-family:sans-serif;max-width:560px;margin:0 auto;padding:32px 16px;background:#fff;">
+                            <div style="text-align:center;margin-bottom:28px;">
+                                <img src="https://dceunioestefoz.org/images/home/logo.png" alt="DCE UNIOESTE" style="height:72px;width:auto;" />
+                            </div>
+                            <div style="text-align:center;margin-bottom:12px;">
+                                <div style="display:inline-flex;align-items:center;justify-content:center;width:64px;height:64px;background:#fdf25a;border-radius:50%;border:3px solid #be123c;">
+                                    <span style="font-size:32px;">&#128140;</span>
+                                </div>
+                            </div>
+                            <h1 style="color:#be123c;text-align:center;font-size:24px;margin-bottom:4px;">Pedido recebido!</h1>
+                            <p style="text-align:center;color:#64748b;margin-bottom:8px;">Seu pedido foi registrado com sucesso.</p>
+                            <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:12px;padding:14px 16px;margin-bottom:20px;text-align:center;">
+                                <p style="color:#92400e;font-size:13px;font-weight:600;margin:0;">&#9888;&#65039; Pagamento ainda não realizado</p>
+                                <p style="color:#92400e;font-size:13px;margin:4px 0 0;">Efetue o pagamento via PIX abaixo para confirmar seu Correio Elegante.</p>
+                            </div>
+                            <div style="background:#fff1f2;border:1px solid #fecdd3;border-radius:12px;padding:20px;margin-bottom:20px;">
+                                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                                    <span style="color:#64748b;font-size:14px;">Nº do pedido</span>
+                                    <strong style="color:#be123c;font-size:15px;">${orderNumber}</strong>
+                                </div>
+                                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                                    <span style="color:#64748b;font-size:14px;">Pacote</span>
+                                    <strong style="color:#1e293b;">${pkgInfo.label}</strong>
+                                </div>
+                                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                                    <span style="color:#64748b;font-size:14px;">Para</span>
+                                    <strong style="color:#1e293b;">${recipientName}</strong>
+                                </div>
+                                ${recipientCourse ? `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                                    <span style="color:#64748b;font-size:14px;">Curso / Período</span>
+                                    <strong style="color:#1e293b;">${recipientCourse}${recipientYear ? ` — ${recipientYear}` : ""}</strong>
+                                </div>` : ""}
+                                <div style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid #fecdd3;padding-top:14px;margin-top:4px;">
+                                    <span style="color:#64748b;font-size:14px;">Valor a pagar</span>
+                                    <strong style="color:#be123c;font-size:18px;">R$ ${priceFormatted}</strong>
+                                </div>
+                            </div>
+                            ${pixSection}
+                            <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:16px;margin-bottom:28px;text-align:center;">
+                                <p style="color:#166534;font-size:14px;margin:0;">
+                                    &#127881; Entrega: <strong>12 de junho</strong> — o DCE levará seu presente até o destinatário!
+                                </p>
+                            </div>
+                            <hr style="border:none;border-top:1px solid #f1f5f9;margin-bottom:16px;" />
+                            <p style="color:#94a3b8;font-size:12px;text-align:center;margin:0;">
+                                DCE UNIOESTE — Campus Foz do Iguaçu<br>
+                                Este é um email automático, não responda.
+                            </p>
+                        </div>
+                    `,
+                })
+            } catch (emailErr) {
+                console.error("[createOrder] Erro ao enviar email de pedido pendente:", emailErr)
+            }
+        }
+
         return {
             success: true,
             message: "Pedido realizado com sucesso!",
@@ -393,6 +519,162 @@ export async function updateCardMessage(orderId, message) {
         return { success: true, message: "Mensagem atualizada!" }
     } catch {
         return { success: false, message: "Erro ao atualizar a mensagem." }
+    }
+}
+
+export async function updateOrderDetails(orderId, data) {
+    const session = await auth()
+    if (!session) redirect("/login")
+
+    if (session.user?.role !== "admin") {
+        return { success: false, message: "Apenas administradores podem editar pedidos." }
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(orderId)) {
+        return { success: false, message: "ID inválido." }
+    }
+
+    const schema = z.object({
+        package: z.enum(["cartinha", "rosa", "bombom_cartinha", "bombom_cartinha_rosa"]).optional(),
+        recipientYear: z.string().max(100).optional(),
+        recipientCourse: z.string().max(200).optional(),
+        senderEmail: z.string().email("Email inválido").optional().or(z.literal("")),
+    })
+
+    const parsed = schema.safeParse(data)
+    if (!parsed.success) {
+        return { success: false, message: "Dados inválidos.", errors: parsed.error.flatten().fieldErrors }
+    }
+
+    const update = {}
+    if (parsed.data.package !== undefined) {
+        update.package = parsed.data.package
+        update.price = PACKAGES[parsed.data.package].price
+    }
+    if (parsed.data.recipientYear !== undefined) update.recipientYear = parsed.data.recipientYear
+    if (parsed.data.recipientCourse !== undefined) update.recipientCourse = parsed.data.recipientCourse
+    if (parsed.data.senderEmail !== undefined) update.senderEmail = parsed.data.senderEmail
+
+    if (Object.keys(update).length === 0) {
+        return { success: false, message: "Nenhum campo para atualizar." }
+    }
+
+    try {
+        await CorreioElegante.findByIdAndUpdate(orderId, update)
+        return { success: true, message: "Pedido atualizado com sucesso!" }
+    } catch {
+        return { success: false, message: "Erro ao atualizar o pedido." }
+    }
+}
+
+export async function resendConfirmationEmail(orderId) {
+    const session = await auth()
+    if (!session) redirect("/login")
+
+    if (session.user?.role !== "admin") {
+        return { success: false, message: "Apenas administradores podem reenviar emails." }
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(orderId)) {
+        return { success: false, message: "ID inválido." }
+    }
+
+    const order = await CorreioElegante.findById(orderId).lean()
+    if (!order) return { success: false, message: "Pedido não encontrado." }
+    if (!order.senderEmail) return { success: false, message: "Este pedido não tem email cadastrado." }
+
+    if (!process.env.RESEND_API_KEY) {
+        return { success: false, message: "Serviço de email não configurado." }
+    }
+
+    try {
+        const { Resend } = await import("resend")
+        const resend = new Resend(process.env.RESEND_API_KEY)
+        const adminEmails = await User.find({ role: "admin", status: "ativo" }).distinct("email")
+        const pkgLabels = {
+            cartinha: "Cartinha",
+            rosa: "Rosa + Cartinha",
+            bombom_cartinha: "Bombom + Cartinha",
+            bombom_cartinha_rosa: "Bombom + Cartinha + Rosa",
+        }
+        const pkgLabel = pkgLabels[order.package] ?? order.package
+        const priceFormatted = Number(order.price).toFixed(2).replace(".", ",")
+
+        const emailResult = await resend.emails.send({
+            from: "DCE UNIOESTE <no-reply@dceunioestefoz.org>",
+            to: order.senderEmail,
+            cc: adminEmails.length > 0 ? adminEmails : undefined,
+            subject: `Pagamento confirmado! Pedido ${order.orderNumber} — Correio Elegante DCE`,
+            html: `
+                <div style="font-family:sans-serif;max-width:560px;margin:0 auto;padding:32px 16px;background:#fff;">
+                    <div style="text-align:center;margin-bottom:28px;">
+                        <img src="https://dceunioestefoz.org/images/home/logo.png" alt="DCE UNIOESTE" style="height:72px;width:auto;" />
+                    </div>
+                    <div style="text-align:center;margin-bottom:12px;">
+                        <div style="display:inline-flex;align-items:center;justify-content:center;width:64px;height:64px;background:#fdf25a;border-radius:50%;border:3px solid #be123c;">
+                            <span style="font-size:32px;">&#10084;</span>
+                        </div>
+                    </div>
+                    <h1 style="color:#be123c;text-align:center;font-size:24px;margin-bottom:4px;">Pagamento confirmado!</h1>
+                    <p style="text-align:center;color:#64748b;margin-bottom:28px;">Seu Correio Elegante está garantido. 💌</p>
+                    <div style="background:#fff1f2;border:1px solid #fecdd3;border-radius:12px;padding:20px;margin-bottom:20px;">
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                            <span style="color:#64748b;font-size:14px;">Nº do pedido</span>
+                            <strong style="color:#be123c;font-size:15px;">${order.orderNumber}</strong>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                            <span style="color:#64748b;font-size:14px;">Pacote</span>
+                            <strong style="color:#1e293b;">${pkgLabel}</strong>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                            <span style="color:#64748b;font-size:14px;">Para</span>
+                            <strong style="color:#1e293b;">${order.recipientName}</strong>
+                        </div>
+                        ${order.recipientCourse ? `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                            <span style="color:#64748b;font-size:14px;">Curso${order.recipientYear ? " / Período" : ""}</span>
+                            <strong style="color:#1e293b;">${order.recipientCourse}${order.recipientYear ? ` — ${order.recipientYear}` : ""}</strong>
+                        </div>` : ""}
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                            <span style="color:#64748b;font-size:14px;">De</span>
+                            <strong style="color:#1e293b;">${order.isAnonymous ? "Anônimo 🤫" : order.senderName}</strong>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                            <span style="color:#64748b;font-size:14px;">E-mail</span>
+                            <strong style="color:#1e293b;">${order.senderEmail}</strong>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid #fecdd3;padding-top:14px;margin-top:4px;">
+                            <span style="color:#64748b;font-size:14px;">Valor pago</span>
+                            <strong style="color:#be123c;font-size:18px;">R$ ${priceFormatted}</strong>
+                        </div>
+                    </div>
+                    ${order.cardMessage ? `<div style="background:#fdf8ff;border:1px solid #e9d5ff;border-radius:12px;padding:16px;margin-bottom:20px;">
+                        <p style="color:#7c3aed;font-size:13px;font-weight:600;margin:0 0 6px;">Mensagem da cartinha:</p>
+                        <p style="color:#1e293b;font-size:14px;font-style:italic;margin:0;">"${order.cardMessage}"</p>
+                    </div>` : ""}
+                    <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:16px;margin-bottom:28px;text-align:center;">
+                        <p style="color:#166534;font-size:14px;margin:0;">
+                            🎁 Entrega: <strong>${order.earlyDelivery ? "11 de junho" : "12 de junho"}</strong> — o DCE levará seu presente até o destinatário!
+                        </p>
+                    </div>
+                    <hr style="border:none;border-top:1px solid #f1f5f9;margin-bottom:16px;" />
+                    <p style="color:#94a3b8;font-size:12px;text-align:center;margin:0;">
+                        DCE UNIOESTE — Campus Foz do Iguaçu<br>
+                        Este é um email automático, não responda.
+                    </p>
+                </div>
+            `,
+        })
+
+        if (emailResult.error) {
+            console.error("[resendConfirmationEmail] Resend retornou erro:", emailResult.error)
+            return { success: false, message: "Erro ao enviar o email." }
+        }
+
+        console.log("[resendConfirmationEmail] Email reenviado:", emailResult.data?.id)
+        return { success: true, message: `Email de confirmação reenviado para ${order.senderEmail}!` }
+    } catch (err) {
+        console.error("[resendConfirmationEmail] Exceção:", err)
+        return { success: false, message: "Erro ao enviar o email." }
     }
 }
 

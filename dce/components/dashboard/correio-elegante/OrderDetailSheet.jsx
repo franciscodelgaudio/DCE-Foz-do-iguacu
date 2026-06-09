@@ -7,12 +7,18 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { formatDate } from "@/components/ui/formatDate"
-import { MessageSquare, User, Heart, Package, CreditCard, Phone, Eye, EyeOff, UserX, UserCheck, Pencil, X, Check, CalendarClock } from "lucide-react"
+import {
+    MessageSquare, User, Heart, Package, CreditCard, Phone, Eye, EyeOff,
+    UserX, UserCheck, Pencil, X, Check, CalendarClock, Mail, Send,
+} from "lucide-react"
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog"
 import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
-import { toggleAnonymous, toggleEarlyDelivery, updateCardMessage } from "@/lib/actions/correioElegante"
+import {
+    toggleAnonymous, toggleEarlyDelivery, updateCardMessage,
+    updateOrderDetails, resendConfirmationEmail,
+} from "@/lib/actions/correioElegante"
 
 const STATUS_STYLES = {
     pending: "bg-amber-100 text-amber-700 border-amber-200",
@@ -33,6 +39,13 @@ const PACKAGE_LABELS = {
     bombom_cartinha_rosa: "Bombom + Cartinha + Rosa",
 }
 
+const PACKAGE_OPTIONS = [
+    { value: "cartinha", label: "Cartinha", price: "R$ 2,50" },
+    { value: "rosa", label: "Rosa + Cartinha", price: "R$ 6,00" },
+    { value: "bombom_cartinha", label: "Bombom + Cartinha", price: "R$ 5,00" },
+    { value: "bombom_cartinha_rosa", label: "Bombom + Cartinha + Rosa", price: "R$ 8,50" },
+]
+
 function DetailSection({ icon: Icon, title, children }) {
     return (
         <div>
@@ -51,6 +64,10 @@ export function OrderDetailSheet({ order, open, onOpenChange, isAdmin }) {
     const [editingMessage, setEditingMessage] = useState(false)
     const [messageValue, setMessageValue] = useState("")
     const [savingMessage, setSavingMessage] = useState(false)
+    const [editingOrder, setEditingOrder] = useState(false)
+    const [orderForm, setOrderForm] = useState({})
+    const [savingOrder, setSavingOrder] = useState(false)
+    const [sendingEmail, setSendingEmail] = useState(false)
 
     async function handleToggleAnonymous() {
         const result = await toggleAnonymous(order._id)
@@ -90,10 +107,44 @@ export function OrderDetailSheet({ order, open, onOpenChange, isAdmin }) {
         }
     }
 
+    function startEditingOrder() {
+        setOrderForm({
+            package: order.package,
+            recipientYear: order.recipientYear ?? "",
+            recipientCourse: order.recipientCourse ?? "",
+            senderEmail: order.senderEmail ?? "",
+        })
+        setEditingOrder(true)
+    }
+
+    async function handleSaveOrder() {
+        setSavingOrder(true)
+        const result = await updateOrderDetails(order._id, orderForm)
+        setSavingOrder(false)
+        if (result.success) {
+            router.refresh()
+            setEditingOrder(false)
+            toast.success(result.message)
+        } else {
+            toast.error(result.message)
+        }
+    }
+
+    async function handleResendEmail() {
+        setSendingEmail(true)
+        const result = await resendConfirmationEmail(order._id)
+        setSendingEmail(false)
+        if (result.success) {
+            toast.success(result.message)
+        } else {
+            toast.error(result.message)
+        }
+    }
+
     if (!order) return null
 
     return (
-        <Sheet open={open} onOpenChange={(v) => { if (!v) setSenderRevealed(false); onOpenChange(v) }}>
+        <Sheet open={open} onOpenChange={(v) => { if (!v) { setSenderRevealed(false); setEditingOrder(false); setEditingMessage(false) } onOpenChange(v) }}>
             <SheetContent className="flex w-full flex-col overflow-y-auto sm:max-w-md">
                 <SheetHeader className="pb-0">
                     <div className="flex flex-wrap items-center gap-2">
@@ -159,6 +210,12 @@ export function OrderDetailSheet({ order, open, onOpenChange, isAdmin }) {
                                     {order.isAnonymous && !senderRevealed ? "•••••••••••" : order.senderContact}
                                 </p>
                             )}
+                            {order.senderEmail && (
+                                <p className="flex items-center gap-1.5 text-xs text-slate-500">
+                                    <Mail className="size-3 shrink-0" />
+                                    {order.isAnonymous && !senderRevealed ? "•••••••••••" : order.senderEmail}
+                                </p>
+                            )}
                         </div>
                         {isAdmin && (
                             <ConfirmDialog
@@ -217,6 +274,94 @@ export function OrderDetailSheet({ order, open, onOpenChange, isAdmin }) {
                             )}
                         </div>
                     </DetailSection>
+
+                    {isAdmin && (
+                        <>
+                            <Separator />
+
+                            <DetailSection icon={Pencil} title="Editar pedido">
+                                {editingOrder ? (
+                                    <div className="space-y-3">
+                                        <div className="space-y-1">
+                                            <label className="text-xs font-medium text-slate-600">Pacote</label>
+                                            <select
+                                                value={orderForm.package}
+                                                onChange={(e) => setOrderForm((f) => ({ ...f, package: e.target.value }))}
+                                                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                                            >
+                                                {PACKAGE_OPTIONS.map((opt) => (
+                                                    <option key={opt.value} value={opt.value}>
+                                                        {opt.label} — {opt.price}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="text-xs font-medium text-slate-600">Ano / Período do destinatário</label>
+                                            <input
+                                                type="text"
+                                                value={orderForm.recipientYear}
+                                                onChange={(e) => setOrderForm((f) => ({ ...f, recipientYear: e.target.value }))}
+                                                placeholder="Ex: 3º ano, 2º semestre..."
+                                                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                                            />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="text-xs font-medium text-slate-600">Curso do destinatário</label>
+                                            <input
+                                                type="text"
+                                                value={orderForm.recipientCourse}
+                                                onChange={(e) => setOrderForm((f) => ({ ...f, recipientCourse: e.target.value }))}
+                                                placeholder="Ex: Engenharia Civil..."
+                                                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                                            />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="text-xs font-medium text-slate-600">E-mail do remetente</label>
+                                            <input
+                                                type="email"
+                                                value={orderForm.senderEmail}
+                                                onChange={(e) => setOrderForm((f) => ({ ...f, senderEmail: e.target.value }))}
+                                                placeholder="email@exemplo.com"
+                                                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                                            />
+                                        </div>
+                                        <div className="flex gap-2">
+                                            <Button
+                                                size="sm"
+                                                className="flex-1 gap-1.5 text-xs"
+                                                onClick={handleSaveOrder}
+                                                disabled={savingOrder}
+                                            >
+                                                <Check className="size-3.5" />
+                                                Salvar alterações
+                                            </Button>
+                                            <Button
+                                                size="sm"
+                                                variant="outline"
+                                                className="gap-1.5 text-xs"
+                                                onClick={() => setEditingOrder(false)}
+                                                disabled={savingOrder}
+                                            >
+                                                <X className="size-3.5" />
+                                                Cancelar
+                                            </Button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="w-full gap-1.5 text-xs"
+                                        onClick={startEditingOrder}
+                                    >
+                                        <Pencil className="size-3.5" />
+                                        Editar pacote, ano, curso e e-mail
+                                    </Button>
+                                )}
+                            </DetailSection>
+                        </>
+                    )}
 
                     <Separator />
 
@@ -284,6 +429,32 @@ export function OrderDetailSheet({ order, open, onOpenChange, isAdmin }) {
                             <Separator />
                             <DetailSection icon={CreditCard} title="Notas internas">
                                 <p className="text-sm text-slate-600">{order.adminNotes}</p>
+                            </DetailSection>
+                        </>
+                    )}
+
+                    {isAdmin && order.senderEmail && (
+                        <>
+                            <Separator />
+                            <DetailSection icon={Mail} title="Email de confirmação">
+                                <p className="mb-2 text-xs text-slate-500">
+                                    Destinatário: <span className="font-medium text-slate-700">{order.senderEmail}</span>
+                                </p>
+                                <ConfirmDialog
+                                    title="Reenviar email de confirmação"
+                                    subtitle={`Será enviado o email de pagamento confirmado para ${order.senderEmail}.`}
+                                    onClick={handleResendEmail}
+                                >
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="w-full gap-1.5 text-xs"
+                                        disabled={sendingEmail}
+                                    >
+                                        <Send className="size-3.5" />
+                                        {sendingEmail ? "Enviando..." : "Reenviar email de confirmação"}
+                                    </Button>
+                                </ConfirmDialog>
                             </DetailSection>
                         </>
                     )}
