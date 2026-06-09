@@ -2,6 +2,7 @@ import { auth } from "@/auth"
 import { redirect } from "next/navigation"
 import { Display } from "@/components/dashboard/correio-elegante/Display"
 import { CorreioElegante } from "@/models/correioElegante"
+import { getCorreioEleganteInventory } from "@/lib/actions/correioElegante"
 import { getSettings } from "@/lib/actions/settings"
 
 export const metadata = {
@@ -18,9 +19,10 @@ export default async function Page() {
         session.user?.email?.toLowerCase() === DEFAULT_ADMIN_EMAIL ||
         session.user?.role === "admin"
 
-    const [orders, settings] = await Promise.all([
+    const [orders, settings, inventory] = await Promise.all([
         CorreioElegante.find().sort({ createdAt: -1 }).lean(),
         getSettings(),
+        getCorreioEleganteInventory(),
     ])
 
     const confirmedOrders = orders.filter((o) => o.paymentStatus === "confirmed")
@@ -37,6 +39,7 @@ export default async function Page() {
             orders={JSON.parse(JSON.stringify(orders))}
             stats={stats}
             settings={settings}
+            inventory={inventory}
             isAdmin={isAdmin}
         />
     )

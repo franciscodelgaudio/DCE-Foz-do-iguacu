@@ -10,6 +10,11 @@ const settingsSchema = z.object({
     pixKeyType: z.enum(["email", "phone", "cpf", "random"]).optional(),
     pixRecipientName: z.string().optional(),
     correioEleganteEnabled: z.boolean().optional(),
+    correioEleganteStock: z.object({
+        cartinha: z.coerce.number().int().min(0).optional(),
+        rosa: z.coerce.number().int().min(0).optional(),
+        bombom: z.coerce.number().int().min(0).optional(),
+    }).optional(),
 })
 
 export async function getSettings() {

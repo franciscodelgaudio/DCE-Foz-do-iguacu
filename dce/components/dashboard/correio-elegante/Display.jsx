@@ -50,7 +50,7 @@ function StatCard({ icon: Icon, label, value, color }) {
     )
 }
 
-export function Display({ orders, stats, settings: initialSettings, isAdmin }) {
+export function Display({ orders, stats, settings: initialSettings, inventory, isAdmin }) {
     const router = useRouter()
     const [search, setSearch] = useState("")
     const [statusFilter, setStatusFilter] = useState("")
@@ -60,6 +60,11 @@ export function Display({ orders, stats, settings: initialSettings, isAdmin }) {
         pixKeyType: initialSettings?.pixKeyType ?? "email",
         pixRecipientName: initialSettings?.pixRecipientName ?? "",
         correioEleganteEnabled: initialSettings?.correioEleganteEnabled ?? false,
+        correioEleganteStock: {
+            cartinha: initialSettings?.correioEleganteStock?.cartinha ?? 0,
+            rosa: initialSettings?.correioEleganteStock?.rosa ?? 0,
+            bombom: initialSettings?.correioEleganteStock?.bombom ?? 0,
+        },
     })
     const [savingSettings, setSavingSettings] = useState(false)
 
@@ -208,6 +213,40 @@ export function Display({ orders, stats, settings: initialSettings, isAdmin }) {
                                             }
                                             placeholder="Ex: DCE UNIOESTE Foz"
                                         />
+                                    </div>
+                                    <div className="rounded-lg border p-4">
+                                        <p className="mb-1 font-medium text-slate-800">Estoque total</p>
+                                        <p className="mb-3 text-xs text-slate-500">
+                                            Pedidos não cancelados descontam do saldo disponível.
+                                        </p>
+                                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                                            {[
+                                                ["cartinha", "Cartinhas"],
+                                                ["rosa", "Rosas"],
+                                                ["bombom", "Bombons"],
+                                            ].map(([key, label]) => (
+                                                <div key={key} className="space-y-1.5">
+                                                    <Label>{label}</Label>
+                                                    <Input
+                                                        type="number"
+                                                        min="0"
+                                                        value={settingsForm.correioEleganteStock[key]}
+                                                        onChange={(e) =>
+                                                            setSettingsForm((f) => ({
+                                                                ...f,
+                                                                correioEleganteStock: {
+                                                                    ...f.correioEleganteStock,
+                                                                    [key]: e.target.value,
+                                                                },
+                                                            }))
+                                                        }
+                                                    />
+                                                    <p className="text-[11px] text-slate-400">
+                                                        Restam {inventory?.remaining?.[key] ?? 0}
+                                                    </p>
+                                                </div>
+                                            ))}
+                                        </div>
                                     </div>
                                 </div>
                                 <SheetFooter className="mt-6">

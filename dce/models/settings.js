@@ -11,6 +11,11 @@ const SettingsSchema = new Schema(
         },
         pixRecipientName: { type: String, default: "" },
         correioEleganteEnabled: { type: Boolean, default: true },
+        correioEleganteStock: {
+            cartinha: { type: Number, default: 0, min: 0 },
+            rosa: { type: Number, default: 0, min: 0 },
+            bombom: { type: Number, default: 0, min: 0 },
+        },
     },
     { timestamps: true }
 );

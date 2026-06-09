@@ -216,11 +216,15 @@ function SuccessScreen({ orderNumber, price, packageLabel, pixKey, pixKeyType, p
     )
 }
 
-export function Display({ isEnabled, pixKey, pixKeyType, pixRecipientName }) {
-    const [selectedPackage, setSelectedPackage] = useState("bombom_cartinha_rosa")
+export function Display({ isEnabled, pixKey, pixKeyType, pixRecipientName, inventory }) {
+    const packageInventory = inventory?.packages ?? {}
+    const firstAvailablePackage = PKG_DISPLAY.find((pkg) => packageInventory[pkg.key]?.available)?.key
+    const defaultPackage = firstAvailablePackage ?? "bombom_cartinha_rosa"
+    const [selectedPackage, setSelectedPackage] = useState(defaultPackage)
     const [successData, setSuccessData] = useState(null)
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [serverError, setServerError] = useState(null)
+    const selectedPackageAvailable = packageInventory[selectedPackage]?.available ?? false
 
     const {
         register,
@@ -231,7 +235,7 @@ export function Display({ isEnabled, pixKey, pixKeyType, pixRecipientName }) {
         formState: { errors },
     } = useForm({
         resolver: zodResolver(formSchema),
-        defaultValues: { package: "bombom_cartinha_rosa" },
+        defaultValues: { package: defaultPackage },
     })
 
     const watchedPackage = watch("package")
@@ -239,6 +243,7 @@ export function Display({ isEnabled, pixKey, pixKeyType, pixRecipientName }) {
     const senderContactField = register("senderContact")
 
     function handleSelectPackage(key) {
+        if (!packageInventory[key]?.available) return
         setSelectedPackage(key)
         setValue("package", key, { shouldValidate: true })
     }
@@ -301,13 +306,21 @@ export function Display({ isEnabled, pixKey, pixKeyType, pixRecipientName }) {
                     <h2 className="mb-1 text-xl font-extrabold text-[#be123c]">Escolha o pacote</h2>
                     <p className="mb-5 text-sm text-slate-500">Selecione o que você quer enviar</p>
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                        {PKG_DISPLAY.map((pkg) => (
+                        {PKG_DISPLAY.map((pkg) => {
+                            const pkgInventory = packageInventory[pkg.key]
+                            const isAvailable = pkgInventory?.available ?? false
+                            const remaining = pkgInventory?.remaining ?? 0
+                            return (
                             <button
                                 key={pkg.key}
                                 type="button"
+                                disabled={!isAvailable}
                                 onClick={() => handleSelectPackage(pkg.key)}
                                 className={[
                                     "relative flex flex-col rounded-2xl border-2 p-5 text-left transition-all duration-200",
+                                    !isAvailable
+                                        ? "cursor-not-allowed border-slate-200 bg-slate-100 opacity-60"
+                                        : "",
                                     watchedPackage === pkg.key
                                         ? "border-[#be123c] bg-white shadow-[4px_4px_0_#be123c]"
                                         : "border-slate-200 bg-white hover:border-[#be123c]/40 hover:shadow-md",
@@ -319,7 +332,15 @@ export function Display({ isEnabled, pixKey, pixKeyType, pixRecipientName }) {
                                     </span>
                                 )}
                                 <span className="mb-2 text-3xl">{pkg.emoji}</span>
-                                <p className="mb-1 font-bold text-slate-800">{pkg.label}</p>
+                                <div className="mb-1 flex items-start justify-between gap-2">
+                                    <p className="font-bold text-slate-800">{pkg.label}</p>
+                                    <span className={[
+                                        "rounded-full px-2 py-0.5 text-[10px] font-bold",
+                                        isAvailable ? "bg-emerald-100 text-emerald-700" : "bg-slate-200 text-slate-500",
+                                    ].join(" ")}>
+                                        {isAvailable ? `${remaining} disp.` : "Esgotado"}
+                                    </span>
+                                </div>
                                 <ul className="mb-3 space-y-0.5 text-xs text-slate-500">
                                     {pkg.items.map((item) => (
                                         <li key={item}>• {item}</li>
@@ -332,7 +353,8 @@ export function Display({ isEnabled, pixKey, pixKeyType, pixRecipientName }) {
                                     </div>
                                 )}
                             </button>
-                        ))}
+                            )
+                        })}
                     </div>
                     {errors.package && (
                         <p className="mt-2 text-sm text-red-500">{errors.package.message}</p>
@@ -521,7 +543,7 @@ export function Display({ isEnabled, pixKey, pixKeyType, pixRecipientName }) {
                     ) : (
                         <Button
                             type="submit"
-                            disabled={isSubmitting}
+                            disabled={isSubmitting || !selectedPackageAvailable}
                             className="h-12 w-full rounded-xl bg-[#be123c] text-base font-bold hover:bg-[#9f1239]"
                         >
                             {isSubmitting ? "Enviando pedido..." : "Fazer pedido 💌"}

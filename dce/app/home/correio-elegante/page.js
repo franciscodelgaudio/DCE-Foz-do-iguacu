@@ -1,4 +1,5 @@
 import { Display } from "@/components/home/correio-elegante/Display"
+import { getCorreioEleganteInventory } from "@/lib/actions/correioElegante"
 import { getSettings } from "@/lib/actions/settings"
 
 export const metadata = {
@@ -7,7 +8,10 @@ export const metadata = {
 }
 
 export default async function Page() {
-    const settings = await getSettings()
+    const [settings, inventory] = await Promise.all([
+        getSettings(),
+        getCorreioEleganteInventory(),
+    ])
 
     return (
         <Display
@@ -15,6 +19,7 @@ export default async function Page() {
             pixKey={settings.pixKey}
             pixKeyType={settings.pixKeyType}
             pixRecipientName={settings.pixRecipientName}
+            inventory={inventory}
         />
     )
 }

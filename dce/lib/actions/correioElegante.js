@@ -43,10 +43,58 @@ function buildPixPayload(pixKey, merchantName, amountNum, txid) {
 }
 
 const PACKAGES = {
-    cartinha: { label: "Cartinha", price: 2.5 },
-    rosa: { label: "Rosa + Cartinha", price: 6.0 },
-    bombom_cartinha: { label: "Bombom + Cartinha", price: 5.0 },
-    bombom_cartinha_rosa: { label: "Bombom + Cartinha + Rosa", price: 8.5 },
+    cartinha: { label: "Cartinha", price: 2.5, items: { cartinha: 1, rosa: 0, bombom: 0 } },
+    rosa: { label: "Rosa + Cartinha", price: 6.0, items: { cartinha: 1, rosa: 1, bombom: 0 } },
+    bombom_cartinha: { label: "Bombom + Cartinha", price: 5.0, items: { cartinha: 1, rosa: 0, bombom: 1 } },
+    bombom_cartinha_rosa: { label: "Bombom + Cartinha + Rosa", price: 8.5, items: { cartinha: 1, rosa: 1, bombom: 1 } },
+}
+
+const STOCK_ITEMS = ["cartinha", "rosa", "bombom"]
+
+function normalizeStock(stock = {}) {
+    return STOCK_ITEMS.reduce((acc, item) => {
+        acc[item] = Math.max(0, Number(stock[item] ?? 0))
+        return acc
+    }, {})
+}
+
+function buildUsedStock(orders = []) {
+    return orders.reduce((acc, order) => {
+        const pkgItems = PACKAGES[order.package]?.items
+        if (!pkgItems) return acc
+        STOCK_ITEMS.forEach((item) => {
+            acc[item] += pkgItems[item] ?? 0
+        })
+        return acc
+    }, { cartinha: 0, rosa: 0, bombom: 0 })
+}
+
+function buildInventory(settings, orders = []) {
+    const total = normalizeStock(settings?.correioEleganteStock)
+    const used = buildUsedStock(orders)
+    const remaining = STOCK_ITEMS.reduce((acc, item) => {
+        acc[item] = Math.max(0, total[item] - used[item])
+        return acc
+    }, {})
+    const packages = Object.fromEntries(Object.entries(PACKAGES).map(([key, pkg]) => [
+        key,
+        {
+            available: STOCK_ITEMS.every((item) => remaining[item] >= (pkg.items[item] ?? 0)),
+            remaining: Math.min(...STOCK_ITEMS
+                .filter((item) => (pkg.items[item] ?? 0) > 0)
+                .map((item) => remaining[item])),
+        },
+    ]))
+    return { total, used, remaining, packages }
+}
+
+export async function getCorreioEleganteInventory() {
+    const [settings, activeOrders] = await Promise.all([
+        Settings.findOne().lean(),
+        CorreioElegante.find({ paymentStatus: { $ne: "cancelled" } }).select("package").lean(),
+    ])
+
+    return buildInventory(settings, activeOrders)
 }
 
 const orderSchema = z.object({
@@ -77,6 +125,10 @@ export async function createOrder(form) {
     const { senderName, senderContact, senderEmail, recipientName, recipientCourse, recipientYear, package: pkg, cardMessage, isAnonymous } =
         parsed.data
     const pkgInfo = PACKAGES[pkg]
+    const inventory = await getCorreioEleganteInventory()
+    if (!inventory.packages[pkg]?.available) {
+        return { success: false, message: "Este pacote está esgotado. Escolha outra opção disponível." }
+    }
 
     const lastOrder = await CorreioElegante.findOne({ orderNumber: /^CE-\d+$/ }).sort({ orderNumber: -1 }).lean()
     let nextNum = 1
