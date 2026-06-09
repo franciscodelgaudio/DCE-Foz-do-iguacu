@@ -620,7 +620,10 @@ export async function sendPaymentReminderEmail(orderId) {
         const pkgLabel = pkgLabels[order.package] ?? order.package
         const priceFormatted = Number(order.price).toFixed(2).replace(".", ",")
 
-        const settings = await Settings.findOne().lean()
+        const [settings, adminEmails] = await Promise.all([
+            Settings.findOne().lean(),
+            User.find({ role: "admin", status: "ativo" }).distinct("email"),
+        ])
         const pixKey = settings?.pixKey
         const pixRecipientName = settings?.pixRecipientName || "DCE UNIOESTE"
 
@@ -649,6 +652,7 @@ export async function sendPaymentReminderEmail(orderId) {
         const emailResult = await resend.emails.send({
             from: "DCE UNIOESTE <no-reply@dceunioestefoz.org>",
             to: order.senderEmail,
+            cc: adminEmails.length > 0 ? adminEmails : undefined,
             subject: `Lembrete de pagamento — Pedido ${order.orderNumber} · Correio Elegante DCE`,
             html: `
                 <div style="font-family:sans-serif;max-width:560px;margin:0 auto;padding:32px 16px;background:#fff;">
