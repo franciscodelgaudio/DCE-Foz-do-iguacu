@@ -498,6 +498,16 @@ export async function updateOrderDetails(orderId, data) {
         package: z.enum(["cartinha", "rosa", "bombom_cartinha", "bombom_cartinha_rosa"]).optional(),
         recipientYear: z.string().max(100).optional(),
         recipientCourse: z.string().max(200).optional(),
+        senderName: z.string().min(2, "Nome do remetente é obrigatório").max(200).optional(),
+        senderContact: z
+            .union([
+                z
+                    .string()
+                    .refine((value) => Boolean(normalizeBrazilWhatsapp(value)), "WhatsApp inválido")
+                    .transform(formatBrazilWhatsapp),
+                z.literal(""),
+            ])
+            .optional(),
         senderEmail: z.string().email("Email inválido").optional().or(z.literal("")),
     })
 
@@ -513,6 +523,8 @@ export async function updateOrderDetails(orderId, data) {
     }
     if (parsed.data.recipientYear !== undefined) update.recipientYear = parsed.data.recipientYear
     if (parsed.data.recipientCourse !== undefined) update.recipientCourse = parsed.data.recipientCourse
+    if (parsed.data.senderName !== undefined) update.senderName = parsed.data.senderName
+    if (parsed.data.senderContact !== undefined) update.senderContact = parsed.data.senderContact
     if (parsed.data.senderEmail !== undefined) update.senderEmail = parsed.data.senderEmail
 
     if (Object.keys(update).length === 0) {

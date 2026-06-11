@@ -113,6 +113,8 @@ export function OrderDetailSheet({ order, open, onOpenChange, isAdmin }) {
             package: order.package,
             recipientYear: order.recipientYear ?? "",
             recipientCourse: order.recipientCourse ?? "",
+            senderName: order.senderName ?? "",
+            senderContact: order.senderContact ?? "",
             senderEmail: order.senderEmail ?? "",
         })
         setEditingOrder(true)
@@ -329,6 +331,26 @@ export function OrderDetailSheet({ order, open, onOpenChange, isAdmin }) {
                                             />
                                         </div>
                                         <div className="space-y-1">
+                                            <label className="text-xs font-medium text-slate-600">Nome do remetente</label>
+                                            <input
+                                                type="text"
+                                                value={orderForm.senderName}
+                                                onChange={(e) => setOrderForm((f) => ({ ...f, senderName: e.target.value }))}
+                                                placeholder="Nome de quem enviou"
+                                                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                                            />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="text-xs font-medium text-slate-600">WhatsApp do remetente</label>
+                                            <input
+                                                type="text"
+                                                value={orderForm.senderContact}
+                                                onChange={(e) => setOrderForm((f) => ({ ...f, senderContact: e.target.value }))}
+                                                placeholder="(45) 99999-9999"
+                                                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                                            />
+                                        </div>
+                                        <div className="space-y-1">
                                             <label className="text-xs font-medium text-slate-600">E-mail do remetente</label>
                                             <input
                                                 type="email"
@@ -368,7 +390,7 @@ export function OrderDetailSheet({ order, open, onOpenChange, isAdmin }) {
                                         onClick={startEditingOrder}
                                     >
                                         <Pencil className="size-3.5" />
-                                        Editar pacote, ano, curso e e-mail
+                                        Editar pedido e remetente
                                     </Button>
                                 )}
                             </DetailSection>

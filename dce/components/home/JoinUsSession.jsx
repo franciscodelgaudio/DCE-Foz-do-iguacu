@@ -21,7 +21,7 @@ export function JoinUsSession({ jobs = [] }) {
                         </div>
                         <div>
                             <h2 className="text-xl font-extrabold text-[#2708ab]">Junte-se a Nós</h2>
-                            <p className="text-xs text-slate-500">Faça parte do DCE e construa o futuro do centro acadêmico</p>
+                            <p className="text-xs text-slate-500">Faça parte do DCE e construa o futuro do movimento estudantil</p>
                         </div>
                     </div>
                     <Link

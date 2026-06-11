@@ -73,6 +73,12 @@ const NewsSchema = new Schema(
             default: 0,
         },
 
+        featured: {
+            type: Boolean,
+            default: false,
+            index: true,
+        },
+
         coordination: {
             type: String,
             enum: ["comunicacao", "cultura", "integracao", "ensino", "movimento", "assistencia", "diversidade", "presidencia", null],

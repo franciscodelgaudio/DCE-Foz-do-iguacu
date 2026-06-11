@@ -18,7 +18,7 @@ export default async function Page() {
     const [news, events, jobs, settings] = await Promise.all([
         News.aggregate([
             { $match: { status: 'published' } },
-            { $sort: { publishedAt: -1, createdAt: -1 } },
+            { $sort: { featured: -1, publishedAt: -1, createdAt: -1 } },
             { $limit: 5 },
             {
                 $project: {
@@ -27,6 +27,7 @@ export default async function Page() {
                     contentHtml: 1,
                     author: 1,
                     publishedAt: 1,
+                    featured: 1,
                 },
             },
         ]),

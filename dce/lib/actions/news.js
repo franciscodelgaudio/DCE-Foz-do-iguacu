@@ -109,6 +109,38 @@ export async function publishNews(newsId) {
     }
 }
 
+export async function setFeaturedNews(newsId) {
+    const session = await auth()
+    if (!session) redirect("/login")
+
+    if (session.user?.role !== "admin") {
+        return { success: false, message: "Apenas administradores podem definir o destaque." }
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(newsId)) {
+        return { success: false, message: "ID inválido." }
+    }
+
+    const id = new mongoose.Types.ObjectId(newsId)
+    const newsItem = await News.findById(id).select("status").lean()
+    if (!newsItem) {
+        return { success: false, message: "Artigo não encontrado." }
+    }
+
+    if (newsItem.status !== "published") {
+        return { success: false, message: "Apenas artigos publicados podem entrar em destaque." }
+    }
+
+    try {
+        await News.updateMany({ _id: { $ne: id } }, { $set: { featured: false } })
+        await News.findByIdAndUpdate(id, { $set: { featured: true } })
+        return { success: true, message: "Artigo definido como destaque da página inicial." }
+    } catch (err) {
+        console.error("Erro ao definir destaque:", err)
+        return { success: false, message: "Erro ao definir o destaque." }
+    }
+}
+
 export async function deleteNews(newsId) {
     try {
         await News.deleteOne({ _id: newsId })

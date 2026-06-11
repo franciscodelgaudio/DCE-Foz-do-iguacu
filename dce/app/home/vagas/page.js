@@ -3,7 +3,7 @@ import { Display } from "@/components/home/vagas/Display"
 
 export const metadata = {
     title: "Vagas — Junte-se a Nós",
-    description: "Faça parte do DCE. Veja as vagas abertas e venha construir o futuro do centro acadêmico.",
+    description: "Faça parte do DCE. Veja as vagas abertas e venha construir o futuro do movimento estudantil.",
 }
 
 export default async function Page() {

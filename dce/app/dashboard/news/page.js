@@ -44,6 +44,7 @@ export default async function Page({ searchParams }) {
                 author: 1,
                 seo: 1,
                 pinned: 1,
+                featured: 1,
                 viewCount: 1,
             },
         },

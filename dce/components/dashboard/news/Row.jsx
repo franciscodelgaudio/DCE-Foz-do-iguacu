@@ -4,14 +4,14 @@ import {
     TableCell,
     TableRow,
 } from "@/components/ui/table"
-import { PenSquare, Trash2, Globe } from "lucide-react";
+import { PenSquare, Trash2, Globe, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { useRouter } from "next/navigation";
 import { formatDate } from "../../ui/formatDate";
 import { toast } from "sonner";
-import { deleteNews, publishNews } from "../../../lib/actions/news";
+import { deleteNews, publishNews, setFeaturedNews } from "../../../lib/actions/news";
 
 const STATUS_OPTIONS = [
     { value: "draft", label: "Rascunho" },
@@ -63,6 +63,17 @@ export function Row({ newsItem, selected = false, onSelectChange }) {
         }
     }
 
+    async function handleSetFeatured() {
+        try {
+            const res = await setFeaturedNews(newsItem._id)
+            if (!res.success) throw new Error(res.message)
+            router.refresh()
+            toast.success(res.message)
+        } catch (err) {
+            toast.error("Erro ao definir destaque. " + (err?.message ?? ""))
+        }
+    }
+
     return (
         <TableRow>
             <TableCell
@@ -77,7 +88,16 @@ export function Row({ newsItem, selected = false, onSelectChange }) {
                     className="size-4 accent-[#2708ab]"
                 />
             </TableCell>
-            <TableCell>{newsItem.title}</TableCell>
+            <TableCell>
+                <div className="flex flex-wrap items-center gap-2">
+                    <span>{newsItem.title}</span>
+                    {newsItem.featured && (
+                        <Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-700">
+                            Destaque
+                        </Badge>
+                    )}
+                </div>
+            </TableCell>
             <TableCell>{newsItem.author?.name ?? "-"}</TableCell>
             <TableCell>{formatDate(newsItem.publishedAt) ?? "-"}</TableCell>
             <TableCell><StatusBadge value={newsItem.status} /></TableCell>
@@ -97,6 +117,21 @@ export function Row({ newsItem, selected = false, onSelectChange }) {
                             </Button>
                         </ConfirmDialog>
                     )}
+                    <ConfirmDialog
+                        title="Definir destaque"
+                        subtitle={`Colocar "${newsItem.title}" como artigo em destaque na página inicial?`}
+                        onClick={handleSetFeatured}
+                    >
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            title={newsItem.featured ? "Destaque atual" : "Definir como destaque"}
+                            disabled={newsItem.status !== "published" || newsItem.featured}
+                            className={newsItem.featured ? "text-amber-500" : ""}
+                        >
+                            <Star className={`size-4 ${newsItem.featured ? "fill-current" : ""}`} />
+                        </Button>
+                    </ConfirmDialog>
                     <Button variant="ghost" size="icon" onClick={handleClick}>
                         <PenSquare className="size-4" />
                     </Button>
