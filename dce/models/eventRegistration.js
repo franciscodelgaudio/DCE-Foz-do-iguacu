@@ -14,6 +14,13 @@ const EventRegistrationSchema = new Schema(
     {
         eventId: { type: Schema.Types.ObjectId, ref: "Event", required: true, index: true },
         registrationNumber: { type: String },
+        academicEmail: {
+            type: String,
+            required: true,
+            trim: true,
+            lowercase: true,
+            match: /^[^\s@]+@unioeste\.br$/i,
+        },
         answers: [AnswerSchema],
         paymentStatus: {
             type: String,
@@ -24,6 +31,14 @@ const EventRegistrationSchema = new Schema(
         adminNotes: { type: String },
     },
     { timestamps: true }
+);
+
+EventRegistrationSchema.index(
+    { eventId: 1, academicEmail: 1 },
+    {
+        unique: true,
+        partialFilterExpression: { academicEmail: { $exists: true, $type: "string" } },
+    }
 );
 
 await dbConnect();

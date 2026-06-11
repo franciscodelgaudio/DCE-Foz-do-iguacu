@@ -4,8 +4,11 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { submitRegistration } from "@/lib/actions/eventRegistration"
+import { requestRegistrationCode, submitRegistration } from "@/lib/actions/eventRegistration"
 import { CheckCircle2, Copy } from "lucide-react"
+
+const ACADEMIC_EMAIL_KEY = "academicEmail"
+const ACADEMIC_EMAIL_DOMAIN = "@unioeste.br"
 
 const PIX_TYPE_LABELS = {
     email: "E-mail",
@@ -77,10 +80,15 @@ function SuccessState({ registrationNumber, event }) {
 }
 
 export function RegistrationForm({ event }) {
-    const { formFields = [], requiresPayment, paymentAmount, pixKey, pixKeyType, pixRecipientName, deadline, limit } = event.registration ?? {}
+    const { formFields = [], requiresPayment, paymentAmount, deadline, limit } = event.registration ?? {}
     const [answers, setAnswers] = useState({})
+    const [academicEmail, setAcademicEmail] = useState("")
+    const [verificationCode, setVerificationCode] = useState("")
+    const [codeSent, setCodeSent] = useState(false)
+    const [sendingCode, setSendingCode] = useState(false)
     const [submitting, setSubmitting] = useState(false)
     const [error, setError] = useState(null)
+    const [notice, setNotice] = useState(null)
     const [successNumber, setSuccessNumber] = useState(null)
 
     const deadlinePassed = deadline && new Date(deadline) < new Date()
@@ -105,18 +113,62 @@ export function RegistrationForm({ event }) {
         setAnswers((prev) => ({ ...prev, [key]: value }))
     }
 
+    async function handleSendCode() {
+        setError(null)
+        setNotice(null)
+
+        const normalizedAcademicEmail = academicEmail.trim().toLowerCase()
+        if (!/^[^\s@]+@unioeste\.br$/i.test(normalizedAcademicEmail)) {
+            setError(`Use um e-mail academico que termine em ${ACADEMIC_EMAIL_DOMAIN}.`)
+            return
+        }
+
+        setSendingCode(true)
+        const result = await requestRegistrationCode(String(event._id), normalizedAcademicEmail)
+        setSendingCode(false)
+
+        if (!result.success) {
+            setError(result.message)
+            return
+        }
+
+        setCodeSent(true)
+        setNotice(result.message)
+    }
+
     async function handleSubmit(e) {
         e.preventDefault()
         setError(null)
+        setNotice(null)
+
+        const normalizedAcademicEmail = academicEmail.trim().toLowerCase()
+        if (!/^[^\s@]+@unioeste\.br$/i.test(normalizedAcademicEmail)) {
+            setError(`Use um e-mail academico que termine em ${ACADEMIC_EMAIL_DOMAIN}.`)
+            return
+        }
+
+        const cleanVerificationCode = verificationCode.replace(/\D/g, "")
+        if (!/^\d{6}$/.test(cleanVerificationCode)) {
+            setError("Informe o codigo de 6 digitos enviado ao seu e-mail.")
+            return
+        }
+
         setSubmitting(true)
 
-        const formattedAnswers = formFields.map((f) => ({
-            key: f.key,
-            label: f.label,
-            value: answers[f.key] ?? (f.type === "checkbox" ? false : ""),
-        }))
+        const formattedAnswers = [
+            {
+                key: ACADEMIC_EMAIL_KEY,
+                label: "E-mail academico",
+                value: normalizedAcademicEmail,
+            },
+            ...formFields.map((f) => ({
+                key: f.key,
+                label: f.label,
+                value: answers[f.key] ?? (f.type === "checkbox" ? false : ""),
+            })),
+        ]
 
-        const result = await submitRegistration(String(event._id), formattedAnswers)
+        const result = await submitRegistration(String(event._id), formattedAnswers, cleanVerificationCode)
         setSubmitting(false)
 
         if (!result.success) {
@@ -163,6 +215,62 @@ export function RegistrationForm({ event }) {
             )}
 
             <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="space-y-1.5">
+                    <Label>
+                        E-mail academico
+                        <span className="ml-1 text-red-500">*</span>
+                    </Label>
+                    <div className="flex flex-col gap-2 sm:flex-row">
+                        <Input
+                            type="email"
+                            required
+                            inputMode="email"
+                            autoComplete="email"
+                            placeholder={`seu.nome${ACADEMIC_EMAIL_DOMAIN}`}
+                            value={academicEmail}
+                            onChange={(e) => {
+                                setAcademicEmail(e.target.value)
+                                setCodeSent(false)
+                                setVerificationCode("")
+                                setNotice(null)
+                            }}
+                        />
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={handleSendCode}
+                            disabled={sendingCode || submitting}
+                            className="w-full shrink-0 sm:w-auto"
+                        >
+                            {sendingCode ? "Enviando..." : codeSent ? "Reenviar codigo" : "Enviar codigo"}
+                        </Button>
+                    </div>
+                    <p className="text-xs text-slate-500">
+                        Apenas e-mails que terminam em {ACADEMIC_EMAIL_DOMAIN} podem se inscrever.
+                    </p>
+                </div>
+
+                {codeSent && (
+                    <div className="space-y-1.5">
+                        <Label>
+                            Codigo de verificacao
+                            <span className="ml-1 text-red-500">*</span>
+                        </Label>
+                        <Input
+                            required
+                            inputMode="numeric"
+                            pattern="[0-9]{6}"
+                            maxLength={6}
+                            placeholder="000000"
+                            value={verificationCode}
+                            onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                        />
+                        <p className="text-xs text-slate-500">
+                            O codigo enviado por e-mail expira em 15 minutos.
+                        </p>
+                    </div>
+                )}
+
                 {formFields.length === 0 && (
                     <p className="text-sm text-slate-500">
                         Preencha e confirme sua inscrição abaixo.
@@ -218,13 +326,19 @@ export function RegistrationForm({ event }) {
                     </div>
                 ))}
 
+                {notice && (
+                    <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm text-emerald-700">
+                        {notice}
+                    </p>
+                )}
+
                 {error && (
                     <p className="rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
                         {error}
                     </p>
                 )}
 
-                <Button type="submit" disabled={submitting} className="w-full bg-[#2708ab] hover:bg-[#2708ab]/90">
+                <Button type="submit" disabled={submitting || !codeSent} className="w-full bg-[#2708ab] hover:bg-[#2708ab]/90">
                     {submitting ? "Enviando..." : "Confirmar inscrição"}
                 </Button>
             </form>
