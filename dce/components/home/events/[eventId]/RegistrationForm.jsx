@@ -217,11 +217,11 @@ export function RegistrationForm({ event }) {
         return (
             <div className="mx-auto max-w-lg space-y-6 py-6">
                 <div>
-                    <h2 className="text-2xl font-bold text-[#2708ab]">InscriÃ§Ã£o</h2>
+                    <h2 className="text-2xl font-bold text-[#2708ab]">Inscrição</h2>
                     <p className="mt-1 text-sm text-slate-500">{event.title}</p>
                     {limit && (
                         <p className="mt-1 text-xs text-slate-400">
-                            Vagas limitadas â€” inscreva-se logo.
+                            Vagas limitadas — inscreva-se logo.
                         </p>
                     )}
                     {deadline && !deadlinePassed && (
@@ -241,10 +241,10 @@ export function RegistrationForm({ event }) {
                 {requiresPayment && paymentAmount && (
                     <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
                         <p className="text-sm font-semibold text-amber-800">
-                            Evento pago â€” R$ {Number(paymentAmount).toFixed(2).replace(".", ",")}
+                            Evento pago — R$ {Number(paymentAmount).toFixed(2).replace(".", ",")}
                         </p>
                         <p className="text-xs text-amber-600 mt-0.5">
-                            As instruÃ§Ãµes de pagamento aparecerÃ£o apÃ³s a inscriÃ§Ã£o.
+                            As instruções de pagamento aparecerão após a inscrição.
                         </p>
                     </div>
                 )}
