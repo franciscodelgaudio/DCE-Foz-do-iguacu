@@ -10,6 +10,17 @@ import { CheckCircle2, Copy } from "lucide-react"
 const ACADEMIC_EMAIL_KEY = "academicEmail"
 const ACADEMIC_EMAIL_DOMAIN = "@unioeste.br"
 
+function normalizeAcademicEmailPrefix(value) {
+    return String(value ?? "")
+        .trim()
+        .toLowerCase()
+        .replace(/@unioeste\.br$/i, "")
+}
+
+function isValidAcademicEmailPrefix(value) {
+    return /^[^\s@]+$/.test(value)
+}
+
 const PIX_TYPE_LABELS = {
     email: "E-mail",
     phone: "Telefone",
@@ -117,11 +128,14 @@ export function RegistrationForm({ event }) {
         setError(null)
         setNotice(null)
 
-        const normalizedAcademicEmail = academicEmail.trim().toLowerCase()
-        if (!/^[^\s@]+@unioeste\.br$/i.test(normalizedAcademicEmail)) {
-            setError(`Use um e-mail academico que termine em ${ACADEMIC_EMAIL_DOMAIN}.`)
+        const academicEmailPrefix = normalizeAcademicEmailPrefix(academicEmail)
+        if (!isValidAcademicEmailPrefix(academicEmailPrefix)) {
+            setError(`Digite apenas a parte antes de ${ACADEMIC_EMAIL_DOMAIN}.`)
             return
         }
+
+        const normalizedAcademicEmail = `${academicEmailPrefix}${ACADEMIC_EMAIL_DOMAIN}`
+        setAcademicEmail(academicEmailPrefix)
 
         setSendingCode(true)
         const result = await requestRegistrationCode(String(event._id), normalizedAcademicEmail)
@@ -141,11 +155,14 @@ export function RegistrationForm({ event }) {
         setError(null)
         setNotice(null)
 
-        const normalizedAcademicEmail = academicEmail.trim().toLowerCase()
-        if (!/^[^\s@]+@unioeste\.br$/i.test(normalizedAcademicEmail)) {
-            setError(`Use um e-mail academico que termine em ${ACADEMIC_EMAIL_DOMAIN}.`)
+        const academicEmailPrefix = normalizeAcademicEmailPrefix(academicEmail)
+        if (!isValidAcademicEmailPrefix(academicEmailPrefix)) {
+            setError(`Digite apenas a parte antes de ${ACADEMIC_EMAIL_DOMAIN}.`)
             return
         }
+
+        const normalizedAcademicEmail = `${academicEmailPrefix}${ACADEMIC_EMAIL_DOMAIN}`
+        setAcademicEmail(academicEmailPrefix)
 
         const cleanVerificationCode = verificationCode.replace(/\D/g, "")
         if (!/^\d{6}$/.test(cleanVerificationCode)) {
@@ -221,20 +238,26 @@ export function RegistrationForm({ event }) {
                         <span className="ml-1 text-red-500">*</span>
                     </Label>
                     <div className="flex flex-col gap-2 sm:flex-row">
-                        <Input
-                            type="email"
-                            required
-                            inputMode="email"
-                            autoComplete="email"
-                            placeholder={`seu.nome${ACADEMIC_EMAIL_DOMAIN}`}
-                            value={academicEmail}
-                            onChange={(e) => {
-                                setAcademicEmail(e.target.value)
-                                setCodeSent(false)
-                                setVerificationCode("")
-                                setNotice(null)
-                            }}
-                        />
+                        <div className="flex min-w-0 flex-1">
+                            <Input
+                                type="text"
+                                required
+                                inputMode="email"
+                                autoComplete="username"
+                                placeholder="seu.nome"
+                                value={academicEmail}
+                                onChange={(e) => {
+                                    setAcademicEmail(normalizeAcademicEmailPrefix(e.target.value))
+                                    setCodeSent(false)
+                                    setVerificationCode("")
+                                    setNotice(null)
+                                }}
+                                className="rounded-r-none"
+                            />
+                            <span className="flex h-9 shrink-0 items-center rounded-r-md border border-l-0 border-input bg-slate-50 px-3 text-sm font-medium text-slate-600">
+                                {ACADEMIC_EMAIL_DOMAIN}
+                            </span>
+                        </div>
                         <Button
                             type="button"
                             variant="outline"
@@ -246,7 +269,7 @@ export function RegistrationForm({ event }) {
                         </Button>
                     </div>
                     <p className="text-xs text-slate-500">
-                        Apenas e-mails que terminam em {ACADEMIC_EMAIL_DOMAIN} podem se inscrever.
+                        Digite apenas o que vem antes de {ACADEMIC_EMAIL_DOMAIN}.
                     </p>
                 </div>
 
