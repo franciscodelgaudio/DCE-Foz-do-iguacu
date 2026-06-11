@@ -1,5 +1,4 @@
-import Link from "next/link"
-import { ArrowRight, Heart } from "lucide-react"
+import { Heart } from "lucide-react"
 
 export function CorreioEleganteBanner() {
     return (
@@ -12,23 +11,19 @@ export function CorreioEleganteBanner() {
                         </div>
                         <div className="text-white">
                             <div className="flex flex-wrap items-center gap-2">
-                                <span className="text-lg font-extrabold">Correio Elegante 💌</span>
+                                <span className="text-lg font-extrabold">Correio Elegante</span>
                                 <span className="rounded-full bg-[#fdf25a] px-2 py-0.5 text-xs font-bold text-[#9f1239]">
-                                    Aberto!
+                                    Esgotado
                                 </span>
                             </div>
                             <p className="text-sm text-rose-200">
-                                Entrega 12/jun · A partir de R$ 2,50
+                                Todos os pedidos foram vendidos. Obrigado pela participação!
                             </p>
                         </div>
                     </div>
-                    <Link
-                        href="/home/correio-elegante"
-                        className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-white px-5 py-2.5 text-sm font-bold text-[#be123c] shadow-[3px_3px_0_rgba(0,0,0,0.2)] transition-transform hover:-translate-y-0.5"
-                    >
-                        Fazer pedido
-                        <ArrowRight className="h-4 w-4" />
-                    </Link>
+                    <div className="inline-flex shrink-0 items-center rounded-xl bg-white/90 px-5 py-2.5 text-sm font-bold text-[#be123c] shadow-[3px_3px_0_rgba(0,0,0,0.2)]">
+                        Pedidos esgotados
+                    </div>
                 </div>
             </div>
         </section>
