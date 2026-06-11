@@ -96,6 +96,7 @@ export function RegistrationForm({ event }) {
     const [academicEmail, setAcademicEmail] = useState("")
     const [verificationCode, setVerificationCode] = useState("")
     const [codeSent, setCodeSent] = useState(false)
+    const [verificationStep, setVerificationStep] = useState(false)
     const [sendingCode, setSendingCode] = useState(false)
     const [submitting, setSubmitting] = useState(false)
     const [error, setError] = useState(null)
@@ -122,6 +123,22 @@ export function RegistrationForm({ event }) {
 
     function handleChange(key, value) {
         setAnswers((prev) => ({ ...prev, [key]: value }))
+    }
+
+    function handleContinueToVerification() {
+        setError(null)
+        setNotice(null)
+
+        const academicEmailPrefix = normalizeAcademicEmailPrefix(academicEmail)
+        if (!isValidAcademicEmailPrefix(academicEmailPrefix)) {
+            setError(`Digite apenas a parte antes de ${ACADEMIC_EMAIL_DOMAIN}.`)
+            return
+        }
+
+        setAcademicEmail(academicEmailPrefix)
+        setVerificationCode("")
+        setCodeSent(false)
+        setVerificationStep(true)
     }
 
     async function handleSendCode() {
@@ -196,6 +213,92 @@ export function RegistrationForm({ event }) {
         setSuccessNumber(result.registrationNumber)
     }
 
+    if (!verificationStep) {
+        return (
+            <div className="mx-auto max-w-lg space-y-6 py-6">
+                <div>
+                    <h2 className="text-2xl font-bold text-[#2708ab]">InscriÃ§Ã£o</h2>
+                    <p className="mt-1 text-sm text-slate-500">{event.title}</p>
+                    {limit && (
+                        <p className="mt-1 text-xs text-slate-400">
+                            Vagas limitadas â€” inscreva-se logo.
+                        </p>
+                    )}
+                    {deadline && !deadlinePassed && (
+                        <p className="mt-1 text-xs text-slate-400">
+                            Prazo:{" "}
+                            {new Date(deadline).toLocaleDateString("pt-BR", {
+                                day: "2-digit",
+                                month: "long",
+                                year: "numeric",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                            })}
+                        </p>
+                    )}
+                </div>
+
+                {requiresPayment && paymentAmount && (
+                    <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
+                        <p className="text-sm font-semibold text-amber-800">
+                            Evento pago â€” R$ {Number(paymentAmount).toFixed(2).replace(".", ",")}
+                        </p>
+                        <p className="text-xs text-amber-600 mt-0.5">
+                            As instruÃ§Ãµes de pagamento aparecerÃ£o apÃ³s a inscriÃ§Ã£o.
+                        </p>
+                    </div>
+                )}
+
+                <form
+                    onSubmit={(e) => {
+                        e.preventDefault()
+                        handleContinueToVerification()
+                    }}
+                    className="space-y-4"
+                >
+                    <div className="space-y-1.5">
+                        <Label>
+                            E-mail academico
+                            <span className="ml-1 text-red-500">*</span>
+                        </Label>
+                        <div className="flex min-w-0">
+                            <Input
+                                type="text"
+                                required
+                                inputMode="email"
+                                autoComplete="username"
+                                placeholder="seu.nome"
+                                value={academicEmail}
+                                onChange={(e) => {
+                                    setAcademicEmail(normalizeAcademicEmailPrefix(e.target.value))
+                                    setVerificationCode("")
+                                    setNotice(null)
+                                }}
+                                className="rounded-r-none"
+                            />
+                            <span className="flex h-9 shrink-0 items-center rounded-r-md border border-l-0 border-input bg-slate-50 px-3 text-sm font-medium text-slate-600">
+                                {ACADEMIC_EMAIL_DOMAIN}
+                            </span>
+                        </div>
+                        <p className="text-xs text-slate-500">
+                            Digite apenas o que vem antes de {ACADEMIC_EMAIL_DOMAIN}.
+                        </p>
+                    </div>
+
+                    {error && (
+                        <p className="rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
+                            {error}
+                        </p>
+                    )}
+
+                    <Button type="submit" className="w-full bg-[#2708ab] hover:bg-[#2708ab]/90">
+                        Continuar
+                    </Button>
+                </form>
+            </div>
+        )
+    }
+
     return (
         <div className="mx-auto max-w-lg space-y-6 py-6">
             <div>
@@ -232,62 +335,69 @@ export function RegistrationForm({ event }) {
             )}
 
             <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="space-y-1.5">
-                    <Label>
-                        E-mail academico
-                        <span className="ml-1 text-red-500">*</span>
-                    </Label>
-                    <div className="flex flex-col gap-2 sm:flex-row">
-                        <div className="flex min-w-0 flex-1">
-                            <Input
-                                type="text"
-                                required
-                                inputMode="email"
-                                autoComplete="username"
-                                placeholder="seu.nome"
-                                value={academicEmail}
-                                onChange={(e) => {
-                                    setAcademicEmail(normalizeAcademicEmailPrefix(e.target.value))
-                                    setCodeSent(false)
-                                    setVerificationCode("")
-                                    setNotice(null)
-                                }}
-                                className="rounded-r-none"
-                            />
-                            <span className="flex h-9 shrink-0 items-center rounded-r-md border border-l-0 border-input bg-slate-50 px-3 text-sm font-medium text-slate-600">
-                                {ACADEMIC_EMAIL_DOMAIN}
-                            </span>
-                        </div>
+                <div className="rounded-lg border bg-slate-50 px-4 py-3">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">E-mail academico</p>
+                    <div className="mt-1 flex flex-wrap items-center justify-between gap-2">
+                        <p className="break-all text-sm font-semibold text-slate-800">
+                            {`${normalizeAcademicEmailPrefix(academicEmail)}${ACADEMIC_EMAIL_DOMAIN}`}
+                        </p>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setVerificationStep(false)
+                                setCodeSent(false)
+                                setVerificationCode("")
+                                setNotice(null)
+                                setError(null)
+                            }}
+                            className="text-sm font-medium text-[#2708ab] hover:underline"
+                        >
+                            Alterar
+                        </button>
+                    </div>
+                </div>
+
+                {!codeSent ? (
+                    <div className="rounded-lg border border-blue-100 bg-blue-50 px-4 py-3">
+                        <p className="text-sm font-medium text-blue-900">
+                            Envie um codigo para validar seu e-mail academico.
+                        </p>
                         <Button
                             type="button"
                             variant="outline"
                             onClick={handleSendCode}
                             disabled={sendingCode || submitting}
-                            className="w-full shrink-0 sm:w-auto"
+                            className="mt-3 w-full border-blue-200 bg-white text-blue-900 hover:bg-blue-100"
                         >
-                            {sendingCode ? "Enviando..." : codeSent ? "Reenviar codigo" : "Enviar codigo"}
+                            {sendingCode ? "Enviando codigo..." : "Enviar codigo"}
                         </Button>
                     </div>
-                    <p className="text-xs text-slate-500">
-                        Digite apenas o que vem antes de {ACADEMIC_EMAIL_DOMAIN}.
-                    </p>
-                </div>
-
-                {codeSent && (
+                ) : (
                     <div className="space-y-1.5">
                         <Label>
                             Codigo de verificacao
                             <span className="ml-1 text-red-500">*</span>
                         </Label>
-                        <Input
-                            required
-                            inputMode="numeric"
-                            pattern="[0-9]{6}"
-                            maxLength={6}
-                            placeholder="000000"
-                            value={verificationCode}
-                            onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                        />
+                        <div className="flex flex-col gap-2 sm:flex-row">
+                            <Input
+                                required
+                                inputMode="numeric"
+                                pattern="[0-9]{6}"
+                                maxLength={6}
+                                placeholder="000000"
+                                value={verificationCode}
+                                onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                            />
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={handleSendCode}
+                                disabled={sendingCode || submitting}
+                                className="w-full shrink-0 sm:w-auto"
+                            >
+                                {sendingCode ? "Enviando..." : "Reenviar codigo"}
+                            </Button>
+                        </div>
                         <p className="text-xs text-slate-500">
                             O codigo enviado por e-mail expira em 15 minutos.
                         </p>
