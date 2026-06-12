@@ -7,6 +7,7 @@ const ContactSchema = new Schema(
         email: { type: String, required: true, trim: true },
         subject: { type: String, trim: true },
         message: { type: String, required: true, trim: true },
+        ipAddress: { type: String, trim: true },
         status: {
             type: String,
             enum: ["unread", "read", "replied"],
@@ -16,6 +17,7 @@ const ContactSchema = new Schema(
     { timestamps: true }
 );
 
+ContactSchema.index({ ipAddress: 1, createdAt: -1 });
 ContactSchema.index({ email: 1, createdAt: -1 });
 
 await dbConnect();

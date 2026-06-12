@@ -151,6 +151,10 @@ export function Row({ message, selected, onSelectChange }) {
                         <div className="whitespace-pre-wrap rounded-md border bg-slate-50 p-4 text-sm leading-relaxed text-slate-800">
                             {message.message}
                         </div>
+                        <div className="mt-4 rounded-md border bg-white p-4 text-sm text-slate-700">
+                            <p className="text-xs font-semibold uppercase text-slate-400">IP</p>
+                            <p className="mt-1 break-all">{message.ipAddress || "Nao identificado"}</p>
+                        </div>
                     </div>
 
                     <SheetFooter>

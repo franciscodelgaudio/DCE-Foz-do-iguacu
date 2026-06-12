@@ -22,6 +22,7 @@ const EventRegistrationSchema = new Schema(
             match: /^[^\s@]+@unioeste\.br$/i,
         },
         answers: [AnswerSchema],
+        ipAddress: { type: String, trim: true },
         paymentStatus: {
             type: String,
             enum: ["not_required", "pending", "confirmed", "cancelled"],
@@ -33,6 +34,7 @@ const EventRegistrationSchema = new Schema(
     { timestamps: true }
 );
 
+EventRegistrationSchema.index({ ipAddress: 1, createdAt: -1 });
 EventRegistrationSchema.index(
     { eventId: 1, academicEmail: 1 },
     {

@@ -87,6 +87,12 @@ function AnswersSheet({ registration }) {
                             </div>
                         ))
                     )}
+                    <div className="rounded-lg border bg-slate-50 p-3">
+                        <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">IP</p>
+                        <p className="mt-1 break-all text-sm text-slate-800">
+                            {registration.ipAddress || "Nao identificado"}
+                        </p>
+                    </div>
                 </div>
             </SheetContent>
         </Sheet>
@@ -202,6 +208,7 @@ export function RegistrationsDisplay({ registrations, event }) {
             const matchesSearch =
                 !term ||
                 r.registrationNumber?.toLowerCase().includes(term) ||
+                r.ipAddress?.toLowerCase().includes(term) ||
                 r.answers?.some((a) => String(a.value).toLowerCase().includes(term))
             return matchesStatus && matchesSearch
         })

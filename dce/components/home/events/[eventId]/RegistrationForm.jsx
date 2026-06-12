@@ -1,10 +1,11 @@
 'use client'
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
+import Script from "next/script"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { requestRegistrationCode, submitRegistration } from "@/lib/actions/eventRegistration"
+import { submitRegistration } from "@/lib/actions/eventRegistration"
 import { CheckCircle2, Copy } from "lucide-react"
 
 const ACADEMIC_EMAIL_KEY = "academicEmail"
@@ -25,7 +26,7 @@ const PIX_TYPE_LABELS = {
     email: "E-mail",
     phone: "Telefone",
     cpf: "CPF / CNPJ",
-    random: "Chave Aleatória",
+    random: "Chave Aleatoria",
 }
 
 function SuccessState({ registrationNumber, event }) {
@@ -47,29 +48,30 @@ function SuccessState({ registrationNumber, event }) {
                 </div>
             </div>
             <div className="space-y-1">
-                <h2 className="text-2xl font-bold text-slate-800">Inscrição realizada!</h2>
-                <p className="text-slate-500">Guarde seu número de inscrição.</p>
+                <h2 className="text-2xl font-bold text-slate-800">Inscricao realizada!</h2>
+                <p className="text-slate-500">Guarde seu numero de inscricao.</p>
             </div>
             <div className="rounded-xl border bg-slate-50 px-6 py-4">
-                <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Nº da inscrição</p>
+                <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Numero da inscricao</p>
                 <p className="mt-1 text-3xl font-extrabold tracking-widest text-[#2708ab]">{registrationNumber}</p>
             </div>
 
             {requiresPayment && pixKey && (
-                <div className="rounded-xl border bg-white p-5 text-left space-y-3">
+                <div className="space-y-3 rounded-xl border bg-white p-5 text-left">
                     <p className="font-semibold text-slate-800">Pagamento via PIX</p>
                     <p className="text-sm text-slate-600">
                         Envie{" "}
                         <span className="font-semibold text-slate-800">
                             R$ {Number(paymentAmount ?? 0).toFixed(2).replace(".", ",")}
                         </span>{" "}
-                        para a chave abaixo e aguarde a confirmação:
+                        para a chave abaixo e aguarde a confirmacao:
                     </p>
-                    <div className="rounded-lg border bg-slate-50 p-3 space-y-1">
+                    <div className="space-y-1 rounded-lg border bg-slate-50 p-3">
                         <p className="text-xs text-slate-400">{PIX_TYPE_LABELS[pixKeyType] ?? "Chave"}</p>
                         <div className="flex items-center justify-between gap-2">
-                            <p className="font-mono text-sm font-semibold text-slate-800 break-all">{pixKey}</p>
+                            <p className="break-all font-mono text-sm font-semibold text-slate-800">{pixKey}</p>
                             <button
+                                type="button"
                                 onClick={copyPix}
                                 className="shrink-0 rounded p-1.5 text-slate-400 hover:bg-slate-200 hover:text-slate-700"
                             >
@@ -82,7 +84,7 @@ function SuccessState({ registrationNumber, event }) {
                     </div>
                     {copied && <p className="text-xs text-emerald-600">Chave PIX copiada!</p>}
                     <p className="text-xs text-slate-400">
-                        Após o pagamento, sua inscrição será confirmada pela organização.
+                        Apos o pagamento, sua inscricao sera confirmada pela organizacao.
                     </p>
                 </div>
             )}
@@ -94,23 +96,34 @@ export function RegistrationForm({ event }) {
     const { formFields = [], requiresPayment, paymentAmount, deadline, limit } = event.registration ?? {}
     const [answers, setAnswers] = useState({})
     const [academicEmail, setAcademicEmail] = useState("")
-    const [verificationCode, setVerificationCode] = useState("")
-    const [codeSent, setCodeSent] = useState(false)
-    const [verificationStep, setVerificationStep] = useState(false)
-    const [sendingCode, setSendingCode] = useState(false)
+    const [turnstileToken, setTurnstileToken] = useState("")
     const [submitting, setSubmitting] = useState(false)
     const [error, setError] = useState(null)
-    const [notice, setNotice] = useState(null)
     const [successNumber, setSuccessNumber] = useState(null)
+    const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
 
     const deadlinePassed = deadline && new Date(deadline) < new Date()
+
+    useEffect(() => {
+        window.onEventRegistrationTurnstileSuccess = (token) => {
+            setTurnstileToken(token)
+        }
+        window.onEventRegistrationTurnstileExpired = () => {
+            setTurnstileToken("")
+        }
+
+        return () => {
+            delete window.onEventRegistrationTurnstileSuccess
+            delete window.onEventRegistrationTurnstileExpired
+        }
+    }, [])
 
     if (deadlinePassed) {
         return (
             <div className="mx-auto max-w-md rounded-xl border bg-slate-50 px-6 py-10 text-center">
-                <p className="text-lg font-semibold text-slate-700">Inscrições encerradas</p>
+                <p className="text-lg font-semibold text-slate-700">Inscricoes encerradas</p>
                 <p className="mt-1 text-sm text-slate-500">
-                    O prazo de inscrição para este evento encerrou em{" "}
+                    O prazo de inscricao para este evento encerrou em{" "}
                     {new Date(deadline).toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" })}.
                 </p>
             </div>
@@ -125,52 +138,9 @@ export function RegistrationForm({ event }) {
         setAnswers((prev) => ({ ...prev, [key]: value }))
     }
 
-    function handleContinueToVerification() {
-        setError(null)
-        setNotice(null)
-
-        const academicEmailPrefix = normalizeAcademicEmailPrefix(academicEmail)
-        if (!isValidAcademicEmailPrefix(academicEmailPrefix)) {
-            setError(`Digite apenas a parte antes de ${ACADEMIC_EMAIL_DOMAIN}.`)
-            return
-        }
-
-        setAcademicEmail(academicEmailPrefix)
-        setVerificationCode("")
-        setCodeSent(false)
-        setVerificationStep(true)
-    }
-
-    async function handleSendCode() {
-        setError(null)
-        setNotice(null)
-
-        const academicEmailPrefix = normalizeAcademicEmailPrefix(academicEmail)
-        if (!isValidAcademicEmailPrefix(academicEmailPrefix)) {
-            setError(`Digite apenas a parte antes de ${ACADEMIC_EMAIL_DOMAIN}.`)
-            return
-        }
-
-        const normalizedAcademicEmail = `${academicEmailPrefix}${ACADEMIC_EMAIL_DOMAIN}`
-        setAcademicEmail(academicEmailPrefix)
-
-        setSendingCode(true)
-        const result = await requestRegistrationCode(String(event._id), normalizedAcademicEmail)
-        setSendingCode(false)
-
-        if (!result.success) {
-            setError(result.message)
-            return
-        }
-
-        setCodeSent(true)
-        setNotice(result.message)
-    }
-
     async function handleSubmit(e) {
         e.preventDefault()
         setError(null)
-        setNotice(null)
 
         const academicEmailPrefix = normalizeAcademicEmailPrefix(academicEmail)
         if (!isValidAcademicEmailPrefix(academicEmailPrefix)) {
@@ -180,14 +150,6 @@ export function RegistrationForm({ event }) {
 
         const normalizedAcademicEmail = `${academicEmailPrefix}${ACADEMIC_EMAIL_DOMAIN}`
         setAcademicEmail(academicEmailPrefix)
-
-        const cleanVerificationCode = verificationCode.replace(/\D/g, "")
-        if (!/^\d{6}$/.test(cleanVerificationCode)) {
-            setError("Informe o codigo de 6 digitos enviado ao seu e-mail.")
-            return
-        }
-
-        setSubmitting(true)
 
         const formattedAnswers = [
             {
@@ -202,8 +164,11 @@ export function RegistrationForm({ event }) {
             })),
         ]
 
-        const result = await submitRegistration(String(event._id), formattedAnswers, cleanVerificationCode)
+        setSubmitting(true)
+        const result = await submitRegistration(String(event._id), formattedAnswers, turnstileToken)
         setSubmitting(false)
+        window.turnstile?.reset()
+        setTurnstileToken("")
 
         if (!result.success) {
             setError(result.message)
@@ -213,100 +178,21 @@ export function RegistrationForm({ event }) {
         setSuccessNumber(result.registrationNumber)
     }
 
-    if (!verificationStep) {
-        return (
-            <div className="mx-auto max-w-lg space-y-6 py-6">
-                <div>
-                    <h2 className="text-2xl font-bold text-[#2708ab]">Inscrição</h2>
-                    <p className="mt-1 text-sm text-slate-500">{event.title}</p>
-                    {limit && (
-                        <p className="mt-1 text-xs text-slate-400">
-                            Vagas limitadas — inscreva-se logo.
-                        </p>
-                    )}
-                    {deadline && !deadlinePassed && (
-                        <p className="mt-1 text-xs text-slate-400">
-                            Prazo:{" "}
-                            {new Date(deadline).toLocaleDateString("pt-BR", {
-                                day: "2-digit",
-                                month: "long",
-                                year: "numeric",
-                                hour: "2-digit",
-                                minute: "2-digit",
-                            })}
-                        </p>
-                    )}
-                </div>
-
-                {requiresPayment && paymentAmount && (
-                    <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
-                        <p className="text-sm font-semibold text-amber-800">
-                            Evento pago — R$ {Number(paymentAmount).toFixed(2).replace(".", ",")}
-                        </p>
-                        <p className="text-xs text-amber-600 mt-0.5">
-                            As instruções de pagamento aparecerão após a inscrição.
-                        </p>
-                    </div>
-                )}
-
-                <form
-                    onSubmit={(e) => {
-                        e.preventDefault()
-                        handleContinueToVerification()
-                    }}
-                    className="space-y-4"
-                >
-                    <div className="space-y-1.5">
-                        <Label>
-                            E-mail academico
-                            <span className="ml-1 text-red-500">*</span>
-                        </Label>
-                        <div className="flex min-w-0">
-                            <Input
-                                type="text"
-                                required
-                                inputMode="email"
-                                autoComplete="username"
-                                placeholder="seu.nome"
-                                value={academicEmail}
-                                onChange={(e) => {
-                                    setAcademicEmail(normalizeAcademicEmailPrefix(e.target.value))
-                                    setVerificationCode("")
-                                    setNotice(null)
-                                }}
-                                className="rounded-r-none"
-                            />
-                            <span className="flex h-9 shrink-0 items-center rounded-r-md border border-l-0 border-input bg-slate-50 px-3 text-sm font-medium text-slate-600">
-                                {ACADEMIC_EMAIL_DOMAIN}
-                            </span>
-                        </div>
-                        <p className="text-xs text-slate-500">
-                            Digite apenas o que vem antes de {ACADEMIC_EMAIL_DOMAIN}.
-                        </p>
-                    </div>
-
-                    {error && (
-                        <p className="rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
-                            {error}
-                        </p>
-                    )}
-
-                    <Button type="submit" className="w-full bg-[#2708ab] hover:bg-[#2708ab]/90">
-                        Continuar
-                    </Button>
-                </form>
-            </div>
-        )
-    }
-
     return (
         <div className="mx-auto max-w-lg space-y-6 py-6">
+            {turnstileSiteKey && (
+                <Script
+                    src="https://challenges.cloudflare.com/turnstile/v0/api.js"
+                    strategy="afterInteractive"
+                />
+            )}
+
             <div>
-                <h2 className="text-2xl font-bold text-[#2708ab]">Inscrição</h2>
+                <h2 className="text-2xl font-bold text-[#2708ab]">Inscricao</h2>
                 <p className="mt-1 text-sm text-slate-500">{event.title}</p>
                 {limit && (
                     <p className="mt-1 text-xs text-slate-400">
-                        Vagas limitadas — inscreva-se logo.
+                        Vagas limitadas, inscreva-se logo.
                     </p>
                 )}
                 {deadline && !deadlinePassed && (
@@ -326,87 +212,43 @@ export function RegistrationForm({ event }) {
             {requiresPayment && paymentAmount && (
                 <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
                     <p className="text-sm font-semibold text-amber-800">
-                        Evento pago — R$ {Number(paymentAmount).toFixed(2).replace(".", ",")}
+                        Evento pago, R$ {Number(paymentAmount).toFixed(2).replace(".", ",")}
                     </p>
-                    <p className="text-xs text-amber-600 mt-0.5">
-                        As instruções de pagamento aparecerão após a inscrição.
+                    <p className="mt-0.5 text-xs text-amber-600">
+                        As instrucoes de pagamento aparecerao apos a inscricao.
                     </p>
                 </div>
             )}
 
             <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="rounded-lg border bg-slate-50 px-4 py-3">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">E-mail academico</p>
-                    <div className="mt-1 flex flex-wrap items-center justify-between gap-2">
-                        <p className="break-all text-sm font-semibold text-slate-800">
-                            {`${normalizeAcademicEmailPrefix(academicEmail)}${ACADEMIC_EMAIL_DOMAIN}`}
-                        </p>
-                        <button
-                            type="button"
-                            onClick={() => {
-                                setVerificationStep(false)
-                                setCodeSent(false)
-                                setVerificationCode("")
-                                setNotice(null)
-                                setError(null)
-                            }}
-                            className="text-sm font-medium text-[#2708ab] hover:underline"
-                        >
-                            Alterar
-                        </button>
+                <div className="space-y-1.5">
+                    <Label>
+                        E-mail academico
+                        <span className="ml-1 text-red-500">*</span>
+                    </Label>
+                    <div className="flex min-w-0">
+                        <Input
+                            type="text"
+                            required
+                            inputMode="email"
+                            autoComplete="username"
+                            placeholder="seu.nome"
+                            value={academicEmail}
+                            onChange={(e) => setAcademicEmail(normalizeAcademicEmailPrefix(e.target.value))}
+                            className="rounded-r-none"
+                        />
+                        <span className="flex h-9 shrink-0 items-center rounded-r-md border border-l-0 border-input bg-slate-50 px-3 text-sm font-medium text-slate-600">
+                            {ACADEMIC_EMAIL_DOMAIN}
+                        </span>
                     </div>
+                    <p className="text-xs text-slate-500">
+                        Digite apenas o que vem antes de {ACADEMIC_EMAIL_DOMAIN}.
+                    </p>
                 </div>
-
-                {!codeSent ? (
-                    <div className="rounded-lg border border-blue-100 bg-blue-50 px-4 py-3">
-                        <p className="text-sm font-medium text-blue-900">
-                            Envie um codigo para validar seu e-mail academico.
-                        </p>
-                        <Button
-                            type="button"
-                            variant="outline"
-                            onClick={handleSendCode}
-                            disabled={sendingCode || submitting}
-                            className="mt-3 w-full border-blue-200 bg-white text-blue-900 hover:bg-blue-100"
-                        >
-                            {sendingCode ? "Enviando codigo..." : "Enviar codigo"}
-                        </Button>
-                    </div>
-                ) : (
-                    <div className="space-y-1.5">
-                        <Label>
-                            Codigo de verificacao
-                            <span className="ml-1 text-red-500">*</span>
-                        </Label>
-                        <div className="flex flex-col gap-2 sm:flex-row">
-                            <Input
-                                required
-                                inputMode="numeric"
-                                pattern="[0-9]{6}"
-                                maxLength={6}
-                                placeholder="000000"
-                                value={verificationCode}
-                                onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                            />
-                            <Button
-                                type="button"
-                                variant="outline"
-                                onClick={handleSendCode}
-                                disabled={sendingCode || submitting}
-                                className="w-full shrink-0 sm:w-auto"
-                            >
-                                {sendingCode ? "Enviando..." : "Reenviar codigo"}
-                            </Button>
-                        </div>
-                        <p className="text-xs text-slate-500">
-                            O codigo enviado por e-mail expira em 15 minutos.
-                        </p>
-                    </div>
-                )}
 
                 {formFields.length === 0 && (
                     <p className="text-sm text-slate-500">
-                        Preencha e confirme sua inscrição abaixo.
+                        Preencha e confirme sua inscricao abaixo.
                     </p>
                 )}
 
@@ -423,7 +265,7 @@ export function RegistrationForm({ event }) {
                                 value={answers[field.key] ?? ""}
                                 onChange={(e) => handleChange(field.key, e.target.value)}
                                 rows={3}
-                                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring resize-none"
+                                className="w-full resize-none rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
                             />
                         ) : field.type === "select" ? (
                             <select
@@ -459,10 +301,14 @@ export function RegistrationForm({ event }) {
                     </div>
                 ))}
 
-                {notice && (
-                    <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm text-emerald-700">
-                        {notice}
-                    </p>
+                {turnstileSiteKey && (
+                    <div
+                        className="cf-turnstile"
+                        data-sitekey={turnstileSiteKey}
+                        data-callback="onEventRegistrationTurnstileSuccess"
+                        data-expired-callback="onEventRegistrationTurnstileExpired"
+                        data-theme="light"
+                    />
                 )}
 
                 {error && (
@@ -471,8 +317,8 @@ export function RegistrationForm({ event }) {
                     </p>
                 )}
 
-                <Button type="submit" disabled={submitting || !codeSent} className="w-full bg-[#2708ab] hover:bg-[#2708ab]/90">
-                    {submitting ? "Enviando..." : "Confirmar inscrição"}
+                <Button type="submit" disabled={submitting} className="w-full bg-[#2708ab] hover:bg-[#2708ab]/90">
+                    {submitting ? "Enviando..." : "Confirmar inscricao"}
                 </Button>
             </form>
         </div>

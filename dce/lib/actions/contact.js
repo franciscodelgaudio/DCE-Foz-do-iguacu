@@ -5,6 +5,7 @@ import { redirect } from "next/navigation"
 import { z } from "zod"
 import { Contact } from "@/models/contact"
 import mongoose from "mongoose"
+import { getRequestIp, verifyTurnstile } from "@/lib/security"
 
 const contactSchema = z.object({
     name: z.string().min(2, "Nome deve ter ao menos 2 caracteres"),
@@ -20,39 +21,19 @@ const statusSchema = z.object({
     status: z.enum(["unread", "read", "replied"]),
 })
 
-async function isRateLimited({ email, message }) {
+async function isRateLimited({ email, message, ipAddress }) {
     const since = new Date(Date.now() - 10 * 60 * 1000)
     const sameMessageWindow = new Date(Date.now() - 60 * 60 * 1000)
-    const [emailCount, messageCount] = await Promise.all([
+    const checks = [
         Contact.countDocuments({ email: email.toLowerCase(), createdAt: { $gte: since } }),
         Contact.countDocuments({ message, createdAt: { $gte: sameMessageWindow } }),
-    ])
-
-    return emailCount >= 3 || messageCount >= 3
-}
-
-async function verifyTurnstile(token) {
-    const secret = process.env.TURNSTILE_SECRET_KEY
-    if (!secret) {
-        return process.env.NODE_ENV !== "production"
+    ]
+    if (ipAddress) {
+        checks.push(Contact.countDocuments({ ipAddress, createdAt: { $gte: since } }))
     }
-    if (!token) return false
 
-    try {
-        const formData = new FormData()
-        formData.append("secret", secret)
-        formData.append("response", token)
-
-        const response = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
-            method: "POST",
-            body: formData,
-        })
-        const data = await response.json()
-        return Boolean(data?.success)
-    } catch (err) {
-        console.error("Erro ao validar Turnstile:", err)
-        return false
-    }
+    const [emailCount, messageCount, ipCount = 0] = await Promise.all(checks)
+    return emailCount >= 3 || messageCount >= 3 || ipCount >= 5
 }
 
 export async function sendContactMessage(form) {
@@ -68,16 +49,18 @@ export async function sendContactMessage(form) {
     const { name, email, subject, message, turnstileToken, website } = parsed.data
 
     try {
+        const ipAddress = await getRequestIp()
+
         if (website) {
             return { success: false, message: "Nao foi possivel enviar a mensagem." }
         }
 
-        const captchaVerified = await verifyTurnstile(turnstileToken)
+        const captchaVerified = await verifyTurnstile(turnstileToken, ipAddress)
         if (!captchaVerified) {
             return { success: false, message: "Confirme que voce nao e um robo e tente novamente." }
         }
 
-        const rateLimited = await isRateLimited({ email, message })
+        const rateLimited = await isRateLimited({ email, message, ipAddress })
         if (rateLimited) {
             return { success: false, message: "Muitas mensagens em pouco tempo. Tente novamente mais tarde." }
         }
@@ -87,6 +70,7 @@ export async function sendContactMessage(form) {
             email: email.toLowerCase(),
             subject,
             message,
+            ipAddress,
         })
 
         if (process.env.RESEND_API_KEY) {
@@ -104,6 +88,8 @@ export async function sendContactMessage(form) {
                         <p><strong>Assunto:</strong> ${subject}</p>
                         <p><strong>Mensagem:</strong></p>
                         <p>${message.replace(/\n/g, "<br>")}</p>
+                        <hr />
+                        <p><strong>IP:</strong> ${ipAddress || "nao identificado"}</p>
                     `,
                 })
                 if (emailResult?.error) {

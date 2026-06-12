@@ -29,7 +29,8 @@ export function Display({ messages, total, unread, emailEnabled }) {
             message.name?.toLowerCase().includes(term) ||
             message.email?.toLowerCase().includes(term) ||
             message.subject?.toLowerCase().includes(term) ||
-            message.message?.toLowerCase().includes(term)
+            message.message?.toLowerCase().includes(term) ||
+            message.ipAddress?.toLowerCase().includes(term)
         )
     }, [messages, search])
 
