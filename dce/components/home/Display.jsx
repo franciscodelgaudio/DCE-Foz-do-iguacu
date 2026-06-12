@@ -5,17 +5,15 @@ import { NewsSession } from "./NewsSession"
 import { SlideSession } from "./SlideSession"
 import { AboutCalloutSession } from "./AboutCalloutSession"
 import { EventsSession } from "./EventsSession"
-import { CorreioEleganteBanner } from "./CorreioEleganteBanner"
 import { PartnersSession } from "./PartnersSession"
 import { ContactSession } from "./ContactSession"
 import { JoinUsSession } from "./JoinUsSession"
 
-export function Display({ news, events, jobs = [], showBanner = false }) {
+export function Display({ news, events, jobs = [] }) {
 
     return (
         <>
             <SlideSession />
-            {showBanner && <CorreioEleganteBanner />}
             <EventsSession events={events} />
             <NewsSession news={news} />
             <AboutCalloutSession />

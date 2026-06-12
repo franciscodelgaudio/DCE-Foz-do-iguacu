@@ -5,7 +5,7 @@ import Image from "next/image"
 const team = [
     { name: "Beatriz", role: "Presidente e Coordenadora de Movimento Estudantil & Formação Política", photo: "/images/team/beatriz-20260425.jpg" },
     { name: "Alcieris", role: "Vice-Presidente e Tesoureiro", photo: "/images/team/alcieres-20260425.jpg" },
-    { name: "Francisco", role: "Secretário e Coordenador de Comunicação & Imprensa", photo: "/images/team/francisco-20260425.jpg" },
+    { name: "Francisco", role: "Secretário Executivo", photo: "/images/team/francisco-20260425.jpg" },
     { name: "Pietra", role: "Coordenadora de Comunicação & Imprensa", photo: "/images/team/pietra-20260425.jpg" },
     { name: "Ana Clara", role: "Coordenadora de Assistência Estudantil", photo: "/images/team/ana-clara-20260425.jpg" },
     { name: "Victor", role: "Coordenador de Assistência Estudantil, Movimento Estudantil & Formação Política", photo: "/images/team/victor-20260425.jpg" },

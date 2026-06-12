@@ -3,7 +3,6 @@ import { News } from "@/models/news";
 import { Event } from "@/models/event";
 import { Job } from "@/models/job";
 import { publishScheduled } from "@/lib/publishScheduled";
-import { getSettings } from "@/lib/actions/settings";
 
 export const metadata = {
     title: "Home",
@@ -15,7 +14,7 @@ export default async function Page() {
 
     const now = new Date()
 
-    const [news, events, jobs, settings] = await Promise.all([
+    const [news, events, jobs] = await Promise.all([
         News.aggregate([
             { $match: { status: 'published' } },
             { $sort: { featured: -1, publishedAt: -1, createdAt: -1 } },
@@ -47,7 +46,6 @@ export default async function Page() {
             },
         ]),
         Job.find({ status: 'open' }).sort({ createdAt: -1 }).lean(),
-        getSettings(),
     ])
 
     return (
@@ -55,7 +53,6 @@ export default async function Page() {
             news={JSON.parse(JSON.stringify(news))}
             events={JSON.parse(JSON.stringify(events))}
             jobs={JSON.parse(JSON.stringify(jobs))}
-            showBanner={settings?.correioEleganteEnabled ?? false}
         />
     )
 }
