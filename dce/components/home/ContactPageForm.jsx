@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
+import Script from "next/script"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
@@ -13,20 +14,38 @@ import { Label } from "@/components/ui/label"
 
 const schema = z.object({
     name: z.string().min(2, "Nome deve ter ao menos 2 caracteres"),
-    email: z.string().email("Email inválido"),
-    subject: z.string().min(1, "Assunto é obrigatório"),
+    email: z.string().email("Email invalido"),
+    subject: z.string().min(1, "Assunto e obrigatorio"),
     message: z.string().min(10, "Mensagem deve ter ao menos 10 caracteres"),
+    turnstileToken: z.string().optional(),
+    website: z.string().optional(),
 })
 
 export function ContactPageForm() {
     const [loading, setLoading] = useState(false)
+    const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
 
     const {
         register,
         handleSubmit,
         reset,
+        setValue,
         formState: { errors },
     } = useForm({ resolver: zodResolver(schema) })
+
+    useEffect(() => {
+        window.onContactTurnstileSuccess = (token) => {
+            setValue("turnstileToken", token, { shouldValidate: true })
+        }
+        window.onContactTurnstileExpired = () => {
+            setValue("turnstileToken", "")
+        }
+
+        return () => {
+            delete window.onContactTurnstileSuccess
+            delete window.onContactTurnstileExpired
+        }
+    }, [setValue])
 
     const onSubmit = async (data) => {
         setLoading(true)
@@ -38,10 +57,29 @@ export function ContactPageForm() {
         } else {
             toast.error(result.message)
         }
+        window.turnstile?.reset()
+        setValue("turnstileToken", "")
     }
 
     return (
         <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
+            {turnstileSiteKey && (
+                <Script
+                    src="https://challenges.cloudflare.com/turnstile/v0/api.js"
+                    strategy="afterInteractive"
+                />
+            )}
+
+            <input
+                type="text"
+                tabIndex={-1}
+                autoComplete="off"
+                aria-hidden="true"
+                className="hidden"
+                {...register("website")}
+            />
+            <input type="hidden" {...register("turnstileToken")} />
+
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                 <div className="flex flex-col gap-1.5">
                     <Label htmlFor="cf-name" className="text-sm font-semibold text-[#2708ab]">Nome *</Label>
@@ -70,7 +108,7 @@ export function ContactPageForm() {
                 <Label htmlFor="cf-subject" className="text-sm font-semibold text-[#2708ab]">Assunto *</Label>
                 <Input
                     id="cf-subject"
-                    placeholder="Sobre o que você quer falar?"
+                    placeholder="Sobre o que voce quer falar?"
                     {...register("subject")}
                     className={errors.subject ? "border-red-400" : ""}
                 />
@@ -92,8 +130,17 @@ export function ContactPageForm() {
                 {errors.message && <p className="text-xs text-red-500">{errors.message.message}</p>}
             </div>
 
-            <div className="flex items-center justify-between">
-                <p className="text-xs text-slate-400">* Campos obrigatórios</p>
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <p className="text-xs text-slate-400">* Campos obrigatorios</p>
+                {turnstileSiteKey && (
+                    <div
+                        className="cf-turnstile"
+                        data-sitekey={turnstileSiteKey}
+                        data-callback="onContactTurnstileSuccess"
+                        data-expired-callback="onContactTurnstileExpired"
+                        data-theme="light"
+                    />
+                )}
                 <Button
                     type="submit"
                     disabled={loading}

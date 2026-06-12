@@ -8,10 +8,52 @@ import mongoose from "mongoose"
 
 const contactSchema = z.object({
     name: z.string().min(2, "Nome deve ter ao menos 2 caracteres"),
-    email: z.string().email("Email inválido"),
-    subject: z.string().min(1, "Assunto é obrigatório"),
+    email: z.string().email("Email invalido"),
+    subject: z.string().min(1, "Assunto e obrigatorio"),
     message: z.string().min(10, "Mensagem deve ter ao menos 10 caracteres"),
+    turnstileToken: z.string().optional(),
+    website: z.string().optional(),
 })
+
+const statusSchema = z.object({
+    id: z.string(),
+    status: z.enum(["unread", "read", "replied"]),
+})
+
+async function isRateLimited({ email, message }) {
+    const since = new Date(Date.now() - 10 * 60 * 1000)
+    const sameMessageWindow = new Date(Date.now() - 60 * 60 * 1000)
+    const [emailCount, messageCount] = await Promise.all([
+        Contact.countDocuments({ email: email.toLowerCase(), createdAt: { $gte: since } }),
+        Contact.countDocuments({ message, createdAt: { $gte: sameMessageWindow } }),
+    ])
+
+    return emailCount >= 3 || messageCount >= 3
+}
+
+async function verifyTurnstile(token) {
+    const secret = process.env.TURNSTILE_SECRET_KEY
+    if (!secret) {
+        return process.env.NODE_ENV !== "production"
+    }
+    if (!token) return false
+
+    try {
+        const formData = new FormData()
+        formData.append("secret", secret)
+        formData.append("response", token)
+
+        const response = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
+            method: "POST",
+            body: formData,
+        })
+        const data = await response.json()
+        return Boolean(data?.success)
+    } catch (err) {
+        console.error("Erro ao validar Turnstile:", err)
+        return false
+    }
+}
 
 export async function sendContactMessage(form) {
     const parsed = contactSchema.safeParse(form)
@@ -23,10 +65,29 @@ export async function sendContactMessage(form) {
         }
     }
 
-    const { name, email, subject, message } = parsed.data
+    const { name, email, subject, message, turnstileToken, website } = parsed.data
 
     try {
-        await Contact.create({ name, email, subject, message })
+        if (website) {
+            return { success: false, message: "Nao foi possivel enviar a mensagem." }
+        }
+
+        const captchaVerified = await verifyTurnstile(turnstileToken)
+        if (!captchaVerified) {
+            return { success: false, message: "Confirme que voce nao e um robo e tente novamente." }
+        }
+
+        const rateLimited = await isRateLimited({ email, message })
+        if (rateLimited) {
+            return { success: false, message: "Muitas mensagens em pouco tempo. Tente novamente mais tarde." }
+        }
+
+        await Contact.create({
+            name,
+            email: email.toLowerCase(),
+            subject,
+            message,
+        })
 
         if (process.env.RESEND_API_KEY) {
             try {
@@ -60,11 +121,6 @@ export async function sendContactMessage(form) {
     }
 }
 
-const statusSchema = z.object({
-    id: z.string(),
-    status: z.enum(["unread", "read", "replied"]),
-})
-
 async function requireSession() {
     const session = await auth()
     if (!session) redirect("/login")
@@ -76,7 +132,7 @@ export async function updateContactStatus(form) {
 
     const parsed = statusSchema.safeParse(form)
     if (!parsed.success || !mongoose.Types.ObjectId.isValid(parsed.data.id)) {
-        return { success: false, message: "Dados inválidos." }
+        return { success: false, message: "Dados invalidos." }
     }
 
     await Contact.findByIdAndUpdate(parsed.data.id, { status: parsed.data.status })
@@ -87,7 +143,7 @@ export async function deleteContactMessage(id) {
     await requireSession()
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
-        return { success: false, message: "ID inválido." }
+        return { success: false, message: "ID invalido." }
     }
 
     await Contact.findByIdAndDelete(id)
@@ -98,7 +154,7 @@ export async function deleteManyContactMessages(ids) {
     await requireSession()
 
     const validIds = ids.filter((id) => mongoose.Types.ObjectId.isValid(id))
-    if (validIds.length === 0) return { success: false, message: "Nenhum ID válido." }
+    if (validIds.length === 0) return { success: false, message: "Nenhum ID valido." }
 
     await Contact.deleteMany({ _id: { $in: validIds } })
     return { success: true, message: `${validIds.length} mensagem(ns) removida(s).` }

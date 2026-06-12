@@ -16,6 +16,8 @@ const ContactSchema = new Schema(
     { timestamps: true }
 );
 
+ContactSchema.index({ email: 1, createdAt: -1 });
+
 await dbConnect();
 
 export const Contact =
