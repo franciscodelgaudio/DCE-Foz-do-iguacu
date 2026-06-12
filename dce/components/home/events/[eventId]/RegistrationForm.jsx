@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import Script from "next/script"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -100,23 +100,32 @@ export function RegistrationForm({ event }) {
     const [submitting, setSubmitting] = useState(false)
     const [error, setError] = useState(null)
     const [successNumber, setSuccessNumber] = useState(null)
+    const turnstileRef = useRef(null)
+    const turnstileWidgetId = useRef(null)
     const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
 
     const deadlinePassed = deadline && new Date(deadline) < new Date()
 
-    useEffect(() => {
-        window.onEventRegistrationTurnstileSuccess = (token) => {
-            setTurnstileToken(token)
-        }
-        window.onEventRegistrationTurnstileExpired = () => {
-            setTurnstileToken("")
+    const renderTurnstile = useCallback(() => {
+        if (!turnstileSiteKey || !turnstileRef.current || !window.turnstile || turnstileWidgetId.current) {
+            return
         }
 
-        return () => {
-            delete window.onEventRegistrationTurnstileSuccess
-            delete window.onEventRegistrationTurnstileExpired
-        }
-    }, [])
+        turnstileWidgetId.current = window.turnstile.render(turnstileRef.current, {
+            sitekey: turnstileSiteKey,
+            theme: "light",
+            callback: (token) => setTurnstileToken(token),
+            "expired-callback": () => setTurnstileToken(""),
+            "error-callback": () => {
+                setTurnstileToken("")
+                setError("Nao foi possivel carregar o captcha. Recarregue a pagina e tente novamente.")
+            },
+        })
+    }, [turnstileSiteKey])
+
+    useEffect(() => {
+        renderTurnstile()
+    }, [renderTurnstile])
 
     if (deadlinePassed) {
         return (
@@ -164,18 +173,30 @@ export function RegistrationForm({ event }) {
             })),
         ]
 
-        setSubmitting(true)
-        const result = await submitRegistration(String(event._id), formattedAnswers, turnstileToken)
-        setSubmitting(false)
-        window.turnstile?.reset()
-        setTurnstileToken("")
-
-        if (!result.success) {
-            setError(result.message)
+        if (turnstileSiteKey && !turnstileToken) {
+            setError("Confirme o captcha antes de enviar sua inscricao.")
             return
         }
 
-        setSuccessNumber(result.registrationNumber)
+        try {
+            setSubmitting(true)
+            const result = await submitRegistration(String(event._id), formattedAnswers, turnstileToken)
+
+            if (!result.success) {
+                setError(result.message)
+                return
+            }
+
+            setSuccessNumber(result.registrationNumber)
+        } catch (err) {
+            setError(`Erro ao enviar inscricao. ${err?.message ?? "Tente novamente."}`)
+        } finally {
+            setSubmitting(false)
+            if (turnstileWidgetId.current && window.turnstile) {
+                window.turnstile.reset(turnstileWidgetId.current)
+            }
+            setTurnstileToken("")
+        }
     }
 
     return (
@@ -184,6 +205,7 @@ export function RegistrationForm({ event }) {
                 <Script
                     src="https://challenges.cloudflare.com/turnstile/v0/api.js"
                     strategy="afterInteractive"
+                    onLoad={renderTurnstile}
                 />
             )}
 
@@ -302,13 +324,7 @@ export function RegistrationForm({ event }) {
                 ))}
 
                 {turnstileSiteKey && (
-                    <div
-                        className="cf-turnstile"
-                        data-sitekey={turnstileSiteKey}
-                        data-callback="onEventRegistrationTurnstileSuccess"
-                        data-expired-callback="onEventRegistrationTurnstileExpired"
-                        data-theme="light"
-                    />
+                    <div ref={turnstileRef} />
                 )}
 
                 {error && (
