@@ -131,12 +131,14 @@
 [data-image-wrapper] {
   width: fit-content;
   max-width: 100%;
+  box-sizing: border-box;
 }
 
 /* Fix cropped image wrapper with caption: same centering fix */
 [data-image-crop][data-caption] {
   width: fit-content;
   max-width: 100%;
+  box-sizing: border-box;
 }
 
 /* Remove prose auto-margins from images inside wrappers to keep caption close */
@@ -154,12 +156,35 @@ article img {
   height: auto !important;
 }
 
+article [data-image-wrapper],
+article [data-image-crop][data-caption],
+article [data-image-crop][data-caption] > div,
+article figcaption {
+  max-width: 100% !important;
+}
+
+article figcaption {
+  box-sizing: border-box;
+  overflow-wrap: anywhere;
+  padding-inline: 0.25rem;
+}
+
 /* Tiptap columns layout */
+.ProseMirror [data-type="columns"],
+article [data-type="columns"] {
+  max-width: 100%;
+}
+
 .ProseMirror [data-type="columns"] [data-type="column"] {
   flex: 1;
   min-width: 0;
   outline: 1px dashed #cbd5e1;
   border-radius: 4px;
+}
+
+.ProseMirror [data-type="columns"] [data-type="column"],
+article [data-type="columns"] [data-type="column"] {
+  min-width: 0;
 }
 
 [data-type="column"] > :first-child {
@@ -168,4 +193,32 @@ article img {
 
 [data-type="column"] > :last-child {
   margin-bottom: 0 !important;
+}
+
+article [data-type="column"] blockquote {
+  margin-left: 0;
+  margin-right: 0;
+  padding-left: 1rem;
+  overflow-wrap: break-word;
+}
+
+@media (max-width: 640px) {
+  article [data-type="columns"] {
+    display: block !important;
+  }
+
+  article [data-type="columns"] [data-type="column"] {
+    width: 100% !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+
+  article [data-type="columns"] [data-type="column"] + [data-type="column"] {
+    margin-top: 1rem;
+  }
+
+  article blockquote {
+    font-size: 1rem;
+    line-height: 1.75;
+  }
 }
