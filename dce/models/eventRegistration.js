@@ -29,6 +29,7 @@ const EventRegistrationSchema = new Schema(
             default: "not_required",
         },
         confirmedAt: { type: Date },
+        entryConfirmedAt: { type: Date },
         adminNotes: { type: String },
     },
     { timestamps: true }

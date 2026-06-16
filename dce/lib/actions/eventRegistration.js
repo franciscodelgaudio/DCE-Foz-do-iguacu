@@ -158,6 +158,31 @@ export async function cancelRegistration(registrationId) {
     }
 }
 
+export async function confirmRegistrationEntry(registrationId) {
+    const session = await auth()
+    if (!session) redirect("/login")
+
+    if (!mongoose.Types.ObjectId.isValid(registrationId)) {
+        return { success: false, message: "ID invalido." }
+    }
+
+    try {
+        const registration = await EventRegistration.findById(registrationId)
+        if (!registration) return { success: false, message: "Inscricao nao encontrada." }
+
+        if (registration.entryConfirmedAt) {
+            return { success: true, message: "Entrada ja estava confirmada." }
+        }
+
+        registration.entryConfirmedAt = new Date()
+        await registration.save()
+
+        return { success: true, message: "Entrada confirmada!" }
+    } catch {
+        return { success: false, message: "Erro ao confirmar entrada." }
+    }
+}
+
 export async function deleteRegistration(registrationId) {
     const session = await auth()
     if (!session) redirect("/login")
