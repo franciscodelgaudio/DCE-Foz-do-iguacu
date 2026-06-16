@@ -16,9 +16,9 @@ import {
 const slides = [
     {
         text: "DCE em movimento",
-        type: "video",
-        src: "/images/home/WhatsApp Video 2026-06-08 at 01.14.06.mp4",
-        poster: "/images/home/692556983_18588561442061232_7390780632962570418_n.jpg",
+        type: "image",
+        src: "/images/home/WhatsApp Image 2026-06-16 at 15.42.36.jpeg",
+        alt: "Integrantes do DCE em evento com decoracao azul e amarela",
     },
     {
         text: "Representação estudantil presente",
