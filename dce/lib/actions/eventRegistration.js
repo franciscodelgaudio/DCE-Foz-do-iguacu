@@ -187,6 +187,30 @@ export async function confirmRegistrationEntry(registrationId) {
     }
 }
 
+export async function undoRegistrationEntry(registrationId) {
+    const session = await auth()
+    if (!session) redirect("/login")
+    if (!requireAdmin(session)) {
+        return { success: false, message: "Apenas administradores podem desfazer entradas." }
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(registrationId)) {
+        return { success: false, message: "ID invalido." }
+    }
+
+    try {
+        const registration = await EventRegistration.findById(registrationId)
+        if (!registration) return { success: false, message: "Inscricao nao encontrada." }
+
+        registration.entryConfirmedAt = undefined
+        await registration.save()
+
+        return { success: true, message: "Entrada desfeita." }
+    } catch {
+        return { success: false, message: "Erro ao desfazer entrada." }
+    }
+}
+
 export async function deleteRegistration(registrationId) {
     const session = await auth()
     if (!session) redirect("/login")

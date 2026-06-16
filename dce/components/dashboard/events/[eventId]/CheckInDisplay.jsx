@@ -4,7 +4,7 @@ import { useMemo, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
-import { ArrowLeft, CheckCircle2, Search, Trash2, UserCheck } from "lucide-react"
+import { ArrowLeft, CheckCircle2, RotateCcw, Search, Trash2, UserCheck } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
@@ -17,7 +17,11 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table"
-import { confirmRegistrationEntry, deleteRegistration } from "@/lib/actions/eventRegistration"
+import {
+    confirmRegistrationEntry,
+    deleteRegistration,
+    undoRegistrationEntry,
+} from "@/lib/actions/eventRegistration"
 import { RegistrationEditSheet } from "@/components/dashboard/events/[eventId]/RegistrationEditSheet"
 import {
     getRegistrationStudent,
@@ -31,6 +35,17 @@ function CheckInRow({ registration, isAdmin }) {
 
     async function handleConfirmEntry() {
         const result = await confirmRegistrationEntry(String(registration._id))
+        if (result.success) {
+            toast.success(result.message)
+            router.refresh()
+            return
+        }
+
+        toast.error(result.message)
+    }
+
+    async function handleUndoEntry() {
+        const result = await undoRegistrationEntry(String(registration._id))
         if (result.success) {
             toast.success(result.message)
             router.refresh()
@@ -86,6 +101,18 @@ function CheckInRow({ registration, isAdmin }) {
                             <Button size="sm" className="h-9">
                                 <CheckCircle2 className="size-4" />
                                 Confirmar
+                            </Button>
+                        </ConfirmDialog>
+                    )}
+                    {isAdmin && checkedIn && (
+                        <ConfirmDialog
+                            title="Desfazer entrada"
+                            subtitle={`Remover a confirmacao de entrada de ${name} (${ra})?`}
+                            onClick={handleUndoEntry}
+                        >
+                            <Button variant="outline" size="sm" className="h-9">
+                                <RotateCcw className="size-4" />
+                                Desfazer
                             </Button>
                         </ConfirmDialog>
                     )}
