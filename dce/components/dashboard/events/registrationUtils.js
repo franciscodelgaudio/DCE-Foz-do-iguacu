@@ -9,7 +9,19 @@ export function normalizeText(value) {
 function answerMatches(answer, candidates) {
     const key = normalizeText(answer?.key)
     const label = normalizeText(answer?.label)
-    return candidates.some((candidate) => key.includes(candidate) || label.includes(candidate))
+    const compactKey = key.replace(/[^a-z0-9]/g, "")
+    const compactLabel = label.replace(/[^a-z0-9]/g, "")
+
+    return candidates.some((candidate) => {
+        const normalizedCandidate = normalizeText(candidate)
+        const compactCandidate = normalizedCandidate.replace(/[^a-z0-9]/g, "")
+        return (
+            key.includes(normalizedCandidate) ||
+            label.includes(normalizedCandidate) ||
+            compactKey.includes(compactCandidate) ||
+            compactLabel.includes(compactCandidate)
+        )
+    })
 }
 
 export function getAnswerValue(registration, candidates) {

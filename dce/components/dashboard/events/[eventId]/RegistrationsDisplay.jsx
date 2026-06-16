@@ -6,6 +6,14 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog"
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table"
 import { toast } from "sonner"
 import {
     confirmRegistrationPayment,
@@ -159,76 +167,69 @@ function RegistrationRow({ registration, selected, onSelectChange, requiresPayme
     }
 
     return (
-        <div className={["rounded-lg border bg-white p-3 shadow-sm sm:p-4", selected ? "border-[#2708ab] bg-[#2708ab]/5" : ""].join(" ")}>
-            <div className="flex items-start gap-3">
+        <TableRow className={selected ? "bg-[#2708ab]/5 hover:bg-[#2708ab]/5" : ""}>
+            <TableCell className="w-10">
                 <input
                     type="checkbox"
                     checked={selected}
                     onChange={() => onSelectChange(String(registration._id))}
-                    className="mt-1 size-4 shrink-0 accent-[#2708ab]"
+                    className="size-4 accent-[#2708ab]"
                     aria-label={`Selecionar ${name}`}
                 />
-
-                <div className="min-w-0 flex-1">
-                    <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                        <div className="min-w-0">
-                            <p className="break-words text-base font-semibold leading-snug text-slate-900">{name}</p>
-                            <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-slate-600">
-                                <span className="font-medium">{ra}</span>
-                                <span className="font-mono text-xs text-slate-400">{registration.registrationNumber}</span>
-                            </div>
-                        </div>
-
-                        <div className="flex flex-wrap gap-2 sm:justify-end">
-                            {requiresPayment && (
-                                <Badge variant="outline" className={status.color}>{status.label}</Badge>
-                            )}
-                            <EntryBadge confirmedAt={registration.entryConfirmedAt} />
-                        </div>
-                    </div>
-
-                    <div className="mt-3 flex flex-col gap-3 border-t pt-3 sm:flex-row sm:items-center sm:justify-between">
-                        <p className="text-xs text-slate-500">
-                            Inscrito em {new Date(registration.createdAt).toLocaleDateString("pt-BR")}
-                        </p>
-                        <div className="flex items-center gap-1 self-end sm:self-auto">
-                            <AnswersSheet registration={registration} requiresPayment={requiresPayment} />
-                            {requiresPayment && registration.paymentStatus === "pending" && (
-                                <ConfirmDialog
-                                    title="Confirmar pagamento"
-                                    subtitle={`Confirmar pagamento da inscricao ${registration.registrationNumber}?`}
-                                    onClick={handleConfirm}
-                                >
-                                    <button className="inline-flex size-9 items-center justify-center rounded-md text-slate-500 hover:bg-emerald-50 hover:text-emerald-600">
-                                        <CheckCircle2 className="size-4" />
-                                    </button>
-                                </ConfirmDialog>
-                            )}
-                            {registration.paymentStatus !== "cancelled" && registration.paymentStatus !== "not_required" && (
-                                <ConfirmDialog
-                                    title="Cancelar inscricao"
-                                    subtitle={`Cancelar a inscricao ${registration.registrationNumber}?`}
-                                    onClick={handleCancel}
-                                >
-                                    <button className="inline-flex size-9 items-center justify-center rounded-md text-slate-500 hover:bg-orange-50 hover:text-orange-500">
-                                        <XCircle className="size-4" />
-                                    </button>
-                                </ConfirmDialog>
-                            )}
-                            <ConfirmDialog
-                                title="Excluir inscricao"
-                                subtitle={`Excluir permanentemente a inscricao ${registration.registrationNumber}?`}
-                                onClick={handleDelete}
-                            >
-                                <button className="inline-flex size-9 items-center justify-center rounded-md text-slate-500 hover:bg-red-50 hover:text-red-500">
-                                    <Trash2 className="size-4" />
-                                </button>
-                            </ConfirmDialog>
-                        </div>
-                    </div>
+            </TableCell>
+            <TableCell className="min-w-[240px] whitespace-normal">
+                <p className="break-words font-semibold leading-snug text-slate-900">{name}</p>
+                <p className="mt-1 font-mono text-xs text-slate-400">{registration.registrationNumber}</p>
+            </TableCell>
+            <TableCell className="min-w-28 font-medium text-slate-700">{ra}</TableCell>
+            <TableCell className="min-w-32 text-slate-600">
+                {new Date(registration.createdAt).toLocaleDateString("pt-BR")}
+            </TableCell>
+            {requiresPayment && (
+                <TableCell className="min-w-32">
+                    <Badge variant="outline" className={status.color}>{status.label}</Badge>
+                </TableCell>
+            )}
+            <TableCell className="min-w-40">
+                <EntryBadge confirmedAt={registration.entryConfirmedAt} />
+            </TableCell>
+            <TableCell className="w-36">
+                <div className="flex items-center justify-end gap-1">
+                    <AnswersSheet registration={registration} requiresPayment={requiresPayment} />
+                    {requiresPayment && registration.paymentStatus === "pending" && (
+                        <ConfirmDialog
+                            title="Confirmar pagamento"
+                            subtitle={`Confirmar pagamento da inscricao ${registration.registrationNumber}?`}
+                            onClick={handleConfirm}
+                        >
+                            <button className="inline-flex size-9 items-center justify-center rounded-md text-slate-500 hover:bg-emerald-50 hover:text-emerald-600">
+                                <CheckCircle2 className="size-4" />
+                            </button>
+                        </ConfirmDialog>
+                    )}
+                    {registration.paymentStatus !== "cancelled" && registration.paymentStatus !== "not_required" && (
+                        <ConfirmDialog
+                            title="Cancelar inscricao"
+                            subtitle={`Cancelar a inscricao ${registration.registrationNumber}?`}
+                            onClick={handleCancel}
+                        >
+                            <button className="inline-flex size-9 items-center justify-center rounded-md text-slate-500 hover:bg-orange-50 hover:text-orange-500">
+                                <XCircle className="size-4" />
+                            </button>
+                        </ConfirmDialog>
+                    )}
+                    <ConfirmDialog
+                        title="Excluir inscricao"
+                        subtitle={`Excluir permanentemente a inscricao ${registration.registrationNumber}?`}
+                        onClick={handleDelete}
+                    >
+                        <button className="inline-flex size-9 items-center justify-center rounded-md text-slate-500 hover:bg-red-50 hover:text-red-500">
+                            <Trash2 className="size-4" />
+                        </button>
+                    </ConfirmDialog>
                 </div>
-            </div>
-        </div>
+            </TableCell>
+        </TableRow>
     )
 }
 
@@ -365,21 +366,46 @@ export function RegistrationsDisplay({ registrations, event }) {
                 </ConfirmDialog>
             </div>
 
-            <div className="space-y-3 px-4 pb-6 sm:px-6">
+            <div className="px-4 pb-6 sm:px-6">
                 {filtered.length === 0 ? (
                     <div className="rounded-lg border border-dashed bg-white py-14 text-center text-sm text-muted-foreground">
                         Nenhuma inscricao encontrada.
                     </div>
                 ) : (
-                    filtered.map((reg) => (
-                        <RegistrationRow
-                            key={reg._id}
-                            registration={reg}
-                            selected={selectedIds.includes(String(reg._id))}
-                            onSelectChange={toggleSelected}
-                            requiresPayment={requiresPayment}
-                        />
-                    ))
+                    <div className="overflow-hidden rounded-lg border bg-white shadow-sm">
+                        <Table>
+                            <TableHeader>
+                                <TableRow className="bg-slate-50 hover:bg-slate-50">
+                                    <TableHead className="w-10">
+                                        <input
+                                            type="checkbox"
+                                            checked={allSelected}
+                                            onChange={toggleAll}
+                                            className="size-4 accent-[#2708ab]"
+                                            aria-label="Selecionar todas as inscricoes"
+                                        />
+                                    </TableHead>
+                                    <TableHead>Nome / inscricao</TableHead>
+                                    <TableHead>RA</TableHead>
+                                    <TableHead>Data</TableHead>
+                                    {requiresPayment && <TableHead>Pagamento</TableHead>}
+                                    <TableHead>Entrada</TableHead>
+                                    <TableHead className="text-right">Acoes</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {filtered.map((reg) => (
+                                    <RegistrationRow
+                                        key={reg._id}
+                                        registration={reg}
+                                        selected={selectedIds.includes(String(reg._id))}
+                                        onSelectChange={toggleSelected}
+                                        requiresPayment={requiresPayment}
+                                    />
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </div>
                 )}
             </div>
         </div>
