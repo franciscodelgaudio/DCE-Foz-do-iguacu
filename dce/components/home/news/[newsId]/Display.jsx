@@ -10,7 +10,7 @@ export function Display({ newItem }) {
     }
 
     return (
-        <div className="mx-auto w-full max-w-[850px] px-6 py-12 md:px-10">
+        <div className="mx-auto w-full max-w-[850px] overflow-x-hidden px-6 py-12 md:px-10">
             <header className="mb-8 space-y-3">
                 {newItem?.category ? (
                     <div className="text-xs font-semibold uppercase tracking-wider text-[#2708ab]">
@@ -46,7 +46,7 @@ export function Display({ newItem }) {
             <article
                 className="
             prose prose-slate max-w-none
-            prose-img:rounded-lg prose-img:shadow
+            prose-img:rounded-lg prose-img:shadow prose-img:max-w-full prose-img:h-auto
             prose-a:underline prose-a:underline-offset-4
       "
                 dangerouslySetInnerHTML={{ __html: html }}

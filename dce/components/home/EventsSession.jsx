@@ -1,14 +1,16 @@
 import Link from "next/link"
 import { CalendarDays, MapPin, ArrowRight, Clock, UserPlus } from "lucide-react"
 
+const TZ = "America/Sao_Paulo"
+
 function formatDay(date) {
-    return new Intl.DateTimeFormat("pt-BR", { day: "2-digit", timeZone: "UTC" }).format(date)
+    return new Intl.DateTimeFormat("pt-BR", { day: "2-digit", timeZone: TZ }).format(date)
 }
 function formatMonth(date) {
-    return new Intl.DateTimeFormat("pt-BR", { month: "short", timeZone: "UTC" }).format(date).replace(".", "").toUpperCase()
+    return new Intl.DateTimeFormat("pt-BR", { month: "short", timeZone: TZ }).format(date).replace(".", "").toUpperCase()
 }
 function formatTime(date) {
-    return new Intl.DateTimeFormat("pt-BR", { hour: "2-digit", minute: "2-digit", timeZone: "UTC" }).format(date)
+    return new Intl.DateTimeFormat("pt-BR", { hour: "2-digit", minute: "2-digit", timeZone: TZ }).format(date)
 }
 
 export function EventsSession({ events = [] }) {

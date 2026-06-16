@@ -130,17 +130,28 @@
 /* Fix image+caption wrapper: shrink to content so margin:auto centers it */
 [data-image-wrapper] {
   width: fit-content;
+  max-width: 100%;
 }
 
 /* Fix cropped image wrapper with caption: same centering fix */
 [data-image-crop][data-caption] {
   width: fit-content;
+  max-width: 100%;
 }
 
 /* Remove prose auto-margins from images inside wrappers to keep caption close */
 [data-image-wrapper] img {
   margin-top: 0 !important;
   margin-bottom: 0 !important;
+  max-width: 100%;
+  height: auto;
+}
+
+/* Prevent fixed-width images from overflowing on mobile */
+.ProseMirror img,
+article img {
+  max-width: 100% !important;
+  height: auto !important;
 }
 
 /* Tiptap columns layout */
