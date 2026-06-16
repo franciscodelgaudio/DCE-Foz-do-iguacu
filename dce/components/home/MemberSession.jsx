@@ -3,17 +3,32 @@
 import Image from "next/image"
 
 const team = [
-    { name: "Beatriz", role: "Presidente e Coordenadora de Movimento Estudantil & Formação Política", photo: "/images/team/beatriz-20260425.jpg", position: "50% 42%" },
-    { name: "Alcieris", role: "Vice-Presidente e Tesoureiro", photo: "/images/team/alcieres-20260425.jpg", position: "50% 35%" },
-    { name: "Francisco", role: "Secretário Executivo", photo: "/images/team/francisco-20260425.jpg", position: "50% 34%" },
-    { name: "Pietra", role: "Coordenadora de Comunicação & Imprensa", photo: "/images/team/pietra-20260425.jpg", position: "50% 36%" },
-    { name: "Ana Clara", role: "Coordenadora de Assistência Estudantil", photo: "/images/team/ana-clara-20260425.jpg", position: "45% 33%" },
-    { name: "Victor", role: "Coordenador de Assistência Estudantil, Movimento Estudantil & Formação Política", photo: "/images/team/victor-20260425.jpg", position: "50% 28%" },
-    { name: "Evy", role: "Coordenadora de Cultura", photo: "/images/team/evy-20260425.jpg", position: "63% 34%" },
-    { name: "Ketlyn", role: "Coordenadora de Ensino, Pesquisa & Extensão e Cultura", photo: "/images/team/ketlyn-20260425.jpg", position: "50% 34%" },
-    { name: "André", role: "Coordenador de Integração de Campus", photo: "/images/team/andre-20260425.jpg", position: "50% 34%" },
-    { name: "Izzy", role: "Coordenadora de Diversidade", photo: "/images/team/izzy-20260425.jpg", position: "50% 34%" },
+    { name: "Beatriz", role: "Presidente e Coordenadora de Movimento Estudantil & Formação Política", photo: "/images/team/beatriz-20260425.jpg", position: "54% 52%" },
+    { name: "Alcieris", role: "Vice-Presidente e Tesoureiro", photo: "/images/team/alcieres-20260425.jpg", position: "50% 24%" },
+    { name: "Francisco", role: "Secretário Executivo", photo: "/images/team/francisco-20260425.jpg", position: "50% 28%" },
+    { name: "Pietra", role: "Coordenadora de Comunicação & Imprensa", photo: "/images/team/pietra-20260425.jpg", position: "50% 34%" },
+    { name: "Ana Clara", role: "Coordenadora de Assistência Estudantil", photo: "/images/team/ana-clara-20260425.jpg", position: "46% 34%" },
+    { name: "Victor", role: "Coordenador de Assistência Estudantil, Movimento Estudantil & Formação Política", photo: "/images/team/victor-20260425.jpg", position: "50% 26%" },
+    { name: "Evy", role: "Coordenadora de Cultura", photo: "/images/team/evy-20260425.jpg", position: "66% 36%" },
+    { name: "Ketlyn", role: "Coordenadora de Ensino, Pesquisa & Extensão e Cultura", photo: "/images/team/ketlyn-20260425.jpg", position: "50% 36%" },
+    { name: "André", role: "Coordenador de Integração de Campus", photo: "/images/team/andre-20260425.jpg", position: "50% 28%" },
+    { name: "Izzy", role: "Coordenadora de Diversidade", photo: "/images/team/izzy-20260425.jpg", position: "50% 36%" },
 ]
+
+function MemberPhoto({ person, size, sizes }) {
+    return (
+        <div className={`relative mx-auto ${size} overflow-hidden rounded-full bg-[#2708ab]`}>
+            <Image
+                src={person.photo}
+                alt={person.name}
+                fill
+                className="!h-full !w-full object-cover"
+                style={{ objectPosition: person.position }}
+                sizes={sizes}
+            />
+        </div>
+    )
+}
 
 export function MemberSession() {
     return (
@@ -29,21 +44,11 @@ export function MemberSession() {
                             flex gap-5 overflow-x-auto pb-2
                             snap-x snap-mandatory scroll-smooth
                             [-webkit-overflow-scrolling:touch]
-                            [scrollbar-width:none] [&::-webkit-scrollbar]:hidden
                         "
                     >
                         {team.map((p) => (
                             <article key={p.name} className="snap-start w-[150px] shrink-0 text-center">
-                                <div className="relative mx-auto aspect-[4/5] w-[140px] overflow-hidden rounded-lg bg-white shadow-[6px_6px_0_#2708ab]">
-                                    <Image
-                                        src={p.photo}
-                                        alt={p.name}
-                                        fill
-                                        className="object-cover"
-                                        style={{ objectPosition: p.position }}
-                                        sizes="140px"
-                                    />
-                                </div>
+                                <MemberPhoto person={p} size="h-[132px] w-[132px]" sizes="132px" />
                                 <h3 className="mt-4 text-base font-extrabold text-[#2708ab]">{p.name}</h3>
                                 <p className="mt-1 text-xs leading-relaxed text-slate-700">{p.role}</p>
                             </article>
@@ -58,26 +63,16 @@ export function MemberSession() {
                 <div className="mt-10 hidden md:block">
                     <div
                         className="
-                            flex flex-nowrap gap-8 overflow-x-auto pb-3
+                            flex flex-nowrap gap-7 overflow-x-auto pb-3
                             snap-x snap-mandatory scroll-smooth
                             [-webkit-overflow-scrolling:touch]
-                            [scrollbar-width:none] [&::-webkit-scrollbar]:hidden
                         "
                     >
                         {team.map((p) => (
                             <article key={p.name} className="snap-start w-44 shrink-0 text-center">
-                                <div className="relative mx-auto aspect-[4/5] w-44 overflow-hidden rounded-lg bg-white shadow-[8px_8px_0_#2708ab]">
-                                    <Image
-                                        src={p.photo}
-                                        alt={p.name}
-                                        fill
-                                        className="object-cover"
-                                        style={{ objectPosition: p.position }}
-                                        sizes="176px"
-                                    />
-                                </div>
+                                <MemberPhoto person={p} size="h-44 w-44" sizes="176px" />
 
-                                <h3 className="mt-5 text-lg font-extrabold text-[#2708ab]">{p.name}</h3>
+                                <h3 className="mt-6 text-lg font-extrabold text-[#2708ab]">{p.name}</h3>
                                 <p className="mt-2 text-sm leading-relaxed text-slate-700">{p.role}</p>
                             </article>
                         ))}
