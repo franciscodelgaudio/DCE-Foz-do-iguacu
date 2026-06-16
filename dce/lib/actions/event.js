@@ -67,7 +67,7 @@ export async function upsertEvent(form) {
     const processedRegistration = registration
         ? {
               enabled: registration.enabled,
-              deadline: registration.deadline ? new Date(registration.deadline) : undefined,
+              deadline: registration.deadline ? new Date(registration.deadline + "-03:00") : undefined,
               limit: registration.limit,
               requiresPayment: registration.requiresPayment,
               paymentAmount: registration.paymentAmount,
@@ -103,8 +103,8 @@ export async function upsertEvent(form) {
             avatarUrl: session.user.image,
         },
         status,
-        ...(eventDate ? { eventDate: new Date(eventDate) } : {}),
-        ...(eventEndDate ? { eventEndDate: new Date(eventEndDate) } : { eventEndDate: null }),
+        ...(eventDate ? { eventDate: new Date(eventDate + "-03:00") } : {}),
+        ...(eventEndDate ? { eventEndDate: new Date(eventEndDate + "-03:00") } : { eventEndDate: null }),
         ...(status === "published" ? { publishedAt: new Date() } : {}),
         ...(processedRegistration !== undefined ? { registration: processedRegistration } : {}),
     }
