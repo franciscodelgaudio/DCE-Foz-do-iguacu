@@ -28,6 +28,7 @@ import {
     Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger,
 } from "@/components/ui/sheet"
 import Link from "next/link"
+import { RegistrationEditSheet } from "@/components/dashboard/events/[eventId]/RegistrationEditSheet"
 import {
     getRegistrationStudent,
     registrationMatchesSearch,
@@ -143,7 +144,7 @@ function AnswersSheet({ registration, requiresPayment }) {
     )
 }
 
-function RegistrationRow({ registration, selected, onSelectChange, requiresPayment }) {
+function RegistrationRow({ registration, selected, onSelectChange, requiresPayment, isAdmin }) {
     const router = useRouter()
     const { name, ra } = getRegistrationStudent(registration)
     const status = STATUS_LABELS[registration.paymentStatus] ?? STATUS_LABELS.not_required
@@ -168,15 +169,17 @@ function RegistrationRow({ registration, selected, onSelectChange, requiresPayme
 
     return (
         <TableRow className={selected ? "bg-[#2708ab]/5 hover:bg-[#2708ab]/5" : ""}>
-            <TableCell className="w-10">
-                <input
-                    type="checkbox"
-                    checked={selected}
-                    onChange={() => onSelectChange(String(registration._id))}
-                    className="size-4 accent-[#2708ab]"
-                    aria-label={`Selecionar ${name}`}
-                />
-            </TableCell>
+            {isAdmin && (
+                <TableCell className="w-10">
+                    <input
+                        type="checkbox"
+                        checked={selected}
+                        onChange={() => onSelectChange(String(registration._id))}
+                        className="size-4 accent-[#2708ab]"
+                        aria-label={`Selecionar ${name}`}
+                    />
+                </TableCell>
+            )}
             <TableCell className="min-w-[240px] whitespace-normal">
                 <p className="break-words font-semibold leading-snug text-slate-900">{name}</p>
                 <p className="mt-1 font-mono text-xs text-slate-400">{registration.registrationNumber}</p>
@@ -196,6 +199,7 @@ function RegistrationRow({ registration, selected, onSelectChange, requiresPayme
             <TableCell className="w-36">
                 <div className="flex items-center justify-end gap-1">
                     <AnswersSheet registration={registration} requiresPayment={requiresPayment} />
+                    {isAdmin && <RegistrationEditSheet registration={registration} />}
                     {requiresPayment && registration.paymentStatus === "pending" && (
                         <ConfirmDialog
                             title="Confirmar pagamento"
@@ -218,22 +222,24 @@ function RegistrationRow({ registration, selected, onSelectChange, requiresPayme
                             </button>
                         </ConfirmDialog>
                     )}
-                    <ConfirmDialog
-                        title="Excluir inscricao"
-                        subtitle={`Excluir permanentemente a inscricao ${registration.registrationNumber}?`}
-                        onClick={handleDelete}
-                    >
-                        <button className="inline-flex size-9 items-center justify-center rounded-md text-slate-500 hover:bg-red-50 hover:text-red-500">
-                            <Trash2 className="size-4" />
-                        </button>
-                    </ConfirmDialog>
+                    {isAdmin && (
+                        <ConfirmDialog
+                            title="Excluir inscricao"
+                            subtitle={`Excluir permanentemente a inscricao ${registration.registrationNumber}?`}
+                            onClick={handleDelete}
+                        >
+                            <button className="inline-flex size-9 items-center justify-center rounded-md text-slate-500 hover:bg-red-50 hover:text-red-500">
+                                <Trash2 className="size-4" />
+                            </button>
+                        </ConfirmDialog>
+                    )}
                 </div>
             </TableCell>
         </TableRow>
     )
 }
 
-export function RegistrationsDisplay({ registrations, event }) {
+export function RegistrationsDisplay({ registrations, event, isAdmin = false }) {
     const router = useRouter()
     const [search, setSearch] = useState("")
     const [statusFilter, setStatusFilter] = useState("")
@@ -345,25 +351,31 @@ export function RegistrationsDisplay({ registrations, event }) {
             </div>
 
             <div className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-                <label className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <input
-                        type="checkbox"
-                        checked={allSelected}
-                        onChange={toggleAll}
-                        className="size-4 accent-[#2708ab]"
-                    />
-                    {hasSelection ? `${selectedIds.length} selecionado(s)` : `${filtered.length} inscricao(oes) exibida(s)`}
-                </label>
-                <ConfirmDialog
-                    title="Excluir inscricoes selecionadas"
-                    subtitle={`Excluir permanentemente ${selectedIds.length} inscricao(oes)?`}
-                    onClick={handleDeleteSelected}
-                >
-                    <Button variant="destructive" disabled={!hasSelection} size="sm" className="w-full sm:w-auto">
-                        <Trash2 className="size-4" />
-                        Excluir selecionados
-                    </Button>
-                </ConfirmDialog>
+                {isAdmin ? (
+                    <label className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <input
+                            type="checkbox"
+                            checked={allSelected}
+                            onChange={toggleAll}
+                            className="size-4 accent-[#2708ab]"
+                        />
+                        {hasSelection ? `${selectedIds.length} selecionado(s)` : `${filtered.length} inscricao(oes) exibida(s)`}
+                    </label>
+                ) : (
+                    <p className="text-sm text-muted-foreground">{filtered.length} inscricao(oes) exibida(s)</p>
+                )}
+                {isAdmin && (
+                    <ConfirmDialog
+                        title="Excluir inscricoes selecionadas"
+                        subtitle={`Excluir permanentemente ${selectedIds.length} inscricao(oes)?`}
+                        onClick={handleDeleteSelected}
+                    >
+                        <Button variant="destructive" disabled={!hasSelection} size="sm" className="w-full sm:w-auto">
+                            <Trash2 className="size-4" />
+                            Excluir selecionados
+                        </Button>
+                    </ConfirmDialog>
+                )}
             </div>
 
             <div className="px-4 pb-6 sm:px-6">
@@ -376,15 +388,17 @@ export function RegistrationsDisplay({ registrations, event }) {
                         <Table>
                             <TableHeader>
                                 <TableRow className="bg-slate-50 hover:bg-slate-50">
-                                    <TableHead className="w-10">
-                                        <input
-                                            type="checkbox"
-                                            checked={allSelected}
-                                            onChange={toggleAll}
-                                            className="size-4 accent-[#2708ab]"
-                                            aria-label="Selecionar todas as inscricoes"
-                                        />
-                                    </TableHead>
+                                    {isAdmin && (
+                                        <TableHead className="w-10">
+                                            <input
+                                                type="checkbox"
+                                                checked={allSelected}
+                                                onChange={toggleAll}
+                                                className="size-4 accent-[#2708ab]"
+                                                aria-label="Selecionar todas as inscricoes"
+                                            />
+                                        </TableHead>
+                                    )}
                                     <TableHead>Nome / inscricao</TableHead>
                                     <TableHead>RA</TableHead>
                                     <TableHead>Data</TableHead>
@@ -401,6 +415,7 @@ export function RegistrationsDisplay({ registrations, event }) {
                                         selected={selectedIds.includes(String(reg._id))}
                                         onSelectChange={toggleSelected}
                                         requiresPayment={requiresPayment}
+                                        isAdmin={isAdmin}
                                     />
                                 ))}
                             </TableBody>

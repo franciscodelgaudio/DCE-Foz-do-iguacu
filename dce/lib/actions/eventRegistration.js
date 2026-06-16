@@ -19,6 +19,10 @@ function isValidAcademicEmail(email) {
     return /^[^\s@]+@unioeste\.br$/i.test(email)
 }
 
+function requireAdmin(session) {
+    return session?.user?.role === "admin"
+}
+
 export async function submitRegistration(eventId, answers, turnstileToken) {
     if (!Array.isArray(answers)) {
         return { success: false, message: "Dados da inscricao invalidos." }
@@ -186,6 +190,9 @@ export async function confirmRegistrationEntry(registrationId) {
 export async function deleteRegistration(registrationId) {
     const session = await auth()
     if (!session) redirect("/login")
+    if (!requireAdmin(session)) {
+        return { success: false, message: "Apenas administradores podem excluir inscricoes." }
+    }
 
     if (!mongoose.Types.ObjectId.isValid(registrationId)) {
         return { success: false, message: "ID inválido." }
@@ -202,6 +209,9 @@ export async function deleteRegistration(registrationId) {
 export async function deleteManyRegistrations(registrationIds) {
     const session = await auth()
     if (!session) redirect("/login")
+    if (!requireAdmin(session)) {
+        return { success: false, message: "Apenas administradores podem excluir inscricoes." }
+    }
 
     if (!Array.isArray(registrationIds) || registrationIds.length === 0) {
         return { success: false, message: "Nenhuma inscrição selecionada." }
@@ -222,5 +232,61 @@ export async function deleteManyRegistrations(registrationIds) {
         }
     } catch {
         return { success: false, message: "Erro ao deletar as inscrições." }
+    }
+}
+
+export async function updateRegistration(registrationId, answers) {
+    const session = await auth()
+    if (!session) redirect("/login")
+    if (!requireAdmin(session)) {
+        return { success: false, message: "Apenas administradores podem editar inscricoes." }
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(registrationId)) {
+        return { success: false, message: "ID invalido." }
+    }
+
+    if (!Array.isArray(answers)) {
+        return { success: false, message: "Dados da inscricao invalidos." }
+    }
+
+    const normalizedAnswers = answers.map((answer) => ({
+        key: String(answer?.key ?? ""),
+        label: String(answer?.label ?? ""),
+        value: answer?.value,
+    }))
+
+    const academicEmail = normalizeAcademicEmail(
+        normalizedAnswers.find((answer) => answer.key === ACADEMIC_EMAIL_KEY)?.value
+    )
+
+    if (!academicEmail) {
+        return { success: false, message: "Informe o e-mail academico." }
+    }
+
+    if (!isValidAcademicEmail(academicEmail)) {
+        return { success: false, message: `Use um e-mail academico que termine em ${ACADEMIC_EMAIL_DOMAIN}.` }
+    }
+
+    try {
+        const registration = await EventRegistration.findById(registrationId)
+        if (!registration) return { success: false, message: "Inscricao nao encontrada." }
+
+        const duplicate = await EventRegistration.exists({
+            _id: { $ne: registration._id },
+            eventId: registration.eventId,
+            academicEmail,
+        })
+        if (duplicate) {
+            return { success: false, message: "Este e-mail academico ja esta em outra inscricao deste evento." }
+        }
+
+        registration.academicEmail = academicEmail
+        registration.answers = normalizedAnswers
+        await registration.save()
+
+        return { success: true, message: "Inscricao atualizada." }
+    } catch {
+        return { success: false, message: "Erro ao atualizar inscricao." }
     }
 }

@@ -4,18 +4,27 @@ import { useMemo, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
-import { ArrowLeft, CheckCircle2, Search, UserCheck } from "lucide-react"
+import { ArrowLeft, CheckCircle2, Search, Trash2, UserCheck } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog"
-import { confirmRegistrationEntry } from "@/lib/actions/eventRegistration"
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table"
+import { confirmRegistrationEntry, deleteRegistration } from "@/lib/actions/eventRegistration"
+import { RegistrationEditSheet } from "@/components/dashboard/events/[eventId]/RegistrationEditSheet"
 import {
     getRegistrationStudent,
     registrationMatchesSearch,
 } from "@/components/dashboard/events/registrationUtils"
 
-function CheckInRow({ registration }) {
+function CheckInRow({ registration, isAdmin }) {
     const router = useRouter()
     const { name, ra } = getRegistrationStudent(registration)
     const checkedIn = Boolean(registration.entryConfirmedAt)
@@ -31,50 +40,74 @@ function CheckInRow({ registration }) {
         toast.error(result.message)
     }
 
-    return (
-        <div className={[
-            "rounded-lg border bg-white p-4 shadow-sm transition-colors",
-            checkedIn ? "border-emerald-200 bg-emerald-50/50" : "",
-        ].join(" ")}>
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div className="min-w-0">
-                    <p className="break-words text-base font-semibold leading-snug text-slate-900">{name}</p>
-                    <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-slate-600">
-                        <span className="font-medium">{ra}</span>
-                        <span className="font-mono text-xs text-slate-400">{registration.registrationNumber}</span>
-                    </div>
-                </div>
+    async function handleDelete() {
+        const result = await deleteRegistration(String(registration._id))
+        if (result.success) {
+            toast.success(result.message)
+            router.refresh()
+            return
+        }
 
-                <div className="flex flex-col gap-2 sm:items-end">
-                    {checkedIn ? (
-                        <>
-                            <Badge variant="outline" className="w-fit border-emerald-200 bg-emerald-50 text-emerald-700">
-                                <UserCheck className="size-3" />
-                                Entrada confirmada
-                            </Badge>
-                            <p className="text-xs text-emerald-700">
-                                {new Date(registration.entryConfirmedAt).toLocaleString("pt-BR")}
-                            </p>
-                        </>
-                    ) : (
+        toast.error(result.message)
+    }
+
+    return (
+        <TableRow className={checkedIn ? "bg-emerald-50/50 hover:bg-emerald-50/70" : ""}>
+            <TableCell className="min-w-[240px] whitespace-normal">
+                <p className="break-words font-semibold leading-snug text-slate-900">{name}</p>
+                <p className="mt-1 font-mono text-xs text-slate-400">{registration.registrationNumber}</p>
+            </TableCell>
+            <TableCell className="min-w-28 font-medium text-slate-700">{ra}</TableCell>
+            <TableCell className="min-w-44">
+                {checkedIn ? (
+                    <div className="space-y-1">
+                        <Badge variant="outline" className="w-fit border-emerald-200 bg-emerald-50 text-emerald-700">
+                            <UserCheck className="size-3" />
+                            Entrada confirmada
+                        </Badge>
+                        <p className="text-xs text-emerald-700">
+                            {new Date(registration.entryConfirmedAt).toLocaleString("pt-BR")}
+                        </p>
+                    </div>
+                ) : (
+                    <Badge variant="outline" className="border-slate-200 bg-slate-50 text-slate-600">
+                        Entrada pendente
+                    </Badge>
+                )}
+            </TableCell>
+            <TableCell className="w-56">
+                <div className="flex items-center justify-end gap-1">
+                    {!checkedIn && (
                         <ConfirmDialog
                             title="Confirmar entrada"
                             subtitle={`Confirmar a entrada de ${name} (${ra})?`}
                             onClick={handleConfirmEntry}
                         >
-                            <Button className="w-full sm:w-auto">
+                            <Button size="sm" className="h-9">
                                 <CheckCircle2 className="size-4" />
-                                Confirmar entrada
+                                Confirmar
                             </Button>
                         </ConfirmDialog>
                     )}
+                    {isAdmin && <RegistrationEditSheet registration={registration} />}
+                    {isAdmin && (
+                        <ConfirmDialog
+                            title="Excluir inscricao"
+                            subtitle={`Excluir permanentemente a inscricao ${registration.registrationNumber}?`}
+                            onClick={handleDelete}
+                        >
+                            <button className="inline-flex size-9 items-center justify-center rounded-md text-slate-500 hover:bg-red-50 hover:text-red-500">
+                                <Trash2 className="size-4" />
+                            </button>
+                        </ConfirmDialog>
+                    )}
                 </div>
-            </div>
-        </div>
+            </TableCell>
+        </TableRow>
     )
 }
 
-export function CheckInDisplay({ registrations, event }) {
+export function CheckInDisplay({ registrations, event, isAdmin = false }) {
     const [search, setSearch] = useState("")
 
     const filtered = useMemo(() => {
@@ -130,15 +163,33 @@ export function CheckInDisplay({ registrations, event }) {
                 </div>
             </div>
 
-            <div className="space-y-3 px-4 py-4 sm:px-6">
+            <div className="px-4 py-4 sm:px-6">
                 {filtered.length === 0 ? (
                     <div className="rounded-lg border border-dashed bg-white py-14 text-center text-sm text-muted-foreground">
                         Nenhum inscrito encontrado.
                     </div>
                 ) : (
-                    filtered.map((registration) => (
-                        <CheckInRow key={registration._id} registration={registration} />
-                    ))
+                    <div className="overflow-hidden rounded-lg border bg-white shadow-sm">
+                        <Table>
+                            <TableHeader>
+                                <TableRow className="bg-slate-50 hover:bg-slate-50">
+                                    <TableHead>Nome / inscricao</TableHead>
+                                    <TableHead>RA</TableHead>
+                                    <TableHead>Entrada</TableHead>
+                                    <TableHead className="text-right">Acoes</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {filtered.map((registration) => (
+                                    <CheckInRow
+                                        key={registration._id}
+                                        registration={registration}
+                                        isAdmin={isAdmin}
+                                    />
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </div>
                 )}
             </div>
         </div>

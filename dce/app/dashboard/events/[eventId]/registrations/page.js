@@ -13,6 +13,7 @@ export async function generateMetadata({ params }) {
 export default async function Page({ params }) {
     const session = await auth()
     if (!session) redirect("/login")
+    const isAdmin = session.user?.role === "admin"
 
     const { eventId } = await params
     const event = await Event.findById(eventId).lean()
@@ -27,6 +28,7 @@ export default async function Page({ params }) {
         <RegistrationsDisplay
             registrations={JSON.parse(JSON.stringify(registrations))}
             event={JSON.parse(JSON.stringify(event))}
+            isAdmin={isAdmin}
         />
     )
 }

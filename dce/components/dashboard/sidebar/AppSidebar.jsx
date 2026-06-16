@@ -2,7 +2,7 @@
 
 import { NavUser } from "./NavUser"
 import { NavMain } from "./NavMain"
-import { House, FolderKanban, CalendarDays, Users, Heart, FileText, LayoutList, Briefcase, Inbox } from "lucide-react"
+import { House, FolderKanban, CalendarDays, Users, FileText, LayoutList, Briefcase, Inbox } from "lucide-react"
 
 import {
     Sidebar,
@@ -14,7 +14,7 @@ import {
 import { NavHeader } from "./NavHeader"
 
 export default function AppSidebar({ user, isAdmin = false }) {
-    const navMain = [
+    const navGeneral = [
         { title: "Home", url: `/dashboard`, icon: House, exact: true },
         {
             title: "Jornal",
@@ -25,14 +25,15 @@ export default function AppSidebar({ user, isAdmin = false }) {
             ],
         },
         { title: "Eventos", url: `/dashboard/events`, icon: CalendarDays },
-        { title: "Correio Elegante", url: `/dashboard/correio-elegante`, icon: Heart },
         { title: "Editais e Atas", url: `/dashboard/documentos`, icon: FileText },
         { title: "Vagas", url: `/dashboard/vagas`, icon: Briefcase },
         { title: "Contatos", url: `/dashboard/contatos`, icon: Inbox },
     ]
 
+    const navSettings = []
+
     if (isAdmin) {
-        navMain.push({ title: "Usuários", url: `/dashboard/usuarios`, icon: Users })
+        navSettings.push({ title: "Usuários", url: `/dashboard/usuarios`, icon: Users })
     }
 
     return (
@@ -42,7 +43,10 @@ export default function AppSidebar({ user, isAdmin = false }) {
             </SidebarHeader>
 
             <SidebarContent>
-                <NavMain items={navMain} />
+                <NavMain title="Geral" items={navGeneral} />
+                {navSettings.length > 0 && (
+                    <NavMain title="Configurações" items={navSettings} />
+                )}
             </SidebarContent>
 
             <SidebarFooter>
