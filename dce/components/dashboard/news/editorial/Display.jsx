@@ -1,15 +1,20 @@
 import { LayoutList, Users } from "lucide-react"
 import { slotPeriodLabel } from "@/lib/editorial"
 
-function SlotStatusBadge({ filled, past }) {
+function SlotStatusBadge({ filled, past, count, assignedPublished }) {
     if (filled) return (
         <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">
             ✅ Preenchido
         </span>
     )
-    if (past) return (
+    if (past && count === 0) return (
         <span className="inline-flex items-center gap-1 rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">
             ⚠️ Vazio
+        </span>
+    )
+    if (past) return (
+        <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
+            ⚠️ Incompleto
         </span>
     )
     return (
@@ -77,7 +82,7 @@ export function Display({ slots, coordStats, today }) {
                         <LayoutList className="size-4 text-muted-foreground" />
                         <h2 className="text-base font-semibold text-gray-800">Calendário Editorial</h2>
                         <span className="text-xs text-muted-foreground">
-                            — ao menos uma matéria publicada por slot
+                            — 2 publicações por slot, pela coordenação da vez
                         </span>
                     </div>
 
@@ -87,6 +92,7 @@ export function Display({ slots, coordStats, today }) {
                                 <tr className="border-b bg-gray-50 text-left">
                                     <th className="px-4 py-3 font-medium text-gray-600">Slot</th>
                                     <th className="px-4 py-3 font-medium text-gray-600">Período</th>
+                                    <th className="px-4 py-3 font-medium text-gray-600">Responsável da vez</th>
                                     <th className="px-4 py-3 font-medium text-gray-600">Status</th>
                                     <th className="px-4 py-3 font-medium text-gray-600 text-right">Publicações</th>
                                 </tr>
@@ -114,10 +120,22 @@ export function Display({ slots, coordStats, today }) {
                                                 {slotPeriodLabel(slot)}
                                             </td>
                                             <td className="px-4 py-3">
-                                                <SlotStatusBadge filled={slot.filled} past={isPast} />
+                                                <span className="text-gray-800 font-medium text-sm">{slot.assignedLabel}</span>
+                                                {slot.assignedPublished
+                                                    ? <span className="ml-1.5 text-xs text-green-600 font-medium">✓ publicou</span>
+                                                    : <span className="ml-1.5 text-xs text-gray-400">pendente</span>
+                                                }
+                                            </td>
+                                            <td className="px-4 py-3">
+                                                <SlotStatusBadge
+                                                    filled={slot.filled}
+                                                    past={isPast}
+                                                    count={slot.count}
+                                                    assignedPublished={slot.assignedPublished}
+                                                />
                                             </td>
                                             <td className="px-4 py-3 text-right text-gray-700">
-                                                {slot.count > 0 ? slot.count : "—"}
+                                                {slot.count > 0 ? `${slot.count}/2` : "—"}
                                             </td>
                                         </tr>
                                     )
@@ -127,8 +145,8 @@ export function Display({ slots, coordStats, today }) {
                     </div>
 
                     <p className="mt-2 text-xs text-muted-foreground">
-                        Slots passados com zero publicações ficam marcados em vermelho.
-                        Publicações de qualquer coordenação preenchem o slot.
+                        Um slot é preenchido quando tem 2 ou mais publicações <em>e</em> a coordenação responsável da vez publicou.
+                        Slots passados incompletos ficam em amarelo; sem nenhuma publicação, em vermelho.
                     </p>
                 </section>
 

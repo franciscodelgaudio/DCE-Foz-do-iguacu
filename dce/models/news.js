@@ -81,7 +81,7 @@ const NewsSchema = new Schema(
 
         coordination: {
             type: String,
-            enum: ["comunicacao", "cultura", "integracao", "ensino", "movimento", "assistencia", "diversidade", "presidencia", null],
+            enum: ["comunicacao", "cultura", "integracao", "ensino", "movimento", "direcao", "assistencia", "diversidade", "presidencia", null],
             default: null,
         },
     },

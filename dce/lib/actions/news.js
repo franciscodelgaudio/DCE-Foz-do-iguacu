@@ -6,7 +6,7 @@ import { z } from "zod"
 import { News } from "../../models/news"
 import mongoose from "mongoose"
 
-const COORDINATION_KEYS = ["comunicacao", "cultura", "integracao", "ensino", "movimento", "assistencia", "diversidade", "presidencia"]
+const COORDINATION_KEYS = ["comunicacao", "cultura", "integracao", "ensino", "movimento", "direcao", "assistencia", "diversidade", "presidencia"]
 
 const newsSchema = z.object({
     _id: z.string().optional(),

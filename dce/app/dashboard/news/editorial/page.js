@@ -1,7 +1,7 @@
 import { auth } from "@/auth"
 import { redirect } from "next/navigation"
 import { News } from "@/models/news"
-import { CALENDAR_SLOTS, COORDINATIONS } from "@/lib/editorial"
+import { CALENDAR_SLOTS, COORDINATIONS, ROTATION, SLOT_REQUIRED } from "@/lib/editorial"
 import { Display } from "@/components/dashboard/news/editorial/Display"
 
 export const metadata = {
@@ -19,14 +19,25 @@ export default async function Page() {
     ).lean()
 
     // Calcula status de cada slot do calendário
-    const slots = CALENDAR_SLOTS.map((slot) => {
+    const slots = CALENDAR_SLOTS.map((slot, i) => {
         const start = new Date(slot.start + "T00:00:00")
         const end = new Date(slot.end + "T23:59:59")
         const matching = published.filter((n) => {
             const d = new Date(n.publishedAt)
             return d >= start && d <= end
         })
-        return { ...slot, count: matching.length, filled: matching.length > 0 }
+        const assignedKey = ROTATION[i % ROTATION.length]
+        const assignedCoord = COORDINATIONS.find((c) => c.key === assignedKey)
+        const assignedPublished = matching.some((n) => n.coordination === assignedKey)
+        const filled = matching.length >= SLOT_REQUIRED && assignedPublished
+        return {
+            ...slot,
+            count: matching.length,
+            filled,
+            assignedKey,
+            assignedLabel: assignedCoord?.label ?? assignedKey,
+            assignedPublished,
+        }
     })
 
     // Calcula obrigações — apenas coordenações com meta > 0
