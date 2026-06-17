@@ -24,6 +24,7 @@ import {
 import {
     ClipboardList, Search, Trash2, CheckCircle2, Clock, XCircle, Eye, ArrowLeft, UserCheck,
 } from "lucide-react"
+import { ExportSheet } from "@/components/dashboard/events/[eventId]/ExportSheet"
 import {
     Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger,
 } from "@/components/ui/sheet"
@@ -302,12 +303,15 @@ export function RegistrationsDisplay({ registrations, event, isAdmin = false }) 
                             <p className="truncate text-sm text-muted-foreground">{event.title}</p>
                         </div>
                     </div>
-                    <Button asChild className="w-full sm:w-auto">
-                        <Link href={`/dashboard/events/${event._id}/registrations/entrada`}>
-                            <UserCheck className="size-4" />
-                            Controle de entrada
-                        </Link>
-                    </Button>
+                    <div className="flex w-full gap-2 sm:w-auto">
+                        <ExportSheet registrations={filtered} event={event} />
+                        <Button asChild className="flex-1 sm:flex-none">
+                            <Link href={`/dashboard/events/${event._id}/registrations/entrada`}>
+                                <UserCheck className="size-4" />
+                                Controle de entrada
+                            </Link>
+                        </Button>
+                    </div>
                 </div>
             </div>
 
