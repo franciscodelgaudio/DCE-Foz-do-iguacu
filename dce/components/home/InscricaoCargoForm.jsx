@@ -12,18 +12,6 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
-const CARGOS = [
-    "Presidência",
-    "Direção Executiva",
-    "Comunicação e Imprensa",
-    "Cultura",
-    "Integração de Campus",
-    "Ensino, Pesquisa e Extensão",
-    "Movimento Estudantil e Formação Política",
-    "Assistência Estudantil",
-    "Diversidade",
-]
-
 const SEMESTRES = [
     "1º semestre",
     "2º semestre",
@@ -47,7 +35,7 @@ const schema = z.object({
     website: z.string().optional(),
 })
 
-export function InscricaoCargoForm() {
+export function InscricaoCargoForm({ jobs = [] }) {
     const [loading, setLoading] = useState(false)
     const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
 
@@ -168,16 +156,24 @@ export function InscricaoCargoForm() {
 
             <div className="flex flex-col gap-1.5">
                 <Label htmlFor="ic-cargo" className="text-sm font-semibold text-[#2708ab]">Cargo de interesse *</Label>
-                <select
-                    id="ic-cargo"
-                    {...register("cargo")}
-                    className={selectClass(!!errors.cargo)}
-                >
-                    <option value="">Selecione o cargo desejado</option>
-                    {CARGOS.map((c) => (
-                        <option key={c} value={c}>{c}</option>
-                    ))}
-                </select>
+                {jobs.length === 0 ? (
+                    <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2.5 text-sm text-amber-700">
+                        Nenhum cargo disponível no momento. Acompanhe nossas redes para novidades.
+                    </div>
+                ) : (
+                    <select
+                        id="ic-cargo"
+                        {...register("cargo")}
+                        className={selectClass(!!errors.cargo)}
+                    >
+                        <option value="">Selecione o cargo desejado</option>
+                        {jobs.map((job) => (
+                            <option key={job._id} value={job.title}>
+                                {job.title}{job.area ? ` — ${job.area}` : ""}
+                            </option>
+                        ))}
+                    </select>
+                )}
                 {errors.cargo && <p className="text-xs text-red-500">{errors.cargo.message}</p>}
             </div>
 
@@ -217,7 +213,7 @@ export function InscricaoCargoForm() {
                 )}
                 <Button
                     type="submit"
-                    disabled={loading}
+                    disabled={loading || jobs.length === 0}
                     className="gap-2 rounded-xl border-4 border-[#2708ab] bg-[#2708ab] px-6 py-3 text-sm font-extrabold text-white shadow-[4px_4px_0_#fdf25a] transition-all hover:bg-[#1a0580] hover:shadow-[6px_6px_0_#fdf25a] disabled:opacity-60"
                 >
                     <Send className="h-4 w-4" />
