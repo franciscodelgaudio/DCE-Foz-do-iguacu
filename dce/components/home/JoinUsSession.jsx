@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { Briefcase, ArrowRight, Clock, Building2, ChevronRight, ExternalLink } from "lucide-react"
+import { Briefcase, ArrowRight, Clock, Building2, ChevronRight, UserPlus } from "lucide-react"
 
 const STATUS_LABELS = {
     open: "Aberta",
@@ -107,21 +107,28 @@ export function JoinUsSession({ jobs = [] }) {
                     </Link>
                 </div>
 
-                {hasJobs && (
-                    <div className="mt-8 rounded-2xl border-2 border-[#2708ab] bg-[#2708ab] p-6 text-center text-white">
-                        <p className="mb-1 text-lg font-extrabold">Interessado em alguma vaga?</p>
-                        <p className="mb-4 text-sm text-blue-200">
-                            Entre em contato conosco pelo formulário de contato ou pelas nossas redes sociais.
-                        </p>
+                <div className="mt-8 rounded-2xl border-2 border-[#2708ab] bg-[#2708ab] p-6 md:p-8">
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="flex items-start gap-4">
+                            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#fdf25a] text-[#2708ab] shadow-[2px_2px_0_rgba(255,255,255,0.3)]">
+                                <UserPlus className="h-6 w-6" />
+                            </div>
+                            <div>
+                                <p className="text-lg font-extrabold text-white">Quer fazer parte do DCE?</p>
+                                <p className="mt-1 text-sm text-blue-200">
+                                    Candidate-se a um cargo na nossa gestão e ajude a transformar a universidade.
+                                </p>
+                            </div>
+                        </div>
                         <Link
-                            href="/home/contato"
-                            className="inline-flex items-center gap-2 rounded-lg border-2 border-[#fdf25a] bg-[#fdf25a] px-5 py-2.5 text-sm font-bold text-[#2708ab] shadow-[3px_3px_0_rgba(255,255,255,0.3)] transition-transform hover:-translate-y-0.5"
+                            href="/home/inscricao-cargo"
+                            className="inline-flex shrink-0 items-center gap-2 rounded-xl border-2 border-[#fdf25a] bg-[#fdf25a] px-6 py-3 text-sm font-extrabold text-[#2708ab] shadow-[3px_3px_0_rgba(255,255,255,0.3)] transition-all hover:-translate-y-0.5 hover:shadow-[4px_4px_0_rgba(255,255,255,0.3)]"
                         >
-                            Entrar em contato
+                            Inscreva-se agora
                             <ChevronRight className="h-4 w-4" />
                         </Link>
                     </div>
-                )}
+                </div>
 
             </div>
         </section>
