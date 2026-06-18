@@ -36,6 +36,7 @@ const NAV_LINKS = [
     { href: "/home/events", label: "Eventos" },
     { href: "/home/documentos", label: "Editais e Atas" },
     { href: "/home/sobre-o-dce", label: "Sobre o DCE" },
+    { href: "/home/inscricao-cargo", label: "Participe" },
     { href: "/home/contato", label: "Contato" },
 ]
 
